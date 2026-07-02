@@ -74,9 +74,29 @@ async function countVotersByElectionIds(electionIds) {
     });
   }
 
+  const allIds = new Set();
+  voterSets.forEach((set) => set.forEach((id) => allIds.add(id)));
+
+  // user_election_access also scopes election_admins to elections they manage;
+  // only role="voter" rows count as actual eligible voters.
+  let voterRoleIds = new Set();
+  if (allIds.size) {
+    const { data: voterRows, error: vErr } = await supabase
+      .from("users")
+      .select("id")
+      .in("id", Array.from(allIds))
+      .eq("role", "voter");
+    if (vErr) throw vErr;
+    voterRoleIds = new Set((voterRows || []).map((r) => r.id));
+  }
+
   const counts = initCountMap(electionIds);
   voterSets.forEach((set, electionId) => {
-    counts[electionId] = set.size;
+    let count = 0;
+    set.forEach((id) => {
+      if (voterRoleIds.has(id)) count += 1;
+    });
+    counts[electionId] = count;
   });
   return counts;
 }

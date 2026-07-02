@@ -194,7 +194,18 @@ async function getUserIdsWithElectionAccess(electionId) {
     (groupVoters || []).forEach((r) => ids.add(r.user_id));
   }
 
-  return Array.from(ids);
+  if (!ids.size) return [];
+
+  // user_election_access is also used to scope election_admins to elections
+  // they manage; only role="voter" rows count as actual eligible voters.
+  const { data: voterRows, error: uErr } = await supabase
+    .from("users")
+    .select("id")
+    .in("id", Array.from(ids))
+    .eq("role", "voter");
+  if (uErr) throw uErr;
+
+  return (voterRows || []).map((r) => r.id);
 }
 
 async function getAssignedVoterIdsForElection(electionId) {

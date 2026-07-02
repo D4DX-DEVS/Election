@@ -259,7 +259,7 @@ export default function ElectionWorkspace() {
               genderBasedSelection={!!election?.genderBasedSelection}
             />
           )}
-          {id && election?.manualWinnerSelection && (
+          {id && !electionLocked && election?.manualWinnerSelection && (
             <ManualWinnerPicker
               electionId={id}
               enabled={!!election.manualWinnerSelection}

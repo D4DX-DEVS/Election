@@ -11,7 +11,7 @@ services:
   - name: api
     github:
       repo: D4dx-backend/election
-      branch: main
+      branch: production
       deploy_on_push: true
     source_dir: election-api
     dockerfile_path: election-api/Dockerfile

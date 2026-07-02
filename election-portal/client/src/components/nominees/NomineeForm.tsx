@@ -274,6 +274,24 @@ export function NomineeForm({
         return;
       }
 
+      const trimmedName = data.name.trim();
+      const existingRes = await apiRequest('GET', `/api/nominees/election/${resolvedElectionId}`);
+      const existingBody = await existingRes.json();
+      const existingNominees = (existingBody.data || []) as Array<{ _id?: string; id?: string; name?: string }>;
+      const isDuplicate = existingNominees.some(
+        (n) =>
+          String(n._id || n.id) !== String(nomineeId) &&
+          String(n.name || '').trim().toLowerCase() === trimmedName.toLowerCase()
+      );
+      if (isDuplicate) {
+        toast({
+          title: 'Duplicate nominee',
+          description: `A nominee named "${trimmedName}" already exists for this election.`,
+          variant: 'destructive',
+        });
+        return;
+      }
+
       const descriptionValue = data.description?.trim() || '';
       let createdNominee: Record<string, unknown> | undefined;
       let photoUploadFailed = false;
@@ -483,6 +501,31 @@ export function NomineeForm({
           title: 'No valid nominees',
           description: 'Please enter nominee names with gender using format: "Name-m" or "Name-f", separated by commas',
           variant: 'destructive'
+        });
+        return;
+      }
+
+      const existingRes = await apiRequest('GET', `/api/nominees/election/${resolvedElectionId}`);
+      const existingBody = await existingRes.json();
+      const existingNames = new Set(
+        ((existingBody.data || []) as Array<{ name?: string }>).map((n) =>
+          String(n.name || '').trim().toLowerCase()
+        )
+      );
+      const seenInBatch = new Set<string>();
+      const duplicates: string[] = [];
+      for (const n of nominees) {
+        const key = n.name.trim().toLowerCase();
+        if (existingNames.has(key) || seenInBatch.has(key)) {
+          duplicates.push(n.name);
+        }
+        seenInBatch.add(key);
+      }
+      if (duplicates.length > 0) {
+        toast({
+          title: 'Duplicate nominee names',
+          description: `Already exists or repeated: ${duplicates.slice(0, 5).join(', ')}${duplicates.length > 5 ? ` and ${duplicates.length - 5} more` : ''}`,
+          variant: 'destructive',
         });
         return;
       }

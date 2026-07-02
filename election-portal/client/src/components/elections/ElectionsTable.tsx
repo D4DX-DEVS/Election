@@ -77,7 +77,7 @@ function ElectionMobileActions({
             Edit
           </DropdownMenuItem>
         ) : (
-          <DropdownMenuItem onClick={() => onNavigate(`/elections/${id}?tab=results`)}>
+          <DropdownMenuItem onClick={() => onNavigate(`/elections/${id}/results`)}>
             View results
           </DropdownMenuItem>
         )}
@@ -262,7 +262,7 @@ export function ElectionsTable({
                         </Button>
                       </Link>
                     ) : (
-                      <Link href={`/elections/${electionId}?tab=results`}>
+                      <Link href={`/elections/${electionId}/results`}>
                         <Button variant="ghost" size="sm" className="mr-1">
                           View results
                         </Button>

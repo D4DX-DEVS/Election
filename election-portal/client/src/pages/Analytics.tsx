@@ -233,7 +233,7 @@ export default function Analytics({ embedded = false, electionId }: { embedded?:
 
       {selectedElectionId && analytics && !analyticsLoading && (
         <>
-          {selectedElection?.manualWinnerSelection && (
+          {!embedded && selectedElection?.manualWinnerSelection && (
             <ManualWinnerPicker
               electionId={selectedElectionId}
               enabled
@@ -242,7 +242,7 @@ export default function Analytics({ embedded = false, electionId }: { embedded?:
               manualWinnerIds={selectedElection.manualWinnerIds || []}
             />
           )}
-          {selectedElection?.adminVotingDetailsEnabled && (
+          {!embedded && selectedElection?.adminVotingDetailsEnabled && (
             <AdminVotingDetailsPanel electionId={selectedElectionId} enabled />
           )}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">

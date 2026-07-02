@@ -1,9 +1,20 @@
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SelectCheckbox } from "@/components/ui/row-select-checkbox";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Trophy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -32,7 +43,9 @@ export function ManualWinnerPicker({
   manualWinnerIds = [],
 }: ManualWinnerPickerProps) {
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   const [selected, setSelected] = useState<string[]>(manualWinnerIds.map(String));
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   useEffect(() => {
     setSelected(manualWinnerIds.map(String));
@@ -46,11 +59,13 @@ export function ManualWinnerPicker({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/elections/${electionId}`] });
       queryClient.invalidateQueries({ queryKey: ["/api/vote/results", electionId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/elections"] });
       toast({
         title: "Winners saved",
         description: "Manual winner selection has been updated.",
         variant: "success",
       });
+      navigate("/elections");
     },
     onError: (err: Error) => {
       toast({
@@ -133,13 +148,41 @@ export function ManualWinnerPicker({
         )}
         <div className="flex justify-end">
           <Button
-            onClick={() => saveMutation.mutate(selected)}
+            onClick={() => {
+              if (selected.length > 0) {
+                setConfirmOpen(true);
+              } else {
+                saveMutation.mutate(selected);
+              }
+            }}
             disabled={saveMutation.isPending || nominees.length === 0}
           >
             {saveMutation.isPending ? "Saving…" : "Save Winners"}
           </Button>
         </div>
       </CardContent>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm winner selection</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will mark the election as completed and lock further edits. Are you sure?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setConfirmOpen(false);
+                saveMutation.mutate(selected);
+              }}
+            >
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

@@ -10,6 +10,7 @@ import Elections from "@/pages/Elections";
 import CreateElection from "@/pages/CreateElection";
 import EditElection from "@/pages/EditElection";
 import ElectionWorkspace from "@/pages/ElectionWorkspace";
+import ElectionResults from "@/pages/ElectionResults";
 import Voters from "@/pages/Voters";
 import Analytics from "@/pages/Analytics";
 import Franchises from "@/pages/Franchises";
@@ -228,6 +229,7 @@ function Router() {
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/elections/create" component={CreateElection} />
         <Route path="/elections/:id/edit" component={EditElection} />
+        <Route path="/elections/:id/results" component={ElectionResults} />
         <Route path="/elections/:id" component={ElectionWorkspace} />
         <Route path="/elections" component={Elections} />
         <Route path="/nominees" component={() => <RedirectTo path="/elections" />} />

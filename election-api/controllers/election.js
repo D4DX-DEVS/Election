@@ -99,6 +99,12 @@ exports.setManualWinners = async (req, res) => {
     const election = await elections.findById(req.params.id);
     if (!election) return res.status(404).json({ success: false, message: "Election not found." });
     if (await denyUnlessCanAccessElection(req, res, election)) return;
+    if (LOCKED_ELECTION_STATUSES.has(election.status)) {
+      return res.status(403).json({
+        success: false,
+        message: "Completed or archived elections cannot be edited.",
+      });
+    }
     if (!election.manualWinnerSelection) {
       return res.status(400).json({
         success: false,
@@ -130,7 +136,12 @@ exports.setManualWinners = async (req, res) => {
       }
     }
 
-    const updated = await elections.updateById(req.params.id, { manualWinnerIds: uniqueIds });
+    const patch = { manualWinnerIds: uniqueIds };
+    if (uniqueIds.length > 0 && election.status !== "archived") {
+      patch.status = "completed";
+      patch.votingOpen = false;
+    }
+    const updated = await elections.updateById(req.params.id, patch);
     await logUserActivity(req.user._id, req.ip, "Set Manual Winners", election.title, "Election");
     res.status(200).json({ success: true, data: updated });
   } catch (err) {

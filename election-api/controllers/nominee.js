@@ -64,20 +64,13 @@ async function buildNomineePayload(req) {
 
 async function assertNoDuplicateNominee(electionId, name, excludeId) {
   const normalized = String(name || "").trim().toLowerCase();
-  console.log(`[DUPE CHECK] electionId=${electionId}, name="${name}", normalized="${normalized}"`);
-  if (!normalized) {
-    console.log("[DUPE CHECK] Name empty, skipping check");
-    return;
-  }
+  if (!normalized) return;
   const existing = await nominees.findByElection(electionId);
-  console.log(`[DUPE CHECK] Found ${existing.length} existing nominees`);
-  existing.forEach((n) => console.log(`[DUPE CHECK] Existing: "${n.name}" → normalized: "${String(n.name || "").trim().toLowerCase()}"`));
   const clash = existing.some(
     (n) =>
       String(n._id || n.id) !== String(excludeId) &&
       String(n.name || "").trim().toLowerCase() === normalized
   );
-  console.log(`[DUPE CHECK] Clash found: ${clash}`);
   if (clash) {
     const err = new Error("A nominee with this name already exists for this election.");
     err.statusCode = 409;

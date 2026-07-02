@@ -15,7 +15,7 @@ router
 
 router
   .route("/:id")
-  .get(protect, admin, getFranchiseById)
+  .get(protect, getFranchiseById)
   .put(protect, franchiseOrSuper, upload.single("logo"), uploadToCdn("franchises"), updateFranchiseById)
   .delete(protect, superAdmin, deleteFranchiseById);
 

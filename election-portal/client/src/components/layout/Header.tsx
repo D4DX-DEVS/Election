@@ -105,7 +105,9 @@ export function Header({ toggleSidebar, user }: HeaderProps) {
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden md:flex md:flex-col md:items-start">
-                  <span className="text-sm font-medium">{user.name}</span>
+                  {user.name.trim().toLowerCase() !== (user.displayRole || user.role).trim().toLowerCase() && (
+                    <span className="text-sm font-medium">{user.name}</span>
+                  )}
                   <Badge variant="outline" className="px-1 py-0 text-xs h-5 bg-slate-100">
                     <Shield className="h-3 w-3 mr-1" />
                     {user.displayRole || user.role}

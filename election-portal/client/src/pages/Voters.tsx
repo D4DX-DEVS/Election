@@ -15,7 +15,7 @@ import { BulkVoterSlipPrinter } from "@/components/voters/BulkVoterSlipPrinter";
 import VoterGroups from "@/pages/VoterGroups";
 import { Button } from "@/components/ui/button";
 import { SelectCheckbox } from "@/components/ui/row-select-checkbox";
-import { PlusIcon, Upload, AlertCircle, UsersRound, Download, MoreHorizontal, Search, FileSpreadsheet, Printer, Users } from "lucide-react";
+import { PlusIcon, Upload, AlertCircle, UsersRound, Download, MoreHorizontal, Search, FileSpreadsheet, Users } from "lucide-react";
 import {
   downloadVoterImportTemplate,
   exportVotersToExcel,
@@ -606,8 +606,8 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
                     Bulk create
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setPrintSlipsOpen(true)}>
-                    <Printer className="h-4 w-4 mr-2" />
-                    Print slips
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

@@ -5,11 +5,12 @@ const { logUserActivity, logAuditFromReq } = require("../utils/auditLog");
 const roles = require("../lib/roles");
 const { resolveShuffledPrefix } = require("../lib/prefixShuffle");
 
-const generatePassword = () => {
-  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-  let pw = "";
-  for (let i = 0; i < 8; i++) pw += chars[Math.floor(Math.random() * chars.length)];
-  return pw;
+const generatePassword = (prefix) => {
+  const letters = "abcdefghijklmnopqrstuvwxyz";
+  const prefixPart = String(prefix || "").toLowerCase().replace(/[^a-z]/g, "").slice(0, 4);
+  let suffix = "";
+  for (let i = 0; i < 4; i++) suffix += letters[Math.floor(Math.random() * letters.length)];
+  return prefixPart + suffix;
 };
 
 function sendError(res, err) {
@@ -310,7 +311,7 @@ exports.createVoter = async (req, res) => {
     const plainPassword =
       req.body.password && String(req.body.password).trim()
         ? String(req.body.password).trim()
-        : generatePassword();
+        : generatePassword(username);
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
     const franchiseId = roles.resolveFranchiseIdForActor(req.user, req.body.franchiseId);
     const { electionIds } = req.body;
@@ -323,6 +324,7 @@ exports.createVoter = async (req, res) => {
     const user = await users.create({
       username,
       password: hashedPassword,
+      plainPassword,
       fullName: req.body.fullName || username,
       role: "voter",
       isVoter: true,
@@ -389,12 +391,17 @@ exports.generateVoters = async (req, res) => {
 
     const franchiseId = roles.resolveFranchiseIdForActor(req.user, req.body.franchiseId);
 
+    const usedPasswords = new Set();
     const docs = [];
     for (let i = 0; i < num; i++) {
       const seq = start + i;
       const username = `${shuffledPrefix}${seq}`;
       if (existingLower.has(username.toLowerCase())) continue;
-      const plainPassword = generatePassword();
+      let plainPassword;
+      do {
+        plainPassword = generatePassword(shuffledPrefix);
+      } while (usedPasswords.has(plainPassword));
+      usedPasswords.add(plainPassword);
       const hashedPassword = await bcrypt.hash(plainPassword, 10);
       docs.push({
         username,
@@ -581,7 +588,7 @@ exports.resetPassword = async (req, res) => {
     const { newPassword } = req.body;
     if (!newPassword) return res.status(400).json({ success: false, message: "newPassword is required." });
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await users.updateById(req.params.id, { password: hashedPassword });
+    await users.updateById(req.params.id, { password: hashedPassword, plainPassword: newPassword });
     await logAuditFromReq(req, "Reset password for", existing.username, "User", existing._id || existing.id);
     res.status(200).json({ success: true, message: "Password reset successfully." });
   } catch (err) {

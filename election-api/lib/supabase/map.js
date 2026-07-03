@@ -32,7 +32,8 @@ function mapUser(row, extras = {}) {
       sequenceNumber: row.voter_sequence_number,
     };
   }
-  if (extras.plainPassword) user.plainPassword = extras.plainPassword;
+  const plainPassword = extras.plainPassword || row.plain_password;
+  if (plainPassword) user.plainPassword = plainPassword;
   return user;
 }
 
@@ -40,6 +41,7 @@ function userToRow(data) {
   const row = {};
   if (data.username !== undefined) row.username = data.username;
   if (data.password !== undefined) row.password = data.password;
+  if (data.plainPassword !== undefined) row.plain_password = data.plainPassword;
   if (data.email !== undefined) row.email = data.email;
   if (data.fullName !== undefined) row.full_name = data.fullName;
   if (data.role !== undefined) row.role = data.role;

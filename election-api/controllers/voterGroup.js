@@ -6,6 +6,14 @@ const { logUserActivity, logAuditFromReq } = require("../utils/auditLog");
 const { resolveShuffledPrefix } = require("../lib/prefixShuffle");
 const { sameFranchise } = require("../lib/roles");
 
+function generateVoterPassword(prefix) {
+  const letters = "abcdefghijklmnopqrstuvwxyz";
+  const prefixPart = String(prefix || "").toLowerCase().replace(/[^a-z]/g, "").slice(0, 4);
+  let suffix = "";
+  for (let i = 0; i < 4; i++) suffix += letters[Math.floor(Math.random() * letters.length)];
+  return prefixPart + suffix;
+}
+
 function resolveGroupFranchiseId(group) {
   if (!group?.franchiseId) return "";
   const src = group.franchiseId;
@@ -256,7 +264,7 @@ exports.addVoterToGroup = async (req, res) => {
     const existing = await users.findByUsername(String(username).trim());
     if (existing) return res.status(409).json({ success: false, message: "Username already exists." });
 
-    const plainPassword = Math.random().toString(36).slice(-8);
+    const plainPassword = generateVoterPassword(username);
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
     const franchiseId = roles.resolveFranchiseIdForActor(req.user, req.body.franchiseId);
     const electionAccess = (group.elections || []).map((e) => (typeof e === "object" ? e._id || e.id : e));
@@ -264,6 +272,7 @@ exports.addVoterToGroup = async (req, res) => {
     const voter = await users.create({
       username: String(username).trim(),
       password: hashedPassword,
+      plainPassword,
       fullName: fullName || username,
       registrationNumber: registrationNumber || username,
       role: "voter",
@@ -339,12 +348,17 @@ exports.generateVotersInGroup = async (req, res) => {
     const existing = await users.findByUsernames(usernames);
     const existingSet = new Set(existing.map((u) => u.username.toLowerCase()));
 
+    const usedPasswords = new Set();
     const docs = [];
     for (let i = 0; i < num; i++) {
       const seq = start + i;
       const username = `${shuffledPrefix}${seq}`;
       if (existingSet.has(username.toLowerCase())) continue;
-      const plainPassword = Math.random().toString(36).slice(-8);
+      let plainPassword;
+      do {
+        plainPassword = generateVoterPassword(shuffledPrefix);
+      } while (usedPasswords.has(plainPassword));
+      usedPasswords.add(plainPassword);
       const hashedPassword = await bcrypt.hash(plainPassword, 10);
       docs.push({
         username,

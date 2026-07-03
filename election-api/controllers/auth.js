@@ -164,7 +164,8 @@ exports.changePassword = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(String(newPassword), 10);
-    await users.updateById(userId, { password: hashedPassword });
+    // User set this themselves, so admins should no longer see it in plaintext.
+    await users.updateById(userId, { password: hashedPassword, plainPassword: null });
 
     await logUserActivity(userId, req.ip, "Changed password", user.username, "User", userId);
 
@@ -209,7 +210,8 @@ exports.forgotPassword = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(String(newPassword), 10);
-    await users.updateById(user._id, { password: hashedPassword });
+    // User set this themselves, so admins should no longer see it in plaintext.
+    await users.updateById(user._id, { password: hashedPassword, plainPassword: null });
 
     await logUserActivity(user._id, req.ip, "Reset password via forgot flow", user.username, "User", user._id);
 

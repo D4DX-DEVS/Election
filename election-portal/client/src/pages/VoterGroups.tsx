@@ -101,6 +101,7 @@ export default function VoterGroups({
   const [isOpen, setIsOpen] = useState(false);
   const [groupName, setGroupName] = useState("");
   const [pendingDeleteIds, setPendingDeleteIds] = useState<string[] | null>(null);
+  const [pendingDeleteGroupVoterIds, setPendingDeleteGroupVoterIds] = useState<string[] | null>(null);
   const [page, setPage] = useState(1);
   const pageSize = 10;
   const [groupVotersPage, setGroupVotersPage] = useState(1);
@@ -401,6 +402,34 @@ export default function VoterGroups({
     onError: (err: Error) => {
       toast({ title: "Could not delete group(s)", description: err.message, variant: "destructive" });
       setPendingDeleteIds(null);
+    },
+  });
+
+  const groupVoterPageIds = groupVoters.map((v) => v._id).filter(Boolean);
+  const groupVoterSelection = useBulkDeleteMode(groupVoterPageIds);
+
+  const deleteGroupVotersMutation = useMutation({
+    mutationFn: async (ids: string[]) => deleteByIds(ids, (id) => `/api/users/voters/${id}`),
+    onSuccess: (result, ids) => {
+      setPendingDeleteGroupVoterIds(null);
+      groupVoterSelection.exitDeleteMode();
+      queryClient.invalidateQueries({ queryKey: ["/api/voter-groups/voters"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/voter-groups"] });
+
+      toast({
+        title: ids.length === 1 ? "Voter deleted" : "Voters deleted",
+        description:
+          result.failed.length === 0
+            ? ids.length === 1
+              ? "The voter has been deleted."
+              : `${result.deleted.length} voter(s) deleted successfully.`
+            : `${result.deleted.length} deleted, ${result.failed.length} failed.`,
+        variant: result.failed.length ? "destructive" : "success",
+      });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Could not delete voter(s)", description: err.message, variant: "destructive" });
+      setPendingDeleteGroupVoterIds(null);
     },
   });
 
@@ -731,6 +760,15 @@ export default function VoterGroups({
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
+
+                <DeleteModeButton
+                  active={groupVoterSelection.deleteMode}
+                  onClick={() =>
+                    groupVoterSelection.deleteMode
+                      ? groupVoterSelection.exitDeleteMode()
+                      : groupVoterSelection.enterDeleteMode()
+                  }
+                />
               </div>
             </div>
 
@@ -740,10 +778,36 @@ export default function VoterGroups({
               <Card><CardContent className="py-10 text-center text-gray-500">No voters in this group yet. Add voters above.</CardContent></Card>
             ) : (
               <div className="space-y-3">
+              <DeleteModeBar
+                active={groupVoterSelection.deleteMode}
+                count={groupVoterSelection.selectedCount}
+                entityLabel="voter"
+                onCancel={groupVoterSelection.exitDeleteMode}
+                onConfirmDelete={() =>
+                  groupVoterSelection.selectedCount > 0 &&
+                  setPendingDeleteGroupVoterIds([...groupVoterSelection.selectedIds])
+                }
+                deleting={deleteGroupVotersMutation.isPending}
+              />
               <div className="border rounded-lg overflow-hidden">
                 <table className="w-full text-sm">
                   <thead className="bg-white border-b">
                     <tr>
+                      {groupVoterSelection.showSelectors && (
+                        <th className="w-7 px-1 py-2">
+                          <RowSelectCheckbox
+                            checked={
+                              groupVoterSelection.allSelected
+                                ? true
+                                : groupVoterSelection.someSelected
+                                  ? "indeterminate"
+                                  : false
+                            }
+                            onCheckedChange={() => groupVoterSelection.toggleAll()}
+                            aria-label="Select all voters on this page"
+                          />
+                        </th>
+                      )}
                       <th className="text-left px-4 py-2 font-medium text-gray-600">Username</th>
                       <th className="text-left px-4 py-2 font-medium text-gray-600">Password</th>
                       <th className="text-left px-4 py-2 font-medium text-gray-600">Status</th>
@@ -753,13 +817,35 @@ export default function VoterGroups({
                   <tbody className="divide-y">
                     {groupVoters.map((v) => (
                       <tr key={v._id} className="hover:bg-primary/5">
+                        {groupVoterSelection.showSelectors && (
+                          <td className="w-7 px-1 py-2">
+                            <RowSelectCheckbox
+                              checked={groupVoterSelection.isSelected(v._id)}
+                              onCheckedChange={() => groupVoterSelection.toggle(v._id)}
+                              aria-label={`Select ${getDisplayUsername(v)}`}
+                            />
+                          </td>
+                        )}
                         <td className="px-4 py-2 font-mono">{getDisplayUsername(v)}</td>
                         <td className="px-4 py-2 font-mono text-gray-600">{(v as any).plainPassword || <span className="text-gray-400 italic">hidden</span>}</td>
                         <td className="px-4 py-2">
                           <Badge variant={v.status === "active" ? "default" : "secondary"}>{v.status || "active"}</Badge>
                         </td>
                         <td className="px-4 py-2">
-                          <VoterSlipPrinter voter={v as any} electionNames={elections.filter(e => (v.electionAccess || []).includes(e._id)).map(e => getElectionLabel(e))} />
+                          <div className="flex items-center gap-1">
+                            <VoterSlipPrinter voter={v as any} electionNames={elections.filter(e => (v.electionAccess || []).includes(e._id)).map(e => getElectionLabel(e))} />
+                            {!groupVoterSelection.deleteMode && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                onClick={() => setPendingDeleteGroupVoterIds([v._id])}
+                                title="Delete voter"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -786,6 +872,26 @@ export default function VoterGroups({
           onOpenChange={setPrintSlipsOpen}
           hideTrigger
           title={selectedGroup ? `${selectedGroup.name} ? Print Slips` : undefined}
+        />
+        <ConfirmDialog
+          open={!!pendingDeleteGroupVoterIds?.length}
+          onOpenChange={(open) => !open && setPendingDeleteGroupVoterIds(null)}
+          onConfirm={() =>
+            pendingDeleteGroupVoterIds?.length &&
+            deleteGroupVotersMutation.mutate(pendingDeleteGroupVoterIds)
+          }
+          loading={deleteGroupVotersMutation.isPending}
+          title="Are you sure?"
+          description={
+            pendingDeleteGroupVoterIds && pendingDeleteGroupVoterIds.length > 1
+              ? `This will permanently delete ${pendingDeleteGroupVoterIds.length} voter accounts. This action cannot be undone.`
+              : "This will permanently delete this voter account. This action cannot be undone."
+          }
+          confirmText={
+            pendingDeleteGroupVoterIds && pendingDeleteGroupVoterIds.length > 1
+              ? `Delete ${pendingDeleteGroupVoterIds.length} voters`
+              : "Delete voter"
+          }
         />
       </Wrapper>
     );

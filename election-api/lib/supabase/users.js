@@ -256,7 +256,7 @@ async function addElectionAccessToUsers(userIds, electionIds) {
 
 async function create(data) {
   const supabase = getSupabase();
-  const { electionAccess, plainPassword, voterMetadata, ...rest } = data;
+  const { electionAccess, voterMetadata, ...rest } = data;
   if (rest.username) rest.username = String(rest.username).trim();
   if (rest.email) rest.email = String(rest.email).trim();
   const row = userToRow(rest);
@@ -283,7 +283,7 @@ async function create(data) {
   const access = Array.isArray(electionAccess) ? electionAccess : [];
   if (access.length) await setElectionAccess(created.id, access);
 
-  const user = mapUser(created, { electionAccess: access, plainPassword });
+  const user = mapUser(created, { electionAccess: access });
   return user;
 }
 
@@ -305,7 +305,7 @@ async function insertMany(docs) {
 async function updateById(id, data) {
   if (!isUuid(id)) return null;
   const supabase = getSupabase();
-  const { electionAccess, plainPassword, voterMetadata, ...rest } = data;
+  const { electionAccess, voterMetadata, ...rest } = data;
   const row = userToRow(rest);
   if (voterMetadata) {
     if (voterMetadata.prefix !== undefined) row.voter_prefix = voterMetadata.prefix;

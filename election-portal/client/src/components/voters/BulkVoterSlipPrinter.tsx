@@ -220,7 +220,7 @@ export function BulkVoterSlipPrinter({
         doc.text(`#${voter.sequenceNumber || index + 1}`, x + slipWidth - 10, y + 7);
         
         // Voter details — dynamic Y so elections always appear before the footer
-        const displayPwd = voter.plainPassword || voter.username?.toLowerCase() || "N/A";
+        const displayPwd = voter.plainPassword || "Not available";
         let lineY = y + 18;
         const lineGap = 6;
 

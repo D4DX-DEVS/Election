@@ -34,9 +34,9 @@ export function VoterSlipPrinter({
   const setOpen = onOpenChange ?? setInternalOpen;
   const { toast } = useToast();
 
-  // Use the stored plain-text password when available; fall back gracefully
-  // for voters created before this feature was added.
-  const displayPassword = voter.plainPassword || voter.username?.toLowerCase() || "N/A";
+  // Plaintext passwords are never persisted (only bcrypt hashes are stored),
+  // so this is only available right after the voter was created.
+  const displayPassword = voter.plainPassword || "Not available (shown once, at creation)";
 
   const printSlip = () => {
     const printWindow = window.open('', '_blank');

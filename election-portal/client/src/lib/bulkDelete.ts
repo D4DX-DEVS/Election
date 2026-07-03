@@ -12,25 +12,27 @@ export async function deleteByIds(
   const deleted: string[] = [];
   const failed: BulkDeleteResult["failed"] = [];
 
-  for (const id of ids) {
-    try {
-      const response = await apiRequest("DELETE", buildUrl(id));
-      if (!response.ok) {
-        const body = await response.json().catch(() => ({}));
+  await Promise.all(
+    ids.map(async (id) => {
+      try {
+        const response = await apiRequest("DELETE", buildUrl(id));
+        if (!response.ok) {
+          const body = await response.json().catch(() => ({}));
+          failed.push({
+            id,
+            error: body.message || body.error || `HTTP ${response.status}`,
+          });
+          return;
+        }
+        deleted.push(id);
+      } catch (error) {
         failed.push({
           id,
-          error: body.message || body.error || `HTTP ${response.status}`,
+          error: error instanceof Error ? error.message : "Unknown error",
         });
-        continue;
       }
-      deleted.push(id);
-    } catch (error) {
-      failed.push({
-        id,
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  }
+    })
+  );
 
   return { deleted, failed };
 }

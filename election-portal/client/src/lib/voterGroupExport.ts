@@ -133,7 +133,7 @@ export async function exportGroupVotersToPdf(
     head: [["Username", "Password", "Status", "Elections"]],
     body: voters.map((v) => [
       getDisplayUsername(v),
-      v.plainPassword || "(hidden)",
+      v.plainPassword || "Not available",
       v.status || "active",
       electionNamesForVoter(v, elections),
     ]),

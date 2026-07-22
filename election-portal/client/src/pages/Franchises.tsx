@@ -908,7 +908,7 @@ export default function Franchises() {
             </div>
 
             <Card>
-              <CardHeader className="px-4 sm:px-6 py-4 border-b border-gray-200 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <CardHeader className="px-4 sm:px-6 py-4 border-b border-gray-200 flex flex-row items-center justify-between gap-3">
                 <div>
                 <CardTitle className="text-lg font-medium text-gray-900">All Franchises</CardTitle>
                 <CardDescription>

@@ -22,6 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
+import { getStoredUser } from "@/lib/authUser";
 
 // Step interface for the onboarding process
 interface OnboardingStep {
@@ -40,10 +41,10 @@ export default function Onboarding() {
   const [activeTab, setActiveTab] = useState("welcome");
   const [onboardingComplete, setOnboardingComplete] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [completedStepIds, setCompletedStepIds] = useState<Set<string>>(new Set());
 
   // Get user from local storage
-  const userString = localStorage.getItem("user");
-  const user = userString ? JSON.parse(userString) : null;
+  const user = getStoredUser();
   const userRole = user?.role || "viewer";
 
   // Define steps based on user role
@@ -165,10 +166,9 @@ export default function Onboarding() {
 
   // Update progress bar
   useEffect(() => {
-    const completedSteps = steps.filter(step => step.isCompleted).length;
-    const newProgress = (completedSteps / steps.length) * 100;
+    const newProgress = (completedStepIds.size / steps.length) * 100;
     setProgress(newProgress);
-  }, [steps]);
+  }, [completedStepIds, steps.length]);
 
   // Check if onboarding is already completed - runs only once on mount
   useEffect(() => {
@@ -209,9 +209,7 @@ export default function Onboarding() {
       // Redirect based on role
       if (userRole === "super_admin") {
         navigate("/");
-      } else if (userRole === "franchise_admin") {
-        navigate("/elections");
-      } else if (userRole === "election_admin") {
+      } else if (userRole === "franchise_admin" || userRole === "election_admin") {
         navigate("/elections");
       } else {
         navigate("/");
@@ -228,17 +226,13 @@ export default function Onboarding() {
 
   // Handle navigation between steps
   const goToNextStep = () => {
-    if (currentStepIndex < steps.length - 1) {
-      // Mark current step as completed
-      steps[currentStepIndex].isCompleted = true;
+    setCompletedStepIds((prev) => new Set(prev).add(steps[currentStepIndex].id));
 
+    if (currentStepIndex < steps.length - 1) {
       // Move to next step
       setCurrentStepIndex(currentStepIndex + 1);
       setActiveTab(steps[currentStepIndex + 1].id);
     } else {
-      // Mark final step as completed
-      steps[currentStepIndex].isCompleted = true;
-
       // Complete onboarding
       completeOnboardingMutation.mutate();
     }
@@ -257,16 +251,18 @@ export default function Onboarding() {
   };
 
   // If onboarding is already completed, redirect to appropriate page
-  if (onboardingComplete) {
+  useEffect(() => {
+    if (!onboardingComplete) return;
     if (userRole === "super_admin") {
       navigate("/");
-    } else if (userRole === "franchise_admin") {
+    } else if (userRole === "franchise_admin" || userRole === "election_admin") {
       navigate("/elections");
-    } else if (userRole === "election_admin") {
-      navigate("/nominees");
     } else {
       navigate("/");
     }
+  }, [onboardingComplete, userRole, navigate]);
+
+  if (onboardingComplete) {
     return null;
   }
 
@@ -330,7 +326,7 @@ export default function Onboarding() {
                         }}
                       >
                         <span className="mr-3 flex-shrink-0">
-                          {step.isCompleted ? (
+                          {completedStepIds.has(step.id) ? (
                             <CheckCircle2 
                               className="h-5 w-5 text-green-500" 
                             />
@@ -390,8 +386,7 @@ export default function Onboarding() {
 // Step Components
 function WelcomeStep() {
   // Get user from local storage
-  const userString = localStorage.getItem("user");
-  const user = userString ? JSON.parse(userString) : null;
+  const user = getStoredUser();
   const userName = user?.fullName || user?.username || "User";
   const userRole = user?.role || "viewer";
 
@@ -484,8 +479,7 @@ function WelcomeStep() {
 
 function SystemTourStep() {
   // Get user role
-  const userString = localStorage.getItem("user");
-  const user = userString ? JSON.parse(userString) : null;
+  const user = getStoredUser();
   const userRole = user?.role || "viewer";
 
   return (
@@ -927,8 +921,7 @@ function NomineeSetupStep() {
 
 function CompleteStep() {
   // Get user role
-  const userString = localStorage.getItem("user");
-  const user = userString ? JSON.parse(userString) : null;
+  const user = getStoredUser();
   const userRole = user?.role || "viewer";
   const userName = user?.fullName || user?.username || "User";
 

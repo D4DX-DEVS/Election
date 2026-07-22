@@ -172,6 +172,9 @@ export default function Franchises() {
     onSuccess: (result, ids) => {
       setPendingDeleteFranchiseIds(null);
       franchiseSelection.exitDeleteMode();
+      if (page > 1 && result.deleted.length >= franchises.length) {
+        setPage(page - 1);
+      }
       queryClient.invalidateQueries({ queryKey: ["/api/franchises"] });
       queryClient.invalidateQueries({ queryKey: ["/api/audit-logs"] });
       toast({
@@ -463,7 +466,9 @@ export default function Franchises() {
   const handleManageAdmin = (franchise: Franchise) => {
     setSelectedFranchise(franchise);
     setAdminFormData({
-      ...adminFormData,
+      username: "",
+      fullName: "",
+      password: "",
       franchiseId: franchise._id
     });
     fetchFranchiseAdmins(franchise._id);

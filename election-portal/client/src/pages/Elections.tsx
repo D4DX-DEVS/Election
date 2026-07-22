@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { isElectionEditable } from "@/lib/electionHelpers";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getStoredUser } from "@/lib/authUser";
 
 export default function Elections() {
   const [filters, setFilters] = useState<ElectionFilter>({});
@@ -29,8 +30,7 @@ export default function Elections() {
   const { toast } = useToast();
 
   // Get user data from localStorage for role-based filtering
-  const userDataString = localStorage.getItem('user');
-  const userData = userDataString ? JSON.parse(userDataString) : null;
+  const userData = getStoredUser();
   const userRole = userData?.role || '';
   const userFranchiseId = userData?.franchiseId || '';
   const userElectionAccess = userData?.electionAccess || [];

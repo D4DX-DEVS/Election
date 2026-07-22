@@ -431,7 +431,7 @@ exports.generateVoters = async (req, res) => {
     const created = await users.insertMany(docs);
 
     if (voterGroupId) {
-      await voterGroups.addVotersToGroup(voterGroupId, createdIds);
+      await voterGroups.addVotersToGroup(voterGroupId, created.map((u) => u._id));
     }
 
     await logAuditFromReq(

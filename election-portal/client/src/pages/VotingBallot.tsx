@@ -111,7 +111,7 @@ export default function VotingBallot() {
       'data' in voterStatusData &&
       (voterStatusData as any).data &&
       electionId &&
-      Object.keys((voterStatusData as any).data).includes(electionId)
+      (voterStatusData as any).data[electionId] === 'voted'
     ) {
       navigate('/voting');
     }

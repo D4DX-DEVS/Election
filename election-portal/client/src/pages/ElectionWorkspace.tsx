@@ -29,6 +29,7 @@ import { ElectionAdminTab } from "@/components/elections/ElectionAdminTab";
 import { AdminVotingDetailsPanel } from "@/components/elections/AdminVotingDetailsPanel";
 import { ManualWinnerPicker } from "@/components/elections/ManualWinnerPicker";
 import { getElectionLabel, isElectionLocked } from "@/lib/electionHelpers";
+import { getStoredUser } from "@/lib/authUser";
 
 function StatusBadge({ status }: { status?: string }) {
   const map: Record<string, string> = {
@@ -58,7 +59,7 @@ export default function ElectionWorkspace() {
   const [tab, setTab] = useState(getTabFromSearch);
 
   // Role: only super/franchise admins may create election admins
-  const userData = JSON.parse(localStorage.getItem("user") || "null");
+  const userData = getStoredUser();
   const role = userData?.role;
   const canManageAdmins = role === "super_admin" || role === "franchise_admin";
 

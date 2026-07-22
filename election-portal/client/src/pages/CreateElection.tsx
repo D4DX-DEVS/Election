@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -11,21 +11,14 @@ export default function CreateElection() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
 
-  const [userRole, setUserRole] = useState<string>("");
-  const [franchiseId, setFranchiseId] = useState<string>("");
-
-  const { data: user, isLoading: isLoadingUser } = useQuery({
+  const { data: user, isLoading: isLoadingUser, isError: isUserError } = useQuery({
     queryKey: ["/api/auth/me"],
   });
 
-  useEffect(() => {
-    if (user) {
-      if (user.role) setUserRole(user.role);
-      if (user.franchiseId) setFranchiseId(user.franchiseId);
-    }
-  }, [user]);
+  const userRole = user?.role || "";
+  const franchiseId = user?.franchiseId || "";
 
-  const { data: franchises, isLoading: isLoadingFranchises } = useQuery({
+  const { data: franchises, isLoading: isLoadingFranchises, isError: isFranchisesError } = useQuery({
     queryKey: ["/api/franchises"],
     enabled: userRole === "super_admin",
   });
@@ -98,6 +91,16 @@ export default function CreateElection() {
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
           <span className="ml-3">Loading...</span>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (isUserError || isFranchisesError) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-64 text-sm text-red-600">
+          Failed to load account details. Please refresh the page.
         </div>
       </MainLayout>
     );

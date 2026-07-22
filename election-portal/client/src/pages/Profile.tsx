@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { AccountShell } from "@/components/account/AccountShell";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +42,7 @@ function getInitials(name: string) {
 export default function Profile() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
 
@@ -49,9 +50,15 @@ export default function Profile() {
     document.title = "Profile | Vote+";
   }, []);
 
-  const { data: user, isLoading } = useQuery<AuthUser>({
+  const { data: user, isLoading, isError, error } = useQuery<AuthUser>({
     queryKey: ["/api/auth/me"],
   });
+
+  useEffect(() => {
+    if (isError && /^401:/.test((error as Error)?.message || "")) {
+      navigate("/login");
+    }
+  }, [isError, error, navigate]);
 
   useEffect(() => {
     if (user) {

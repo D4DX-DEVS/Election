@@ -26,92 +26,92 @@
 
 [[redirects]]
   from   = "/api/auth/*"
-  to     = "https://election-api-vbpil.ondigitalocean.app/api/v1/auth/:splat"
+  to     = "https://election-app-byccp.ondigitalocean.app/api/v1/auth/:splat"
   status = 200
   force  = true
 
 [[redirects]]
   from   = "/api/franchises"
-  to     = "https://election-api-vbpil.ondigitalocean.app/api/v1/franchise"
+  to     = "https://election-app-byccp.ondigitalocean.app/api/v1/franchise"
   status = 200
   force  = true
 
 [[redirects]]
   from   = "/api/franchises/*"
-  to     = "https://election-api-vbpil.ondigitalocean.app/api/v1/franchise/:splat"
+  to     = "https://election-app-byccp.ondigitalocean.app/api/v1/franchise/:splat"
   status = 200
   force  = true
 
 [[redirects]]
   from   = "/api/elections/*"
-  to     = "https://election-api-vbpil.ondigitalocean.app/api/v1/election/:splat"
+  to     = "https://election-app-byccp.ondigitalocean.app/api/v1/election/:splat"
   status = 200
   force  = true
 
 [[redirects]]
   from   = "/api/election-groups/*"
-  to     = "https://election-api-vbpil.ondigitalocean.app/api/v1/electionGroup/:splat"
+  to     = "https://election-app-byccp.ondigitalocean.app/api/v1/electionGroup/:splat"
   status = 200
   force  = true
 
 [[redirects]]
   from   = "/api/nominees/*"
-  to     = "https://election-api-vbpil.ondigitalocean.app/api/v1/nominee/:splat"
+  to     = "https://election-app-byccp.ondigitalocean.app/api/v1/nominee/:splat"
   status = 200
   force  = true
 
 [[redirects]]
   from   = "/api/vote/*"
-  to     = "https://election-api-vbpil.ondigitalocean.app/api/v1/vote/:splat"
+  to     = "https://election-app-byccp.ondigitalocean.app/api/v1/vote/:splat"
   status = 200
   force  = true
 
 [[redirects]]
   from   = "/api/voter-groups/*"
-  to     = "https://election-api-vbpil.ondigitalocean.app/api/v1/voterGroup/:splat"
+  to     = "https://election-app-byccp.ondigitalocean.app/api/v1/voterGroup/:splat"
   status = 200
   force  = true
 
 [[redirects]]
   from   = "/api/analytics/*"
-  to     = "https://election-api-vbpil.ondigitalocean.app/api/v1/electionAnalytics/:splat"
+  to     = "https://election-app-byccp.ondigitalocean.app/api/v1/electionAnalytics/:splat"
   status = 200
   force  = true
 
 [[redirects]]
   from   = "/api/users/*"
-  to     = "https://election-api-vbpil.ondigitalocean.app/api/v1/user/:splat"
+  to     = "https://election-app-byccp.ondigitalocean.app/api/v1/user/:splat"
   status = 200
   force  = true
 
 [[redirects]]
   from   = "/api/onboarding/*"
-  to     = "https://election-api-vbpil.ondigitalocean.app/api/v1/onboarding/:splat"
+  to     = "https://election-app-byccp.ondigitalocean.app/api/v1/onboarding/:splat"
   status = 200
   force  = true
 
 [[redirects]]
   from   = "/api/audit-logs/*"
-  to     = "https://election-api-vbpil.ondigitalocean.app/api/v1/auditLog/:splat"
+  to     = "https://election-app-byccp.ondigitalocean.app/api/v1/auditLog/:splat"
   status = 200
   force  = true
 
 [[redirects]]
   from   = "/api/notifications"
-  to     = "https://election-api-vbpil.ondigitalocean.app/api/v1/notifications"
+  to     = "https://election-app-byccp.ondigitalocean.app/api/v1/notifications"
   status = 200
   force  = true
 
 [[redirects]]
   from   = "/api/notifications/*"
-  to     = "https://election-api-vbpil.ondigitalocean.app/api/v1/notifications/:splat"
+  to     = "https://election-app-byccp.ondigitalocean.app/api/v1/notifications/:splat"
   status = 200
   force  = true
 
 # Franchise logos, election banners, and other uploaded media served by the API.
 [[redirects]]
   from   = "/uploads/*"
-  to     = "https://election-api-vbpil.ondigitalocean.app/uploads/:splat"
+  to     = "https://election-app-byccp.ondigitalocean.app/uploads/:splat"
   status = 200
   force  = true
 

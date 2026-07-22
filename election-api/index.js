@@ -18,6 +18,7 @@ const allowedOrigins = [
   "http://localhost:3001",
   "http://localhost:3002",
   "https://election-portal-web.netlify.app",
+  "https://election-portal-app.netlify.app",
   ...(process.env.FRONTEND_URLS
     ? process.env.FRONTEND_URLS.split(",").map((u) => u.trim()).filter(Boolean)
     : []),

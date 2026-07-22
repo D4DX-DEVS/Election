@@ -22,6 +22,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { getStoredUser } from "@/lib/authUser";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DeleteModeBar } from "@/components/ui/delete-mode-bar";
 import { DeleteModeButton } from "@/components/ui/delete-mode-button";
@@ -141,8 +142,7 @@ export default function VoterGroups({
 
   const bulkUsernamePreview = buildUsernamePreview(bulkPrefix, bulkStart, bulkCount);
 
-  const userDataString = localStorage.getItem("user");
-  const userData = userDataString ? JSON.parse(userDataString) : null;
+  const userData = getStoredUser();
   const franchiseId = userData?.franchiseId;
 
   // --- Queries ---

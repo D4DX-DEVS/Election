@@ -363,10 +363,16 @@ export default function Admins() {
   const deleteAdminMutation = useMutation({
     mutationFn: async (id: string) => {
       await apiRequest('DELETE', `/api/users/${id}`);
+      return id;
     },
-    onSuccess: () => {
+    onSuccess: (deletedId) => {
       setPendingDeleteAdminId(null);
       setPendingDeleteAdminName('');
+      if (franchiseAdminsPage > 1 && franchiseAdminList.length === 1 && franchiseAdminList[0]._id === deletedId) {
+        setFranchiseAdminsPage(franchiseAdminsPage - 1);
+      } else if (electionAdminsPage > 1 && electionAdminList.length === 1 && electionAdminList[0]._id === deletedId) {
+        setElectionAdminsPage(electionAdminsPage - 1);
+      }
       toast({
         title: 'Administrator deleted',
         description: 'The administrator has been removed successfully.',

@@ -1,7 +1,7 @@
 const { getSupabase } = require("../../config/supabase");
 const { mapFranchise, franchiseToRow } = require("./map");
 const { isUuid } = require("./users");
-const { deleteFranchiseCascade } = require("./deleteFranchiseCascade");
+const { deleteFranchiseCascade, getFranchiseDataCounts } = require("./deleteFranchiseCascade");
 
 async function create(data) {
   const supabase = getSupabase();
@@ -104,6 +104,7 @@ module.exports = {
   findByName,
   updateById,
   deleteById,
+  getFranchiseDataCounts,
   countDocuments,
   findAll,
   findLean,

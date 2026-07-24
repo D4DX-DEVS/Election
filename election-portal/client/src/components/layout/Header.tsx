@@ -1,4 +1,4 @@
-import { Menu, ChevronDown, LogOut, UserCog, User, Shield, HelpCircle } from "lucide-react";
+import { Menu, LogOut, UserCog, User, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
@@ -9,7 +9,6 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
@@ -57,14 +56,17 @@ export function Header({ toggleSidebar, user }: HeaderProps) {
     <header className="fixed top-0 left-0 right-0 bg-white shadow-sm border-b border-slate-200 z-30">
       <div className="flex items-center justify-between h-16 px-4">
         <div className="flex items-center">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="lg:hidden mr-2" 
-            onClick={toggleSidebar}
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
+          {/* Super admins use the bottom nav on mobile — no sidebar drawer to open */}
+          {user.role !== "super_admin" && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden mr-2"
+              onClick={toggleSidebar}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          )}
 
           <div className="flex items-center">
             <img
@@ -76,44 +78,23 @@ export function Header({ toggleSidebar, user }: HeaderProps) {
         </div>
 
         <div className="flex items-center">
-          {/* Help button */}
-          <div className="relative mr-2">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="relative text-primary hover:text-primary-dark"
-              onClick={handleHelpClick}
-              title="Help & Tutorials"
-            >
-              <HelpCircle className="h-5 w-5" />
-            </Button>
-          </div>
-          
-          {/* Notifications */}
-          <div className="relative mr-2">
-            <NotificationBell />
-          </div>
+          {/* Notifications — hidden for super admins */}
+          {user.role !== "super_admin" && (
+            <div className="relative mr-2">
+              <NotificationBell />
+            </div>
+          )}
 
           {/* User menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center space-x-2 p-2 rounded-md">
-                <Avatar className="h-8 w-8">
+              <Button variant="ghost" size="icon" className="rounded-full p-0 border border-border bg-muted/50 shadow-sm hover:bg-muted hover:shadow active:scale-95 transition-all">
+                <Avatar className="h-9 w-9">
                   <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback>
+                  <AvatarFallback className="bg-transparent text-black font-semibold">
                     {getInitials(user.name)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="hidden md:flex md:flex-col md:items-start">
-                  {user.name.trim().toLowerCase() !== (user.displayRole || user.role).trim().toLowerCase() && (
-                    <span className="text-sm font-medium">{user.name}</span>
-                  )}
-                  <Badge variant="outline" className="px-1 py-0 text-xs h-5 bg-slate-100">
-                    <Shield className="h-3 w-3 mr-1" />
-                    {user.displayRole || user.role}
-                  </Badge>
-                </div>
-                <ChevronDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">

@@ -42,7 +42,14 @@ function formatDate(value?: string) {
   if (!value) return "—";
   const d = new Date(value);
   if (isNaN(d.getTime())) return "—";
-  return d.toLocaleString();
+  return d.toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
 }
 
 export default function AuditLogs() {

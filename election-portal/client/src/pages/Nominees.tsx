@@ -323,7 +323,7 @@ export default function Nominees({
       doc.setFontSize(18);
       doc.text(title, 14, 22);
       doc.setFontSize(12);
-      doc.text(`Generated on ${new Date().toLocaleDateString()}`, 14, 30);
+      doc.text(`Generated on ${new Date().toLocaleDateString("en-GB")}`, 14, 30);
       
       // Prepare data for table
       const tableColumn = ["Name", "Election"];
@@ -353,7 +353,7 @@ export default function Nominees({
         headStyles: { fillColor: [41, 128, 185], textColor: 255 },
       });
 
-      doc.save(`${title.replace(/\s+/g, "_")}_${new Date().toLocaleDateString().replace(/\//g, "-")}.pdf`);
+      doc.save(`${title.replace(/\s+/g, "_")}_${new Date().toLocaleDateString("en-GB").replace(/\//g, "-")}.pdf`);
 
       toast({
         title: "PDF Exported",
@@ -412,7 +412,7 @@ export default function Nominees({
       XLSX.utils.book_append_sheet(workbook, worksheet, "Nominees");
       
       // Generate Excel file and trigger download
-      XLSX.writeFile(workbook, `${title.replace(/\s+/g, '_')}_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`);
+      XLSX.writeFile(workbook, `${title.replace(/\s+/g, '_')}_${new Date().toLocaleDateString("en-GB").replace(/\//g, '-')}.xlsx`);
       
       toast({
         title: "Excel Exported",

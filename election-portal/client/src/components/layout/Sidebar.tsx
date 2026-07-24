@@ -8,7 +8,6 @@ import {
   Building,
   Vote,
   UserPlus,
-  History,
   UserCog,
   ChevronDown,
   FileText,
@@ -162,7 +161,10 @@ export function Sidebar({ isOpen, userRole = "" }: SidebarProps) {
     <aside
       className={cn(
         "sidebar scrollbar-thin fixed top-16 left-0 bottom-0 w-64 bg-white border-r border-slate-200/80 overflow-y-auto z-20 transition-transform duration-300",
-        !isOpen && "transform -translate-x-full lg:translate-x-0"
+        // Super admins navigate via the mobile bottom nav; the sidebar is desktop-only for them.
+        isSuperAdmin
+          ? "hidden lg:block"
+          : !isOpen && "transform -translate-x-full lg:translate-x-0"
       )}
     >
       <nav className="mt-4 space-y-0.5">
@@ -180,7 +182,6 @@ export function Sidebar({ isOpen, userRole = "" }: SidebarProps) {
             </p>
             <NavLink href="/franchises" icon={<Building />} label="Franchises" />
             <NavLink href="/admins" icon={<UserCog />} label="Admins" />
-            <NavLink href="/audit-logs" icon={<History />} label="Audit Logs" />
           </div>
         )}
 

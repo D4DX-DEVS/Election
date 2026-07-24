@@ -88,7 +88,7 @@ export function AdminVotingDetailsPanel({ electionId, enabled }: AdminVotingDeta
                   const voterId = row.voter?.registrationNumber || row.voter?.username || "—";
                   const picks = (row.nominees || []).map(nomineeLabel).join(", ") || "—";
                   const votedAt = row.timestamp
-                    ? new Date(row.timestamp).toLocaleString()
+                    ? new Date(row.timestamp).toLocaleString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true })
                     : "—";
                   return (
                     <tr key={row._id} className="border-b last:border-0">

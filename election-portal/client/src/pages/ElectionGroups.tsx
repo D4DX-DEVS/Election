@@ -632,7 +632,7 @@ export default function ElectionGroups() {
                         <div>
                           <p className="text-xs text-gray-500">Created</p>
                           <p className="font-medium text-gray-900">
-                            {group.createdAt ? new Date(group.createdAt).toLocaleDateString() : 'Not available'}
+                            {group.createdAt ? new Date(group.createdAt).toLocaleDateString("en-GB") : 'Not available'}
                           </p>
                         </div>
                       </div>
@@ -692,7 +692,7 @@ export default function ElectionGroups() {
                         <TableCell>{franchise?.name || 'Unknown franchise'}</TableCell>
                         <TableCell>
                           {group.createdAt ?
-                            new Date(group.createdAt).toLocaleDateString() :
+                            new Date(group.createdAt).toLocaleDateString("en-GB") :
                             'Not available'}
                         </TableCell>
                         <TableCell className="text-right">

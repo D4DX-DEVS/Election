@@ -162,8 +162,6 @@ export default function Franchises() {
     }
   });
 
-  const franchisePageIds = franchises.map((f) => f._id).filter(Boolean);
-  const franchiseSelection = useBulkDeleteMode(franchisePageIds);
   const adminPageIds = franchiseAdmins.map((a) => a._id).filter(Boolean);
   const adminSelection = useBulkDeleteMode(adminPageIds);
 
@@ -171,7 +169,15 @@ export default function Franchises() {
     mutationFn: async (ids: string[]) => deleteByIds(ids, (id) => `/api/franchises/${id}`),
     onSuccess: (result, ids) => {
       setPendingDeleteFranchiseIds(null);
-      franchiseSelection.exitDeleteMode();
+      if (result.failed.length > 0) {
+        // Surface the real reason (e.g. franchise still has data to clear first).
+        toast({
+          title: "Could not delete franchise",
+          description: result.failed[0].error.replace(/^\d+:\s*/, ""),
+          variant: "destructive",
+        });
+        return;
+      }
       if (page > 1 && result.deleted.length >= franchises.length) {
         setPage(page - 1);
       }
@@ -179,11 +185,8 @@ export default function Franchises() {
       queryClient.invalidateQueries({ queryKey: ["/api/audit-logs"] });
       toast({
         title: ids.length === 1 ? "Franchise deleted" : "Franchises deleted",
-        description:
-          result.failed.length === 0
-            ? `${result.deleted.length} franchise(s) deleted successfully.`
-            : `${result.deleted.length} deleted, ${result.failed.length} failed.`,
-        variant: result.failed.length ? "destructive" : "success",
+        description: `${result.deleted.length} franchise(s) deleted successfully.`,
+        variant: "success",
       });
     },
     onError: (error: Error) => {
@@ -520,7 +523,7 @@ export default function Franchises() {
 
   // Format date for display
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+    return new Date(dateString).toLocaleDateString("en-GB");
   };
 
   // Handle logout
@@ -533,7 +536,7 @@ export default function Franchises() {
   return (
     <MainLayout>
       <PageContent>
-            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mb-6 flex flex-row items-center justify-between gap-3">
               <div className="min-w-0">
                 <h1 className="text-2xl font-bold text-gray-900">Franchises</h1>
                 <p className="text-sm text-gray-600 mt-1">
@@ -542,9 +545,9 @@ export default function Franchises() {
               </div>
               <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm" className="h-10 w-full shrink-0 justify-center sm:w-auto">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Add Franchise
+                  <Button size="sm" className="h-9 shrink-0">
+                    <PlusCircle className="mr-1.5 h-4 w-4" />
+                    Add
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[525px]">
@@ -912,23 +915,12 @@ export default function Franchises() {
               </Dialog>
             </div>
 
-            <Card>
-              <CardHeader className="px-4 sm:px-6 py-4 border-b border-gray-200 flex flex-row items-center justify-between gap-3">
-                <div>
+            <Card className="border-0 shadow-none bg-transparent md:border md:bg-white md:shadow-sm">
+              <CardHeader className="hidden md:block md:px-6 md:py-4 md:border-b md:border-gray-200">
                 <CardTitle className="text-lg font-medium text-gray-900">All Franchises</CardTitle>
                 <CardDescription>
                   View and manage all franchises in your election system
                 </CardDescription>
-                </div>
-                <DeleteModeButton
-                  active={franchiseSelection.deleteMode}
-                  onClick={() =>
-                    franchiseSelection.deleteMode
-                      ? franchiseSelection.exitDeleteMode()
-                      : franchiseSelection.enterDeleteMode()
-                  }
-                  className="shrink-0"
-                />
               </CardHeader>
               <CardContent className="p-0">
                 {isLoading ? (
@@ -943,33 +935,12 @@ export default function Franchises() {
                   </div>
                 ) : franchises && Array.isArray(franchises) && franchises.length > 0 ? (
                   <>
-                  <div className="px-4 pt-4">
-                    <DeleteModeBar
-                      active={franchiseSelection.deleteMode}
-                      count={franchiseSelection.selectedCount}
-                      entityLabel="franchise"
-                      onCancel={franchiseSelection.exitDeleteMode}
-                      onConfirmDelete={() =>
-                        franchiseSelection.selectedCount > 0 &&
-                        setPendingDeleteFranchiseIds([...franchiseSelection.selectedIds])
-                      }
-                      deleting={deleteFranchisesMutation.isPending}
-                    />
-                  </div>
-                  <div className="divide-y divide-gray-100 md:hidden">
+                  <div className="space-y-3 md:space-y-4 md:hidden">
                     {franchises.map((franchise: Franchise) => {
                       const contact = resolveFranchiseContact(franchise);
                       return (
-                      <div key={franchise._id} className="p-4 space-y-4">
+                      <div key={franchise._id} className="rounded-lg border border-gray-200 bg-white p-5 space-y-4">
                         <div className="flex items-start justify-between gap-3">
-                          {franchiseSelection.showSelectors && (
-                          <RowSelectCheckbox
-                            checked={franchiseSelection.isSelected(franchise._id)}
-                            onCheckedChange={() => franchiseSelection.toggle(franchise._id)}
-                            aria-label={`Select ${franchise.name}`}
-                            className="mt-1"
-                          />
-                          )}
                           <div className="flex min-w-0 flex-1 items-center gap-3">
                             {franchise.logo?.url ? (
                               <img
@@ -983,8 +954,8 @@ export default function Franchises() {
                               </div>
                             )}
                             <div className="min-w-0">
-                              <h3 className="font-semibold text-gray-900 truncate">{franchise.name}</h3>
-                              <p className="text-sm text-gray-500">Created {formatDate(franchise.createdAt)}</p>
+                              <h3 className="text-sm md:text-base font-medium text-gray-900 truncate">{franchise.name}</h3>
+                              <p className="text-xs text-gray-500">Created {formatDate(franchise.createdAt)}</p>
                             </div>
                           </div>
                           <Badge variant={franchise.status === 'active' ? 'default' : 'secondary'}>
@@ -992,57 +963,45 @@ export default function Franchises() {
                           </Badge>
                         </div>
 
-                        <div className="grid gap-3 rounded-md bg-white p-3 text-sm">
-                          <div>
-                            <p className="text-xs text-gray-500">Website</p>
-                            {contact.websiteUrl ? (
-                              <a
-                                href={contact.websiteUrl.startsWith("http") ? contact.websiteUrl : `https://${contact.websiteUrl}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center font-medium text-blue-600 hover:underline"
-                              >
-                                <Globe className="h-4 w-4 mr-1" /> Website
-                              </a>
-                            ) : (
-                              <p className="text-gray-400">Not available</p>
-                            )}
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-500">Contact</p>
-                            {contact.contactNumber ? (
-                              <p className="inline-flex items-center font-medium text-gray-900">
-                                <Phone className="h-4 w-4 mr-1" /> {contact.contactNumber}
-                              </p>
-                            ) : (
-                              <p className="text-gray-400">Not available</p>
-                            )}
-                          </div>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                          {contact.websiteUrl && (
+                            <a
+                              href={contact.websiteUrl.startsWith("http") ? contact.websiteUrl : `https://${contact.websiteUrl}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center font-medium text-blue-600 hover:underline"
+                            >
+                              <Globe className="h-4 w-4 mr-1" /> Website
+                            </a>
+                          )}
+                          {contact.contactNumber && (
+                            <span className="inline-flex items-center font-medium text-gray-700">
+                              <Phone className="h-4 w-4 mr-1" /> {contact.contactNumber}
+                            </span>
+                          )}
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex items-center gap-1 border-t border-gray-100 pt-2">
                           <Button variant="ghost" size="sm" onClick={() => handleEditFranchise(franchise)}>
                             <Edit className="h-4 w-4 mr-1" /> Edit
                           </Button>
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
                             className="text-blue-600 hover:text-blue-700"
                             onClick={() => handleManageAdmin(franchise)}
                           >
                             Admins
                           </Button>
-                          {!franchiseSelection.deleteMode && (
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-auto"
                             onClick={() => handleDeleteFranchise(franchise._id)}
                             disabled={deleteFranchisesMutation.isPending}
                           >
                             <Trash2 className="h-4 w-4 mr-1" /> Delete
                           </Button>
-                          )}
                         </div>
                       </div>
                     );
@@ -1052,21 +1011,6 @@ export default function Franchises() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        {franchiseSelection.showSelectors && (
-                        <TableHead className="w-7 px-1">
-                          <RowSelectCheckbox
-                            checked={
-                              franchiseSelection.allSelected
-                                ? true
-                                : franchiseSelection.someSelected
-                                  ? "indeterminate"
-                                  : false
-                            }
-                            onCheckedChange={() => franchiseSelection.toggleAll()}
-                            aria-label="Select all franchises on this page"
-                          />
-                        </TableHead>
-                        )}
                         <TableHead>Name</TableHead>
                         <TableHead>Website</TableHead>
                         <TableHead>Contact</TableHead>
@@ -1080,15 +1024,6 @@ export default function Franchises() {
                         const contact = resolveFranchiseContact(franchise);
                         return (
                         <TableRow key={franchise._id}>
-                          {franchiseSelection.showSelectors && (
-                          <TableCell className="w-7 px-1">
-                            <RowSelectCheckbox
-                              checked={franchiseSelection.isSelected(franchise._id)}
-                              onCheckedChange={() => franchiseSelection.toggle(franchise._id)}
-                              aria-label={`Select ${franchise.name}`}
-                            />
-                          </TableCell>
-                          )}
                           <TableCell className="font-medium">
                             <div className="flex items-center">
                               {franchise.logo?.url ? (
@@ -1160,7 +1095,6 @@ export default function Franchises() {
                                 </svg>
                                 Admins
                               </Button>
-                              {!franchiseSelection.deleteMode && (
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -1171,7 +1105,6 @@ export default function Franchises() {
                                 <Trash2 className="h-4 w-4 mr-1" />
                                 Delete
                               </Button>
-                              )}
                             </div>
                           </TableCell>
                         </TableRow>

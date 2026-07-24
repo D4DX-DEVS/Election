@@ -1,6 +1,7 @@
-import { Vote, Users, Calendar } from "lucide-react";
+import { useState } from "react";
+import { Users, Calendar } from "lucide-react";
 import { format } from "date-fns";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
   Table,
@@ -21,51 +22,69 @@ interface RecentElectionsTableProps {
 }
 
 export function RecentElectionsTable({ elections }: RecentElectionsTableProps) {
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const toggleExpanded = (id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   return (
-    <Card className="mb-6">
-      <CardHeader className="px-4 py-3 border-b border-gray-200 flex flex-row items-center justify-between">
-        <CardTitle className="text-sm font-semibold text-gray-900">Recent Elections</CardTitle>
+    <div className="mb-6">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-base md:text-lg font-medium text-gray-900">Recent Elections</h3>
         <Link href="/elections">
-          <Button variant="link" className="text-sm font-medium text-primary hover:text-primary-dark">
+          <Button variant="link" className="h-auto p-0 text-sm font-medium text-primary hover:text-primary-dark">
             View all
           </Button>
         </Link>
-      </CardHeader>
-      <CardContent className="p-0">
-        <div className="divide-y divide-gray-100 md:hidden">
-          {elections.map((election) => {
-            const electionId = (election as any)._id?.toString() || (election as any).id?.toString();
-            const totalVoters = election.analytics?.totalVoters || 0;
-            const totalVotesCast = election.analytics?.totalVotesCast || 0;
-            const participationPercentage = totalVoters > 0 
-              ? Math.round((totalVotesCast / totalVoters) * 100) 
-              : 0;
+      </div>
+      <div className="md:hidden space-y-3">
+        {elections.map((election) => {
+          const electionId = (election as any)._id?.toString() || (election as any).id?.toString();
+          const totalVoters = election.analytics?.totalVoters || 0;
+          const totalVotesCast = election.analytics?.totalVotesCast || 0;
+          const participationPercentage = totalVoters > 0
+            ? Math.round((totalVotesCast / totalVoters) * 100)
+            : 0;
+          const expanded = expandedIds.has(electionId);
 
-            return (
-              <div key={electionId} className="p-4 space-y-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h3 className="font-semibold text-gray-900 truncate">{getElectionLabel(election)}</h3>
-                    {getElectionSubtitle(election) && (
-                      <p className="text-sm text-gray-500 truncate">{getElectionSubtitle(election)}</p>
-                    )}
-                  </div>
-                  <StatusBadge status={election.status} />
+          return (
+            <div
+              key={electionId}
+              className="rounded-lg border border-gray-200 bg-white p-4 space-y-3 cursor-pointer"
+              onClick={() => toggleExpanded(electionId)}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h3 className="text-sm font-medium text-gray-900 truncate">{getElectionLabel(election)}</h3>
+                  {getElectionSubtitle(election) && (
+                    <p className="text-xs text-gray-500 truncate">{getElectionSubtitle(election)}</p>
+                  )}
                 </div>
-                <div className="grid grid-cols-2 gap-3 rounded-md bg-white p-3 text-sm">
-                  <div>
-                    <p className="text-xs text-gray-500">Date</p>
-                    <p className="font-medium text-gray-900">{format(new Date(election.electionDate), 'yyyy-MM-dd')}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Participation</p>
-                    <p className="font-medium text-gray-900">{participationPercentage}% ({totalVotesCast}/{totalVoters})</p>
-                  </div>
-                </div>
-                <Progress value={participationPercentage} className="h-2.5" />
-                <div className="flex flex-wrap items-center gap-2">
+                <StatusBadge status={election.status} />
+              </div>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                <span className="inline-flex items-center font-medium text-gray-700">
+                  <Calendar className="h-4 w-4 mr-1" />
+                  {format(new Date(election.electionDate), 'yyyy-MM-dd')}
+                </span>
+                <span className="inline-flex items-center font-medium text-gray-700">
+                  <Users className="h-4 w-4 mr-1" />
+                  {participationPercentage}% ({totalVotesCast}/{totalVoters})
+                </span>
+              </div>
+              <Progress value={participationPercentage} className="h-2.5" />
+              {expanded && (
+                <div
+                  className="flex items-center gap-1 border-t border-gray-100 pt-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <Link href={`/elections/${electionId}`}>
-                    <Button variant="outline" size="sm">View</Button>
+                    <Button variant="ghost" size="sm">View</Button>
                   </Link>
                   {isElectionEditable(election.status) ? (
                     <Link href={`/elections/${electionId}/edit`}>
@@ -77,11 +96,13 @@ export function RecentElectionsTable({ elections }: RecentElectionsTableProps) {
                     </Link>
                   )}
                 </div>
-              </div>
-            );
-          })}
-        </div>
-        <div className="hidden overflow-x-auto md:block">
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <Card className="hidden md:block">
+        <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -146,8 +167,8 @@ export function RecentElectionsTable({ elections }: RecentElectionsTableProps) {
             </TableBody>
           </Table>
         </div>
-      </CardContent>
-    </Card>
+      </Card>
+    </div>
   );
 }
 

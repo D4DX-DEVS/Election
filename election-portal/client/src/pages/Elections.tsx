@@ -12,9 +12,6 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { PageContent, PageBottom } from "@/components/layout/PageContent";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { DeleteModeBar } from "@/components/ui/delete-mode-bar";
-import { DeleteModeButton } from "@/components/ui/delete-mode-button";
-import { useBulkDeleteMode } from "@/hooks/useBulkDeleteMode";
 import { deleteByIds } from "@/lib/bulkDelete";
 import { useToast } from "@/hooks/use-toast";
 import { isElectionEditable } from "@/lib/electionHelpers";
@@ -144,7 +141,6 @@ export default function Elections() {
 
       queryClient.invalidateQueries({ queryKey: ["/api/elections"] });
       setPendingDeleteIds(null);
-      selection.exitDeleteMode();
     },
     onError: (error) => {
       toast({
@@ -178,12 +174,6 @@ export default function Elections() {
       return;
     }
     setPendingDeleteIds([id]);
-  };
-
-  const handleBulkDeleteClick = () => {
-    if (selection.selectedCount > 0) {
-      setPendingDeleteIds([...selection.selectedIds]);
-    }
   };
 
   const confirmDelete = () => {
@@ -223,40 +213,22 @@ export default function Elections() {
   const displayElections = getFilteredElections();
   const displayFranchises = franchises || [];
 
-  const getElectionRowId = (election: ElectionWithDetails) =>
-    election._id?.toString() || election.id?.toString() || "";
-
-  const deletableElectionIds = displayElections
-    .filter((e) => isElectionEditable(e.status))
-    .map(getElectionRowId)
-    .filter(Boolean);
-
-  const selection = useBulkDeleteMode(deletableElectionIds);
-
   return (
     <MainLayout>
       <PageContent>
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-6 flex items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Elections</h1>
           <p className="text-sm text-gray-600">
             Select an election to manage its nominees and voters
           </p>
         </div>
-        <div className="mt-4 sm:mt-0 flex w-full items-center gap-2 sm:w-auto sm:flex-wrap sm:justify-end">
-          <DeleteModeButton
-            active={selection.deleteMode}
-            onClick={() =>
-              selection.deleteMode ? selection.exitDeleteMode() : selection.enterDeleteMode()
-            }
-          />
-          <Link href="/elections/create">
-            <Button size="sm" className="h-10 w-full justify-center px-3 sm:w-auto">
-              <PlusIcon className="h-4 w-4 mr-2" />
-              Create Election
-            </Button>
-          </Link>
-        </div>
+        <Link href="/elections/create">
+          <Button size="sm" className="h-6 px-3 rounded-md shrink-0 text-xs">
+            <PlusIcon className="mr-1 h-3.5 w-3.5" />
+            Add
+          </Button>
+        </Link>
       </div>
 
       {franchisesError && (
@@ -291,24 +263,10 @@ export default function Elections() {
         <Skeleton className="h-96 w-full" />
       ) : (
         <>
-          <DeleteModeBar
-            active={selection.deleteMode}
-            count={selection.selectedCount}
-            entityLabel="election"
-            onCancel={selection.exitDeleteMode}
-            onConfirmDelete={handleBulkDeleteClick}
-            deleting={deleteElectionsMutation.isPending}
-          />
-          <ElectionsTable 
-            elections={displayElections} 
-            onDelete={selection.deleteMode ? undefined : handleDeleteElection}
+          <ElectionsTable
+            elections={displayElections}
+            onDelete={handleDeleteElection}
             onStatusChange={handleStatusChange}
-            selectionMode={selection.showSelectors}
-            isSelected={selection.isSelected}
-            onToggleSelect={selection.toggle}
-            allSelected={selection.allSelected}
-            someSelected={selection.someSelected}
-            onToggleSelectAll={selection.toggleAll}
           />
           <PageBottom>
           {electionsPagination && (

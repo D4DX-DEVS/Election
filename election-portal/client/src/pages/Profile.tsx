@@ -21,8 +21,8 @@ import {
   Building2,
   Calendar,
   Hash,
+  Lock,
   Mail,
-  Settings,
   Shield,
 } from "lucide-react";
 
@@ -122,9 +122,9 @@ export default function Profile() {
         </p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="p-4 md:p-5">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <Avatar className="h-16 w-16">
                 <AvatarFallback className="text-lg bg-primary/10 text-primary">
@@ -134,35 +134,38 @@ export default function Profile() {
               <div className="flex-1 min-w-0">
                 <h2 className="text-xl font-semibold truncate">{displayName}</h2>
                 <p className="text-sm text-muted-foreground">@{user?.username || "—"}</p>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  <Badge variant="outline" className="gap-1">
-                    <Shield className="h-3 w-3" />
-                    {formatRoleLabel(user?.role)}
-                  </Badge>
-                  {user?.status && (
-                    <Badge variant={user.status === "active" ? "default" : "secondary"}>
+                {user?.status && (
+                  <div className="mt-2">
+                    <Badge
+                      variant={user.status === "active" ? "outline" : "secondary"}
+                      className={
+                        user.status === "active"
+                          ? "bg-green-100 text-green-800 hover:bg-green-100"
+                          : "bg-gray-100 text-gray-800 hover:bg-primary/10"
+                      }
+                    >
                       {user.status}
                     </Badge>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
-              <Button variant="outline" size="sm" asChild>
+              <Button variant="outline" size="sm" className="shrink-0" asChild>
                 <Link href="/settings">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Account settings
+                  <Lock className="h-4 w-4 mr-1.5" />
+                  Change password
                 </Link>
               </Button>
             </div>
           </CardContent>
         </Card>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-2">
           <Card>
-            <CardHeader>
+            <CardHeader className="p-4 pb-0 md:p-5 md:pb-0">
               <CardTitle className="text-lg">Edit profile</CardTitle>
               <CardDescription>Update the details shown on your account.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 pt-3 md:p-5 md:pt-3">
               {isLoading ? (
                 <p className="text-sm text-muted-foreground">Loading profile…</p>
               ) : (
@@ -190,7 +193,12 @@ export default function Profile() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="username">Username</Label>
-                    <Input id="username" value={user?.username || ""} disabled />
+                    <Input
+                      id="username"
+                      value={user?.username || ""}
+                      disabled
+                      className="disabled:opacity-100 disabled:text-gray-900 disabled:bg-gray-50"
+                    />
                     <p className="text-xs text-muted-foreground">Username cannot be changed.</p>
                   </div>
                   <Button type="submit" disabled={updateProfileMutation.isPending}>
@@ -202,11 +210,11 @@ export default function Profile() {
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="p-4 pb-0 md:p-5 md:pb-0">
               <CardTitle className="text-lg">Account details</CardTitle>
               <CardDescription>Information managed by your organization.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm">
+            <CardContent className="p-4 pt-3 md:p-5 md:pt-3 space-y-4 text-sm">
               <div className="flex items-start gap-3">
                 <Shield className="h-4 w-4 mt-0.5 text-muted-foreground" />
                 <div>

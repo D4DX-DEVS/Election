@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { AccountShell } from "@/components/account/AccountShell";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -16,7 +16,7 @@ export default function Settings() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
-    document.title = "Settings | Vote+";
+    document.title = "Change Password | Vote+";
   }, []);
 
   const changePasswordMutation = useMutation({
@@ -68,26 +68,20 @@ export default function Settings() {
   };
 
   return (
-    <AccountShell title="Settings">
+    <AccountShell title="Change Password">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <Lock className="h-5 w-5 text-primary" />
+          Change Password
+        </h1>
         <p className="text-sm text-gray-600">
-          Manage your account security.
+          Enter your current password, then choose a new one.
         </p>
       </div>
 
       <div className="space-y-3">
         <Card>
-          <CardHeader className="p-4 pb-0">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Lock className="h-5 w-5 text-primary" />
-              Change password
-            </CardTitle>
-            <CardDescription>
-              Enter your current password, then choose a new one.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-4 pt-3">
+          <CardContent className="p-4">
             <form onSubmit={handlePasswordSubmit} className="space-y-4 max-w-md">
               <div className="space-y-2">
                 <Label htmlFor="currentPassword">Current password</Label>

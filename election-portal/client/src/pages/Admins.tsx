@@ -409,20 +409,22 @@ export default function Admins() {
   
   return (
     <MainLayout>
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
+      <div className="mb-6">
+        <div className="flex items-center justify-between gap-3">
           <h1 className="text-2xl font-bold text-gray-900">Administrators</h1>
-          <p className="text-sm text-gray-600">Manage system administrators</p>
-        </div>
 
-        {/* Single unified create flow: asks for the administrator type, then shows matching fields */}
-        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => setAdminType(canCreateFranchiseAdmin ? 'franchise' : 'election')}>
-              <PlusIcon className="h-4 w-4 mr-2" />
-              Create Administrator
-            </Button>
-          </DialogTrigger>
+          {/* Single unified create flow: asks for the administrator type, then shows matching fields */}
+          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+            <DialogTrigger asChild>
+              <Button
+                size="sm"
+                className="h-6 px-3 rounded-md shrink-0 text-xs"
+                onClick={() => setAdminType(canCreateFranchiseAdmin ? 'franchise' : 'election')}
+              >
+                <PlusIcon className="mr-1 h-3.5 w-3.5" />
+                Add
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create Administrator</DialogTitle>
@@ -706,14 +708,16 @@ export default function Admins() {
               </Form>
             )}
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
+        <p className="text-sm text-gray-600 mt-1">Manage system administrators</p>
       </div>
-      
+
       <div className="space-y-6">
         {/* Franchise Administrators (super admins only) */}
         {canCreateFranchiseAdmin && (
-          <Card>
-            <CardHeader>
+          <Card className="border-0 shadow-none bg-transparent md:border md:bg-white md:shadow-sm">
+            <CardHeader className="hidden md:block">
               <div>
                 <CardTitle>Franchise Administrators</CardTitle>
                 <CardDescription>
@@ -721,7 +725,7 @@ export default function Admins() {
                 </CardDescription>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0 md:p-6">
               {franchiseAdminsError && (
                 <Alert variant="destructive" className="mb-4">
                   <AlertCircle className="h-4 w-4" />
@@ -740,31 +744,32 @@ export default function Admins() {
                 </div>
               ) : franchiseAdminList.length > 0 ? (
                 <>
-                <div className="divide-y divide-gray-100 md:hidden">
+                <div className="space-y-3 md:space-y-4 md:hidden">
                   {franchiseAdminList.map((admin) => (
-                    <div key={admin._id} className="py-4 space-y-3">
+                    <div key={admin._id} className="rounded-lg border border-gray-200 bg-white p-5 space-y-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <h3 className="font-semibold text-gray-900 truncate">{admin.username}</h3>
-                          <p className="text-sm text-gray-500 truncate">{admin.fullName || '-'}</p>
+                          <h3 className="text-sm md:text-base font-medium text-gray-900 truncate">{admin.username}</h3>
+                          <p className="text-xs text-gray-500 truncate">{admin.fullName || '-'}</p>
                         </div>
                         <Badge
                           variant={isUserActive(admin.status) ? 'outline' : 'secondary'}
                           className={
                             isUserActive(admin.status)
-                              ? 'bg-green-100 text-green-800 hover:bg-green-100' 
+                              ? 'bg-green-100 text-green-800 hover:bg-green-100'
                               : 'bg-gray-100 text-gray-800 hover:bg-primary/10'
                           }
                         >
                           {isUserActive(admin.status) ? 'Active' : 'Inactive'}
                         </Badge>
                       </div>
-                      <div className="rounded-md bg-white p-3 text-sm">
-                        <p className="text-xs text-gray-500">Franchise</p>
-                        <p className="font-medium text-gray-900">{resolveFranchiseName(admin, franchiseList)}</p>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                        <span className="inline-flex items-center font-medium text-gray-700">
+                          {resolveFranchiseName(admin, franchiseList)}
+                        </span>
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                      <Button 
+                      <div className="flex items-center gap-1 border-t border-gray-100 pt-2">
+                      <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleOpenResetDialog(admin)}
@@ -775,7 +780,7 @@ export default function Admins() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-auto"
                           onClick={() => handleDeleteAdminClick(admin)}
                         >
                           <Trash2 className="h-4 w-4 mr-1" />
@@ -843,7 +848,7 @@ export default function Admins() {
                   </TableBody>
                 </Table>
                 </div>
-                {franchiseAdminsPagination && franchiseAdminsPagination.total > 0 && (
+                {franchiseAdminsPagination && (franchiseAdminsPagination.totalPages ?? 1) > 1 && (
                   <PaginationControls
                     page={franchiseAdminsPagination.page}
                     totalPages={franchiseAdminsPagination.totalPages ?? 1}
@@ -860,193 +865,6 @@ export default function Admins() {
           </Card>
         )}
 
-        {/* Election Administrators */}
-        {canViewElectionAdmins && (
-          <Card>
-            <CardHeader>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div>
-                  <CardTitle>Election Administrators</CardTitle>
-                  <CardDescription>
-                    Manage administrators who can control specific elections
-                  </CardDescription>
-                </div>
-                {userRole !== 'franchise_admin' && (
-                  <div className="w-full sm:w-64">
-                    <Select
-                      value={electionAdminsFranchiseFilter}
-                      onValueChange={(value) => {
-                        setElectionAdminsFranchiseFilter(value);
-                        setElectionAdminsPage(1);
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Franchises" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Franchises</SelectItem>
-                        {franchiseList.map((franchise) => (
-                          <SelectItem
-                            key={franchise._id || `franchise-${franchise.id}`}
-                            value={String(franchise._id || franchise.id)}
-                          >
-                            {franchise.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {electionAdminsListError && (
-                <Alert variant="destructive" className="mb-4">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Error</AlertTitle>
-                  <AlertDescription>
-                    Failed to fetch administrators. Please try again.
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              {electionAdminsLoading ? (
-                <div className="space-y-4">
-                  <Skeleton className="h-10 w-full" />
-                  <Skeleton className="h-20 w-full" />
-                  <Skeleton className="h-20 w-full" />
-                </div>
-              ) : electionAdminList.length > 0 ? (
-                <>
-                <div className="divide-y divide-gray-100 md:hidden">
-                  {electionAdminList.map((admin) => (
-                    <div key={admin._id} className="py-4 space-y-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <h3 className="font-semibold text-gray-900 truncate">{admin.username}</h3>
-                          <p className="text-sm text-gray-500 truncate">{admin.fullName || '-'}</p>
-                        </div>
-                        <Badge
-                          variant={isUserActive(admin.status) ? 'outline' : 'secondary'}
-                          className={
-                            isUserActive(admin.status)
-                              ? 'bg-green-100 text-green-800 hover:bg-green-100'
-                              : 'bg-gray-100 text-gray-800 hover:bg-primary/10'
-                          }
-                        >
-                          {isUserActive(admin.status) ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </div>
-                      <div className="rounded-md bg-white p-3 text-sm space-y-2">
-                        <div>
-                          <p className="text-xs text-gray-500">Franchise</p>
-                          <p className="font-medium text-gray-900">{resolveFranchiseName(admin, franchiseList)}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-500">Elections</p>
-                          <p className="font-medium text-gray-900">{resolveElectionNames(admin, electionList)}</p>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleOpenResetDialog(admin)}
-                      >
-                        Reset Password
-                      </Button>
-                      {canDeleteAdmin && String(admin._id) !== currentUserId && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => handleDeleteAdminClick(admin)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          Delete
-                        </Button>
-                      )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="hidden md:block">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Username</TableHead>
-                      <TableHead>Full Name</TableHead>
-                      <TableHead>Franchise</TableHead>
-                      <TableHead>Elections</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {electionAdminList.map((admin) => (
-                        <TableRow key={admin._id}>
-                          <TableCell className="font-medium">{admin.username}</TableCell>
-                          <TableCell>{admin.fullName || '-'}</TableCell>
-                          <TableCell>
-                            {resolveFranchiseName(admin, franchiseList)}
-                          </TableCell>
-                          <TableCell className="max-w-xs truncate" title={resolveElectionNames(admin, electionList)}>
-                            {resolveElectionNames(admin, electionList)}
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={isUserActive(admin.status) ? 'outline' : 'secondary'}
-                              className={
-                                isUserActive(admin.status)
-                                  ? 'bg-green-100 text-green-800 hover:bg-green-100'
-                                  : 'bg-gray-100 text-gray-800 hover:bg-primary/10'
-                              }
-                            >
-                              {isUserActive(admin.status) ? 'Active' : 'Inactive'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-1">
-                            <Button
-                              variant="link"
-                              onClick={() => handleOpenResetDialog(admin)}
-                            >
-                              Reset Password
-                            </Button>
-                            {canDeleteAdmin && String(admin._id) !== currentUserId && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                onClick={() => handleDeleteAdminClick(admin)}
-                              >
-                                <Trash2 className="h-4 w-4 mr-1" />
-                                Delete
-                              </Button>
-                            )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-                </div>
-                {electionAdminsPagination && electionAdminsPagination.total > 0 && (
-                  <PaginationControls
-                    page={electionAdminsPagination.page}
-                    totalPages={electionAdminsPagination.totalPages ?? 1}
-                    total={electionAdminsPagination.total}
-                    pageSize={electionAdminsPagination.pageSize}
-                    onPageChange={setElectionAdminsPage}
-                  />
-                )}
-                </>
-              ) : (
-                <div className="py-6 text-center text-sm text-gray-500">No election administrators found</div>
-              )}
-            </CardContent>
-          </Card>
-        )}
       </div>
 
       <ConfirmDialog

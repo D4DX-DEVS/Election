@@ -16,7 +16,7 @@ import { DeleteModeButton } from "@/components/ui/delete-mode-button";
 import { RowSelectCheckbox } from "@/components/ui/row-select-checkbox";
 import { useBulkDeleteMode } from "@/hooks/useBulkDeleteMode";
 import { deleteByIds } from "@/lib/bulkDelete";
-import { PlusCircle, Edit, Trash2, Globe, Phone, Image } from "lucide-react";
+import { Plus, Edit, Trash2, Globe, Phone, Image } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageContent } from "@/components/layout/PageContent";
@@ -536,20 +536,16 @@ export default function Franchises() {
   return (
     <MainLayout>
       <PageContent>
-            <div className="mb-6 flex flex-row items-center justify-between gap-3">
-              <div className="min-w-0">
+            <div className="mb-6">
+              <div className="flex items-center justify-between gap-3">
                 <h1 className="text-2xl font-bold text-gray-900">Franchises</h1>
-                <p className="text-sm text-gray-600 mt-1">
-                  Manage your franchises and their settings
-                </p>
-              </div>
-              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button size="sm" className="h-9 shrink-0">
-                    <PlusCircle className="mr-1.5 h-4 w-4" />
-                    Add
-                  </Button>
-                </DialogTrigger>
+                <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="h-6 px-3 rounded-md shrink-0 text-xs">
+                      <Plus className="mr-1 h-3.5 w-3.5" />
+                      Add
+                    </Button>
+                  </DialogTrigger>
                 <DialogContent className="sm:max-w-[525px]">
                   <DialogHeader>
                     <DialogTitle>Create New Franchise</DialogTitle>
@@ -620,8 +616,12 @@ export default function Franchises() {
                     </DialogFooter>
                   </form>
                 </DialogContent>
-              </Dialog>
-              
+                </Dialog>
+              </div>
+              <p className="text-sm text-gray-600 mt-1">
+                Manage your franchises and their settings
+              </p>
+
               {/* Edit Franchise Dialog */}
               <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                 <DialogContent className="sm:max-w-[525px]">
@@ -958,7 +958,14 @@ export default function Franchises() {
                               <p className="text-xs text-gray-500">Created {formatDate(franchise.createdAt)}</p>
                             </div>
                           </div>
-                          <Badge variant={franchise.status === 'active' ? 'default' : 'secondary'}>
+                          <Badge
+                            variant={franchise.status === 'active' ? 'outline' : 'secondary'}
+                            className={
+                              franchise.status === 'active'
+                                ? 'bg-green-100 text-green-800 hover:bg-green-100'
+                                : 'bg-gray-100 text-gray-800 hover:bg-primary/10'
+                            }
+                          >
                             {franchise.status === 'active' ? 'Active' : 'Inactive'}
                           </Badge>
                         </div>
@@ -988,7 +995,6 @@ export default function Franchises() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-blue-600 hover:text-blue-700"
                             onClick={() => handleManageAdmin(franchise)}
                           >
                             Admins
@@ -1082,9 +1088,9 @@ export default function Franchises() {
                                 Edit
                               </Button>
                               <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="sm"
-                                className="text-blue-600 hover:text-blue-700 mr-2"
+                                className="mr-2"
                                 onClick={() => handleManageAdmin(franchise)}
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 mr-1">
@@ -1120,7 +1126,7 @@ export default function Franchises() {
                   </div>
                 )}
               </CardContent>
-              {franchisesPagination && franchisesPagination.total > 0 ? (
+              {franchisesPagination && (franchisesPagination.totalPages ?? 1) > 1 ? (
                 <CardFooter className="border-t border-gray-200 p-4">
                   <PaginationControls
                     page={franchisesPagination.page}

@@ -109,9 +109,9 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
-      {/* Top brand strip */}
-      <div className="flex-shrink-0 pt-safe">
-        <div className="pt-10 pb-8 flex flex-col items-center px-6">
+      <div className="flex-1 flex flex-col justify-center px-5 max-w-sm mx-auto w-full pt-safe">
+        {/* Brand strip */}
+        <div className="pb-8 flex flex-col items-center px-1">
           <img
             src="/logo.png"
             alt="Vote+"
@@ -121,10 +121,8 @@ export default function Login() {
             Comprehensive Election Management System
           </p>
         </div>
-      </div>
 
-      {/* Login card */}
-      <div className="flex-1 flex flex-col justify-start px-5 max-w-sm mx-auto w-full">
+        {/* Login card */}
         <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl shadow-blue-900/8 border border-gray-100 dark:border-gray-700 p-6">
           <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Sign in</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">

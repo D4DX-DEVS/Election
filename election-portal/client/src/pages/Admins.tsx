@@ -420,7 +420,7 @@ export default function Admins() {
     <MainLayout>
       <div className="mb-6">
         <div className="flex items-center justify-between gap-3">
-          <h1 className="text-2xl font-bold text-gray-900">Administrators</h1>
+          <h1 className="text-xl font-bold text-gray-900">Administrators</h1>
 
           {/* Single unified create flow: asks for the administrator type, then shows matching fields */}
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>

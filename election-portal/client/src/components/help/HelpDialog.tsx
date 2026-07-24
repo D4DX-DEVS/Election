@@ -197,9 +197,10 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
       doc.setTextColor(80, 80, 80);
       doc.text(`User ID: ${userId}`, margin, y);
       doc.text(
-        `Generated: ${new Date().toLocaleString(undefined, {
+        `Generated: ${new Date().toLocaleString("en-GB", {
           dateStyle: "medium",
           timeStyle: "short",
+          hour12: true,
         })}`,
         pageWidth - margin,
         y,

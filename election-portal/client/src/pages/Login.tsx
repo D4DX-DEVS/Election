@@ -56,7 +56,7 @@ export default function Login() {
         if (!isNaN(last.getTime())) {
           toast({
             title: 'Last login',
-            description: last.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }),
+            description: last.toLocaleString("en-GB", { dateStyle: 'medium', timeStyle: 'short', hour12: true }),
             variant: 'info',
           });
         }

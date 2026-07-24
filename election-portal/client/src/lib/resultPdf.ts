@@ -43,7 +43,7 @@ const loadLogo = (): Promise<HTMLImageElement | null> =>
 const fmtDate = (date?: string | Date | null) => {
   if (!date) return "";
   try {
-    return new Date(date).toLocaleDateString(undefined, {
+    return new Date(date).toLocaleDateString("en-GB", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -255,7 +255,7 @@ export async function generateElectionResultPdf({
   doc.line(margin, pageHeight - 16, pageWidth - margin, pageHeight - 16);
   doc.setFontSize(8);
   doc.setTextColor(140, 140, 140);
-  doc.text(`Generated on ${new Date().toLocaleString()}`, margin, pageHeight - 11);
+  doc.text(`Generated on ${new Date().toLocaleString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}`, margin, pageHeight - 11);
   doc.setTextColor(red[0], red[1], red[2]);
   doc.setFont("helvetica", "bold");
   doc.text("Powered by Vote+", pageWidth - margin, pageHeight - 11, { align: "right" });

@@ -96,7 +96,7 @@ export function ElectionResultActions({
   const fmtDate = (d?: string | Date | null) => {
     if (!d) return "";
     try {
-      return new Date(d).toLocaleDateString(undefined, {
+      return new Date(d).toLocaleDateString("en-GB", {
         year: "numeric",
         month: "long",
         day: "numeric",

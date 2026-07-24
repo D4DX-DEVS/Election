@@ -61,6 +61,22 @@ function cascadeAuditLabel(cascade) {
 
 exports.deleteFranchiseById = async (req, res) => {
   try {
+    // Block deleting a franchise that is still in use — its admin must clear the
+    // data first. Only an empty (effectively unused) franchise can be removed.
+    const counts = await franchises.getFranchiseDataCounts(req.params.id);
+    const inUse = counts.elections + counts.voters + counts.voterGroups + counts.electionGroups;
+    if (inUse > 0) {
+      const parts = [];
+      if (counts.elections) parts.push(`${counts.elections} election(s)`);
+      if (counts.voters) parts.push(`${counts.voters} voter(s)`);
+      if (counts.voterGroups) parts.push(`${counts.voterGroups} voter group(s)`);
+      if (counts.electionGroups) parts.push(`${counts.electionGroups} election group(s)`);
+      return res.status(409).json({
+        success: false,
+        message: `This franchise still has ${parts.join(", ")}. The franchise admin must delete this data before the franchise can be removed.`,
+      });
+    }
+
     const result = await franchises.deleteById(req.params.id);
     if (!result) return res.status(404).json({ success: false, message: "Franchise not found." });
     const { franchise, cascadeDeleted } = result;

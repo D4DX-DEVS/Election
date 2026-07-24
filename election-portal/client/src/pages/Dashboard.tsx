@@ -3,7 +3,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { RecentElectionsTable } from "@/components/dashboard/RecentElectionsTable";
 import { FranchiseOverview } from "@/components/dashboard/FranchiseOverview";
-import { Vote, Users, CheckCircle, AlertCircle } from "lucide-react";
+import { Vote, Users, CheckCircle, AlertCircle, Building2, BarChart3 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { DashboardStats, ElectionWithDetails } from "@/lib/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -103,6 +103,42 @@ export default function Dashboard() {
               <Skeleton className="h-24 w-full md:h-28" />
               <Skeleton className="h-24 w-full md:h-28" />
             </>
+          ) : user?.role === "super_admin" ? (
+            <>
+              <StatCard
+                title="Active Elections"
+                value={displayStats.activeElections}
+                icon={<Vote className="h-5 w-5" />}
+                trend={{
+                  value: `${displayStats.activeElections} active now`,
+                  direction: displayStats.activeElections > 0 ? "up" : "neutral",
+                }}
+              />
+
+              <StatCard
+                title="Franchises"
+                value={displayStats.totalFranchises.toLocaleString()}
+                icon={<Building2 className="h-5 w-5" />}
+                iconBgColor="bg-indigo-100"
+                iconColor="text-indigo-600"
+                trend={{
+                  value: `${displayStats.totalFranchises} total`,
+                  direction: "neutral",
+                }}
+              />
+
+              <StatCard
+                title="Total Elections"
+                value={displayStats.totalElections.toLocaleString()}
+                icon={<BarChart3 className="h-5 w-5" />}
+                iconBgColor="bg-green-100"
+                iconColor="text-green-600"
+                trend={{
+                  value: `${displayStats.totalElections} total`,
+                  direction: "neutral",
+                }}
+              />
+            </>
           ) : (
             <>
               <StatCard
@@ -145,24 +181,26 @@ export default function Dashboard() {
           )}
         </div>
 
-        {electionsLoading ? (
-          <div className="mb-6">
-            <Skeleton className="h-8 w-48 mb-4" />
-            <Skeleton className="h-64 w-full" />
-          </div>
-        ) : electionsError ? (
-          <Alert variant="destructive" className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Recent elections unavailable</AlertTitle>
-            <AlertDescription>{(electionsFetchError as Error)?.message}</AlertDescription>
-          </Alert>
-        ) : recentElections.length > 0 ? (
-          <RecentElectionsTable elections={recentElections} />
-        ) : (
-          <Alert className="mb-6">
-            <AlertTitle>No elections yet</AlertTitle>
-            <AlertDescription>Create an election to see recent activity here.</AlertDescription>
-          </Alert>
+        {user?.role !== "super_admin" && (
+          electionsLoading ? (
+            <div className="mb-6">
+              <Skeleton className="h-8 w-48 mb-4" />
+              <Skeleton className="h-64 w-full" />
+            </div>
+          ) : electionsError ? (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Recent elections unavailable</AlertTitle>
+              <AlertDescription>{(electionsFetchError as Error)?.message}</AlertDescription>
+            </Alert>
+          ) : recentElections.length > 0 ? (
+            <RecentElectionsTable elections={recentElections} />
+          ) : (
+            <Alert className="mb-6">
+              <AlertTitle>No elections yet</AlertTitle>
+              <AlertDescription>Create an election to see recent activity here.</AlertDescription>
+            </Alert>
+          )
         )}
 
         {(user?.role === "super_admin" || user?.role === "franchise_admin") && (

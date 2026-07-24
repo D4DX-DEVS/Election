@@ -69,12 +69,12 @@ export default function VotingResults() {
   }, [voteData, electionId, navigate]);
 
   const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString(undefined, {
+    new Date(dateString).toLocaleDateString("en-GB", {
       year: 'numeric', month: 'short', day: 'numeric',
     });
 
   const formatTimestamp = (dateString: string) =>
-    new Date(dateString).toLocaleDateString(undefined, {
+    new Date(dateString).toLocaleDateString("en-GB", {
       year: 'numeric', month: 'short', day: 'numeric',
       hour: '2-digit', minute: '2-digit',
     });

@@ -22,7 +22,7 @@ function makeNotification({ id, type, title, message, href, priority = "medium",
 function formatDateLabel(dateStr) {
   if (!dateStr) return "";
   try {
-    return new Date(dateStr).toLocaleDateString(undefined, {
+    return new Date(dateStr).toLocaleDateString("en-GB", {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -186,8 +186,22 @@ async function buildAdminNotifications(user) {
   }
 
   if (user.role === "super_admin") {
-    const recentLogs = await auditLogs.findRecent({ limit: 5, sinceHours: 48 });
+    const recentLogs = await auditLogs.findRecent({ limit: 15, sinceHours: 48 });
+    let relevant = 0;
     for (const log of recentLogs) {
+      if (relevant >= 5) break;
+      // Skip auth noise (login/logout) — not actionable notifications.
+      const action = String(log.action || "").toLowerCase();
+      if (
+        log.entityType === "Auth" ||
+        action.includes("logged in") ||
+        action.includes("logged out") ||
+        action.includes("login") ||
+        action.includes("logout")
+      ) {
+        continue;
+      }
+      relevant += 1;
       const actor =
         typeof log.userId === "object"
           ? log.userId.fullName || log.userId.username

@@ -74,7 +74,7 @@ export async function exportGroupsListToPdf(
   doc.setFontSize(18);
   doc.text(title, 14, 22);
   doc.setFontSize(11);
-  doc.text(`Generated on ${new Date().toLocaleDateString()}`, 14, 30);
+  doc.text(`Generated on ${new Date().toLocaleDateString("en-GB")}`, 14, 30);
 
   autoTable(doc, {
     startY: 38,
@@ -125,7 +125,7 @@ export async function exportGroupVotersToPdf(
   doc.setFontSize(18);
   doc.text(title, 14, 22);
   doc.setFontSize(11);
-  doc.text(`Generated on ${new Date().toLocaleDateString()}`, 14, 30);
+  doc.text(`Generated on ${new Date().toLocaleDateString("en-GB")}`, 14, 30);
   doc.text(`${voters.length} voter(s)`, 14, 37);
 
   autoTable(doc, {

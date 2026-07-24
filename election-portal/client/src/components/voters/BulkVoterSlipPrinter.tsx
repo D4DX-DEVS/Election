@@ -168,7 +168,7 @@ export function BulkVoterSlipPrinter({
       doc.text("Voter Credentials", pageWidth / 2, 10, { align: 'center' });
       doc.setFontSize(10);
       doc.text(`${title ? title : `Election: ${selectedElectionId ? getElectionTitle(selectedElectionId) : 'All Elections'}`}`, pageWidth / 2, 15, { align: 'center' });
-      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth / 2, 20, { align: 'center' });
+      doc.text(`Generated on: ${new Date().toLocaleDateString("en-GB")}`, pageWidth / 2, 20, { align: 'center' });
       
       // Calculate how many voters to process based on slips per page
       let startY = 25; // Start after header

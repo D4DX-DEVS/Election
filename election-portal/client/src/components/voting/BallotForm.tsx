@@ -83,7 +83,7 @@ export function BallotForm({ election, nominees, onSubmit }: BallotFormProps) {
     <Card className="mb-6">
       <div className="bg-primary text-white px-6 py-4 rounded-t-lg">
         <h2 className="text-xl font-bold">{getElectionLabel(election)}</h2>
-        <p className="text-sm">{new Date(election.electionDate).toLocaleDateString()}</p>
+        <p className="text-sm">{new Date(election.electionDate).toLocaleDateString("en-GB")}</p>
       </div>
       <CardContent className="p-6">
         <div className="mb-6">

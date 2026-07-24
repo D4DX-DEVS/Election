@@ -21,6 +21,39 @@ async function deleteInChunks(table, column, ids) {
 }
 
 /**
+ * Count the content a franchise owns (elections, voters, voter/election groups).
+ * Used to block deleting an in-use franchise until its admin clears the data.
+ * Franchise/election admins are not counted — they are managed by the super admin.
+ */
+async function getFranchiseDataCounts(franchiseId) {
+  if (!isUuid(franchiseId)) {
+    const err = new Error("Invalid franchise id.");
+    err.statusCode = 400;
+    throw err;
+  }
+  const supabase = getSupabase();
+  const [elections, voters, voterGroups, electionGroups] = await Promise.all([
+    supabase.from("elections").select("id", { count: "exact", head: true }).eq("franchise_id", franchiseId),
+    supabase
+      .from("users")
+      .select("id", { count: "exact", head: true })
+      .eq("franchise_id", franchiseId)
+      .eq("is_voter", true),
+    supabase.from("voter_groups").select("id", { count: "exact", head: true }).eq("franchise_id", franchiseId),
+    supabase.from("election_groups").select("id", { count: "exact", head: true }).eq("franchise_id", franchiseId),
+  ]);
+  for (const r of [elections, voters, voterGroups, electionGroups]) {
+    if (r.error) throw r.error;
+  }
+  return {
+    elections: elections.count || 0,
+    voters: voters.count || 0,
+    voterGroups: voterGroups.count || 0,
+    electionGroups: electionGroups.count || 0,
+  };
+}
+
+/**
  * Permanently remove a franchise and all scoped data:
  * elections, nominees, votes, analytics, groups, and users.
  */
@@ -119,4 +152,4 @@ async function deleteFranchiseCascade(franchiseId) {
   };
 }
 
-module.exports = { deleteFranchiseCascade };
+module.exports = { deleteFranchiseCascade, getFranchiseDataCounts };

@@ -25,17 +25,19 @@ export function StatCard({
 }: StatCardProps) {
   return (
     <Card className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-primary/30">
-      {/* Mobile: compact vertical stack */}
+      {/* Mobile: number + icon on one row, label below */}
       <CardContent className="p-3 md:hidden">
-        <div className={cn("inline-flex rounded-lg p-2 mb-2", iconBgColor)}>
-          <div className={cn("h-4 w-4", iconColor)}>{icon}</div>
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-2xl font-bold text-gray-900 leading-none">{value}</p>
+          <div className={cn("shrink-0 rounded-lg p-1.5", iconBgColor)}>
+            <div className={cn("h-4 w-4", iconColor)}>{icon}</div>
+          </div>
         </div>
-        <p className="text-xl font-bold text-gray-900 leading-none mb-1">{value}</p>
-        <p className="text-[11px] font-medium text-gray-500 leading-tight line-clamp-2">{title}</p>
+        <p className="text-[11px] font-medium text-gray-500 leading-tight line-clamp-2 mt-2">{title}</p>
         {trend && (
           <p
             className={cn(
-              "text-[10px] mt-1 font-medium",
+              "text-[10px] mt-0.5 font-medium",
               trend.direction === "up"
                 ? "text-green-500"
                 : trend.direction === "down"

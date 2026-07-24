@@ -160,6 +160,15 @@ export default function Admins() {
   const canDeleteAdmin = userRole === 'super_admin';
   const currentUserId = String(userData?.id || userData?._id || '');
   const [franchiseAdminsPage, setFranchiseAdminsPage] = useState(1);
+  const [expandedAdminIds, setExpandedAdminIds] = useState<Set<string>>(new Set());
+  const toggleAdminExpanded = (id: string) => {
+    setExpandedAdminIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
   const [pendingDeleteAdminId, setPendingDeleteAdminId] = useState<string | null>(null);
   const [pendingDeleteAdminName, setPendingDeleteAdminName] = useState('');
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
@@ -745,8 +754,14 @@ export default function Admins() {
               ) : franchiseAdminList.length > 0 ? (
                 <>
                 <div className="space-y-3 md:space-y-4 md:hidden">
-                  {franchiseAdminList.map((admin) => (
-                    <div key={admin._id} className="rounded-lg border border-gray-200 bg-white p-5 space-y-4">
+                  {franchiseAdminList.map((admin) => {
+                    const expanded = expandedAdminIds.has(admin._id);
+                    return (
+                    <div
+                      key={admin._id}
+                      className="rounded-lg border border-gray-200 bg-white p-5 space-y-4 cursor-pointer"
+                      onClick={() => toggleAdminExpanded(admin._id)}
+                    >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <h3 className="text-sm md:text-base font-medium text-gray-900 truncate">{admin.username}</h3>
@@ -768,7 +783,11 @@ export default function Admins() {
                           {resolveFranchiseName(admin, franchiseList)}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1 border-t border-gray-100 pt-2">
+                      {expanded && (
+                      <div
+                        className="flex items-center gap-1 border-t border-gray-100 pt-2"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                       <Button
                         variant="ghost"
                         size="sm"
@@ -788,8 +807,10 @@ export default function Admins() {
                         </Button>
                       )}
                       </div>
+                      )}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 <div className="hidden md:block">
                 <Table>

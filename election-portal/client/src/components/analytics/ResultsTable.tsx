@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Printer, Download, Award } from "lucide-react";
+import { Printer, Download, Award, Percent } from "lucide-react";
 import { NomineeWithVotes } from "@/lib/types";
 
 interface ResultsTableProps {
@@ -30,51 +30,64 @@ export function ResultsTable({
     return b.voteCount - a.voteCount;
   });
 
+  // Competition ranking (1,1,3 not 1,2,3): equal vote counts share the same rank.
+  const ranks: number[] = [];
+  sortedNominees.forEach((nominee, index) => {
+    if (index > 0 && nominee.voteCount === sortedNominees[index - 1].voteCount) {
+      ranks.push(ranks[index - 1]);
+    } else {
+      ranks.push(index + 1);
+    }
+  });
+  const rankCounts = ranks.reduce<Record<number, number>>((acc, rank) => {
+    acc[rank] = (acc[rank] || 0) + 1;
+    return acc;
+  }, {});
+  // Last sorted-index occupied by each rank — i.e. how many nominees rank at or above it.
+  const rankLastIndex = ranks.reduce<Record<number, number>>((acc, rank, index) => {
+    acc[rank] = index;
+    return acc;
+  }, {});
+  // A rank group is only cleanly elected if including everyone in it doesn't exceed
+  // the number of seats. If a tie straddles the cutoff, nobody in that group is
+  // declared elected until the tie is resolved.
+  const isRankElected = (rank: number) => rankLastIndex[rank] + 1 <= numberToBeElected;
+
   return (
     <Card>
       <CardHeader className="px-6 py-4 border-b border-gray-200">
         <CardTitle className="text-lg font-medium text-gray-900">Election Results</CardTitle>
       </CardHeader>
       <CardContent className="p-6">
-        <div className="mb-6 w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center">
-          <svg 
-            className="w-16 h-16 text-gray-400"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M12 20V10" />
-            <path d="M18 20V4" />
-            <path d="M6 20v-4" />
-          </svg>
-        </div>
-
-        <div className="divide-y divide-gray-100 md:hidden">
+        <div className="space-y-4 md:hidden">
           {sortedNominees.map((nominee, index) => {
-            const isElected = index < numberToBeElected;
+            const rank = ranks[index];
+            const tied = rankCounts[rank] > 1;
+            const isElected = isRankElected(rank);
             const nomineeId = (nominee as NomineeWithVotes & { _id?: string })._id || nominee.id;
             return (
-              <div key={nomineeId} className={`p-4 space-y-3 ${isElected ? "bg-green-50/60" : ""}`}>
+              <div
+                key={nomineeId}
+                className={`rounded-lg border p-5 space-y-4 ${isElected ? "border-green-200 bg-green-50/60" : "border-gray-200 bg-white"}`}
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-xs text-gray-500">Rank #{index + 1}</p>
-                    <h3 className="font-semibold text-gray-900 truncate">{nominee.name}</h3>
+                    <h3 className="text-sm md:text-base font-medium text-gray-900 truncate">{nominee.name}</h3>
+                    <p className="text-xs text-gray-500">
+                      Rank #{rank}
+                      {tied && <span className="ml-1 text-gray-400">(Tied)</span>}
+                    </p>
                   </div>
                   {isElected && <Award className="h-5 w-5 text-yellow-500 shrink-0" />}
                 </div>
-                <div className="grid grid-cols-2 gap-3 rounded-md bg-white/70 p-3 text-sm">
-                  <div>
-                    <p className="text-xs text-gray-500">Votes</p>
-                    <p className="font-semibold text-gray-900">{nominee.voteCount || 0}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Percentage</p>
-                    <p className="font-semibold text-gray-900">{(nominee.percentage || 0).toFixed(1)}%</p>
-                  </div>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                  <span className="inline-flex items-center font-medium text-gray-700">
+                    {nominee.voteCount || 0} votes
+                  </span>
+                  <span className="inline-flex items-center font-medium text-gray-700">
+                    <Percent className="h-4 w-4 mr-1" />
+                    {(nominee.percentage || 0).toFixed(1)}%
+                  </span>
                 </div>
               </div>
             );
@@ -91,13 +104,20 @@ export function ResultsTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedNominees.map((nominee, index) => (
-                <TableRow 
-                  key={nominee.id} 
-                  className={`transition-colors hover:bg-primary/5 ${index < numberToBeElected ? 'bg-green-50' : ''}`}
+              {sortedNominees.map((nominee, index) => {
+                const rank = ranks[index];
+                const tied = rankCounts[rank] > 1;
+                const isElected = isRankElected(rank);
+                return (
+                <TableRow
+                  key={nominee.id}
+                  className={`transition-colors hover:bg-primary/5 ${isElected ? 'bg-green-50' : ''}`}
                 >
                   <TableCell className="text-sm text-gray-500">
-                    {index + 1}
+                    {rank}
+                    {tied && (
+                      <span className="ml-1 text-xs text-gray-400">(Tied)</span>
+                    )}
                   </TableCell>
                   <TableCell className="font-medium">
                     {nominee.name}
@@ -109,7 +129,8 @@ export function ResultsTable({
                     {nominee.percentage !== undefined ? `${nominee.percentage.toFixed(1)}%` : '-'}
                   </TableCell>
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
         </div>

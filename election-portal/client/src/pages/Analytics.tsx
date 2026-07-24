@@ -259,8 +259,7 @@ export default function Analytics({ embedded = false, electionId }: { embedded?:
           <div>
             <VotingStats
               analytics={analytics as any}
-              electionsStartDate={selectedElection?.createdAt ? new Date(selectedElection.createdAt) : undefined}
-              electionsEndDate={new Date(selectedElection?.electionDate || new Date())}
+              electionDate={selectedElection?.electionDate ? new Date(selectedElection.electionDate) : undefined}
               onSendReminder={handleSendReminder}
               sendReminderPending={sendReminderMutation.isPending}
               votingOpen={!!selectedElection?.votingOpen}

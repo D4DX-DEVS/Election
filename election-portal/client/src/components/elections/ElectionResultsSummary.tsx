@@ -29,11 +29,23 @@ export function ElectionResultsSummary({ electionId }: ElectionResultsSummaryPro
   }
 
   const nominees = results.nominees || [];
-  const winners = nominees.filter((n: any) => n.isElected);
+  const numberToBeElected = results.election?.numberToBeElected || 1;
+
+  // Competition ranking (1,1,3 not 1,2,3): equal vote counts share the same rank.
+  // A rank group only counts as elected if it fits within the seats without
+  // overflowing — a tie straddling the cutoff means nobody in it is a winner yet.
+  const sortedNominees = [...nominees].sort((a: any, b: any) => (b.voteCount ?? 0) - (a.voteCount ?? 0));
+  const ranks: number[] = [];
+  sortedNominees.forEach((n: any, index: number) => {
+    ranks.push(index > 0 && n.voteCount === sortedNominees[index - 1].voteCount ? ranks[index - 1] : index + 1);
+  });
+  const rankLastIndex: Record<number, number> = {};
+  ranks.forEach((rank, index) => { rankLastIndex[rank] = index; });
+  const winners = sortedNominees.filter((_: any, index: number) => rankLastIndex[ranks[index]] + 1 <= numberToBeElected);
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-gray-900">{results.totalBallots ?? 0}</p>

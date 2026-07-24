@@ -14,8 +14,9 @@ import { VotersTable } from "@/components/voters/VotersTable";
 import { BulkVoterSlipPrinter } from "@/components/voters/BulkVoterSlipPrinter";
 import VoterGroups from "@/pages/VoterGroups";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { SelectCheckbox } from "@/components/ui/row-select-checkbox";
-import { PlusIcon, Upload, AlertCircle, UsersRound, Download, MoreHorizontal, Search, FileSpreadsheet, Users } from "lucide-react";
+import { PlusIcon, Upload, AlertCircle, UsersRound, Download, MoreHorizontal, Search, FileSpreadsheet, Users, Printer } from "lucide-react";
 import {
   downloadVoterImportTemplate,
   exportVotersToExcel,
@@ -537,7 +538,7 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
   const votersListContent = (
     <>
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="flex flex-1 items-center gap-2 sm:flex-row sm:items-center">
           <div className="relative flex-1 sm:max-w-xs">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <Input
@@ -547,6 +548,39 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
               className="h-10 pl-9"
             />
           </div>
+          {isReadOnly && (
+            <div className="flex items-center gap-2 shrink-0">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-10 w-10 shrink-0"
+                    aria-label="Bulk Print Slips"
+                    onClick={() => setPrintSlipsOpen(true)}
+                  >
+                    <Printer className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Bulk Print Slips</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-10 w-10 shrink-0"
+                    aria-label="Export"
+                    onClick={handleExportVoters}
+                    disabled={isExporting}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{isExporting ? "Exporting…" : "Export"}</TooltipContent>
+              </Tooltip>
+            </div>
+          )}
           {!embedded && (
             <Select value={selectedElectionId} onValueChange={setSelectedElectionId}>
               <SelectTrigger className="h-10 w-full sm:w-52">
@@ -567,26 +601,26 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
           )}
         </div>
 
-        <div className="grid w-full grid-cols-3 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:justify-end">
-          {!isReadOnly && (
-            <>
-              <Button
-                size="sm"
-                className="h-10 w-full justify-center px-2 sm:w-auto sm:px-3"
-                onClick={handleAddVoter}
-              >
-                <PlusIcon className="h-4 w-4 shrink-0 sm:mr-2" />
-                <span className="truncate">
-                  <span className="sm:hidden">Add</span>
-                  <span className="hidden sm:inline">Add Voter</span>
-                </span>
-              </Button>
+        {!isReadOnly && (
+          <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-end">
+            <Button
+              size="sm"
+              className="h-10 justify-center gap-1.5 px-3"
+              onClick={handleAddVoter}
+            >
+              <PlusIcon className="h-4 w-4 shrink-0" />
+              <span className="truncate">
+                <span className="sm:hidden">Add</span>
+                <span className="hidden sm:inline">Add Voter</span>
+              </span>
+            </Button>
+            <div className="flex items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-10 w-full justify-center gap-1.5 px-2 sm:w-auto sm:px-3"
+                    className="h-10 justify-center gap-1.5 px-3"
                   >
                     <MoreHorizontal className="h-4 w-4 shrink-0" />
                     <span className="truncate">More</span>
@@ -617,23 +651,27 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
                   selection.deleteMode ? selection.exitDeleteMode() : selection.enterDeleteMode()
                 }
               />
-            </>
-          )}
+            </div>
+            <BulkVoterSlipPrinter
+              voters={voters}
+              elections={displayElections}
+              selectedElectionId={selectedElectionId}
+              open={printSlipsOpen}
+              onOpenChange={setPrintSlipsOpen}
+              hideTrigger
+            />
+          </div>
+        )}
+        {isReadOnly && (
           <BulkVoterSlipPrinter
             voters={voters}
             elections={displayElections}
             selectedElectionId={selectedElectionId}
             open={printSlipsOpen}
             onOpenChange={setPrintSlipsOpen}
-            hideTrigger={!isReadOnly}
+            hideTrigger
           />
-          {isReadOnly && (
-            <Button variant="outline" size="sm" className="h-10" onClick={handleExportVoters} disabled={isExporting}>
-              <Download className="h-4 w-4 mr-2" />
-              {isExporting ? "Exporting…" : "Export"}
-            </Button>
-          )}
-        </div>
+        )}
       </div>
 
       {electionsError && (
@@ -670,8 +708,8 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
               deleting={deleteVotersMutation.isPending}
             />
           )}
-          <VotersTable 
-            voters={voters} 
+          <VotersTable
+            voters={voters}
             pagination={pagination}
             onPageChange={handlePageChange}
             onEdit={isReadOnly || selection.deleteMode ? undefined : handleEditVoter}

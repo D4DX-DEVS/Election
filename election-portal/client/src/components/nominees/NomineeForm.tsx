@@ -737,11 +737,11 @@ export function NomineeForm({
           </Form>
         ) : (
           <Tabs defaultValue="single" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-4 mb-6">
-              <TabsTrigger value="single">Single</TabsTrigger>
-              <TabsTrigger value="bulk">Bulk</TabsTrigger>
-              <TabsTrigger value="previous">From Previous</TabsTrigger>
-              <TabsTrigger value="file">Excel Import</TabsTrigger>
+            <TabsList className="grid grid-cols-2 sm:grid-cols-4 gap-1 h-auto mb-6">
+              <TabsTrigger value="single" className="text-xs sm:text-sm px-2">Single</TabsTrigger>
+              <TabsTrigger value="bulk" className="text-xs sm:text-sm px-2">Bulk</TabsTrigger>
+              <TabsTrigger value="previous" className="text-xs sm:text-sm px-2">From Previous</TabsTrigger>
+              <TabsTrigger value="file" className="text-xs sm:text-sm px-2">Excel Import</TabsTrigger>
             </TabsList>
 
             {/* Single nominee tab */}

@@ -546,7 +546,12 @@ exports.createFranchiseAdmin = async (req, res) => {
 
 exports.createElectionAdmin = async (req, res) => {
   try {
-    roles.assertCanAssignRole(req.user, "election_admin");
+    if (req.user.role !== "franchise_admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Only a franchise admin can create election admins.",
+      });
+    }
 
     const { password, fullName, electionAccess } = req.body;
     const username = await assertNoDuplicateUser({ username: req.body.username, email: req.body.email });

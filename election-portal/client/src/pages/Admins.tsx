@@ -445,19 +445,16 @@ export default function Admins() {
             {/* Administrator type selector */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Administrator Type</label>
-              <Select
-                value={adminType}
-                onValueChange={(v) => setAdminType(v as 'franchise' | 'election')}
-                disabled={!canCreateFranchiseAdmin}
-              >
+              <Select value={adminType} disabled>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {canCreateFranchiseAdmin && (
+                  {canCreateFranchiseAdmin ? (
                     <SelectItem value="franchise">Franchise Administrator</SelectItem>
+                  ) : (
+                    <SelectItem value="election">Election Administrator</SelectItem>
                   )}
-                  <SelectItem value="election">Election Administrator</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-gray-500">

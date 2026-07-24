@@ -65,7 +65,13 @@ export default function Dashboard() {
   });
 
   const recentElections: ElectionWithDetails[] = Array.isArray(electionsResponse?.data)
-    ? electionsResponse.data.slice(0, 3)
+    ? [...electionsResponse.data]
+        .sort((a, b) => {
+          const dateA = new Date(a.electionDate || a.createdAt || 0).getTime();
+          const dateB = new Date(b.electionDate || b.createdAt || 0).getTime();
+          return dateB - dateA;
+        })
+        .slice(0, 3)
     : [];
 
   const displayStats = stats ?? EMPTY_STATS;

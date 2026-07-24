@@ -6,8 +6,7 @@ import { ElectionAnalytic } from "@shared/schema";
 
 interface VotingStatsProps {
   analytics: ElectionAnalytic;
-  electionsStartDate?: Date;
-  electionsEndDate?: Date;
+  electionDate?: Date;
   onSendReminder?: () => void;
   sendReminderPending?: boolean;
   votingOpen?: boolean;
@@ -15,8 +14,7 @@ interface VotingStatsProps {
 
 export function VotingStats({
   analytics,
-  electionsStartDate,
-  electionsEndDate,
+  electionDate,
   onSendReminder,
   sendReminderPending = false,
   votingOpen = true,
@@ -75,25 +73,6 @@ export function VotingStats({
             <p className="text-3xl font-bold text-gray-900">{totalVotesCast}</p>
           </div>
 
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Voting Timeline</h3>
-            <div className="w-full h-32 bg-gray-100 rounded-lg flex items-center justify-center">
-              <svg 
-                className="w-12 h-12 text-gray-400"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 3v18h18" />
-                <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" />
-              </svg>
-            </div>
-          </div>
-
           <div className="hidden md:block">
             <h3 className="text-sm font-medium text-gray-700 mb-3">Pending Voters</h3>
             <p className="text-3xl font-bold text-gray-900">{pendingVoters}</p>
@@ -116,14 +95,15 @@ export function VotingStats({
           </div>
 
           <div className="pt-2 border-t border-gray-200">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Election Status</h3>
-            <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-              {analytics.isFinalized ? 'Completed' : 'Active'}
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-medium text-gray-700">Election Status</h3>
+              <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                {analytics.isFinalized ? 'Completed' : 'Active'}
+              </div>
             </div>
-            {electionsStartDate && electionsEndDate && (
-              <div className="mt-2 flex justify-between text-sm text-gray-500">
-                <div>Started: {formatDate(electionsStartDate)}</div>
-                <div>Ends: {formatDate(electionsEndDate)}</div>
+            {electionDate && (
+              <div className="mt-2 text-sm text-gray-500">
+                Election date: {formatDate(electionDate)}
               </div>
             )}
           </div>
@@ -135,11 +115,9 @@ export function VotingStats({
 
 function formatDate(date: Date): string {
   const options: Intl.DateTimeFormatOptions = {
-    month: 'short',
     day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
+    month: 'short',
+    year: 'numeric',
   };
   
   return new Date(date).toLocaleString('en-GB', options);

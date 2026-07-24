@@ -27,7 +27,7 @@ export function PaginationControls({
   onPageChange,
   className,
 }: PaginationControlsProps) {
-  if (!total || total <= 0) return null;
+  if (!total || total <= 0 || totalPages <= 1) return null;
 
   const from = (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, total);

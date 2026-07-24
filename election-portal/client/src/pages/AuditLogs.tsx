@@ -187,32 +187,34 @@ export default function AuditLogs() {
           </Card>
 
           {/* Pagination controls */}
-          <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <p className="text-sm text-gray-500">
-              Page {currentPage} of {totalPages}
-              {total > 0 ? ` · ${total} total` : ""}
-            </p>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                disabled={currentPage <= 1}
-              >
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-                disabled={currentPage >= totalPages}
-              >
-                Next
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
+          {totalPages > 1 && (
+            <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <p className="text-sm text-gray-500">
+                Page {currentPage} of {totalPages}
+                {total > 0 ? ` · ${total} total` : ""}
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                  disabled={currentPage <= 1}
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                  disabled={currentPage >= totalPages}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </>
       )}
     </MainLayout>

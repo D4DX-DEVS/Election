@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -66,8 +67,14 @@ interface VoterGroup {
   description?: string;
   prefix?: string;
   voters?: string[];
-  electionIds?: string[];
+  elections?: Array<string | { _id?: string; id?: string }>;
   createdAt?: string;
+}
+
+function getGroupElectionIds(g: Pick<VoterGroup, "elections">): string[] {
+  return (g.elections || []).map((e) =>
+    String(typeof e === "object" ? e._id || e.id : e)
+  );
 }
 
 interface Election {
@@ -86,8 +93,6 @@ interface GroupVoter {
   voterMetadata?: { prefix?: string; sequenceNumber?: number };
 }
 
-/** Icon-only action button for list cards */
-const cardIconBtn = "h-8 w-8 shrink-0 p-0";
 
 export default function VoterGroups({
   embedded = false,
@@ -201,7 +206,7 @@ export default function VoterGroups({
   const applyGroupSelection = (g: VoterGroup | null, view?: "voters" | "elections") => {
     if (g) {
       setSelectedGroup(g);
-      setSelectedElectionIds((g.electionIds || []).map(String));
+      setSelectedElectionIds(getGroupElectionIds(g));
       if (view) setGroupDetailTab(view);
     } else {
       setSelectedGroup(null);
@@ -438,9 +443,9 @@ export default function VoterGroups({
       const res = await apiRequest("PUT", `/api/voter-groups/${selectedGroup!._id}/elections`, { electionIds });
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({ title: "Elections saved", description: "Voter access updated for all group members.", variant: "success" });
-      setSelectedGroup((g) => g ? { ...g, electionIds: selectedElectionIds } : g);
+      if (data?.data) setSelectedGroup(data.data);
       queryClient.invalidateQueries({ queryKey: ["/api/voter-groups"] });
       if (assignOnly) closeGroup();
     },
@@ -459,7 +464,7 @@ export default function VoterGroups({
     onSuccess: (data) => {
       toast({
         title: "Voter created",
-        description: `${data.data.username} ? password: ${data.data.plainPassword}`,
+        description: `${data.data.username} · password: ${data.data.plainPassword}`,
         variant: "success",
       });
       setSingleVoterUsername("");
@@ -555,7 +560,7 @@ export default function VoterGroups({
             {assignElectionsMutation.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Saving?
+                Saving…
               </>
             ) : assignOnly ? (
               "Assign Election"
@@ -686,7 +691,7 @@ export default function VoterGroups({
                         onClick={() => addSingleVoterMutation.mutate()}
                         disabled={!singleVoterUsername.trim() || addSingleVoterMutation.isPending}
                       >
-                        {addSingleVoterMutation.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Creating?</> : 'Create Voter'}
+                        {addSingleVoterMutation.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Creating…</> : 'Create Voter'}
                       </Button>
                     </DialogFooter>
                   </DialogContent>
@@ -755,7 +760,7 @@ export default function VoterGroups({
                         onClick={() => bulkGenerateMutation.mutate()}
                         disabled={bulkGenerateMutation.isPending}
                       >
-                        {bulkGenerateMutation.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Generating?</> : `Generate ${bulkCount} Voters`}
+                        {bulkGenerateMutation.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Generating…</> : `Generate ${bulkCount} Voters`}
                       </Button>
                     </DialogFooter>
                   </DialogContent>
@@ -871,7 +876,7 @@ export default function VoterGroups({
           open={printSlipsOpen}
           onOpenChange={setPrintSlipsOpen}
           hideTrigger
-          title={selectedGroup ? `${selectedGroup.name} ? Print Slips` : undefined}
+          title={selectedGroup ? `${selectedGroup.name} · Print Slips` : undefined}
         />
         <ConfirmDialog
           open={!!pendingDeleteGroupVoterIds?.length}
@@ -912,22 +917,9 @@ export default function VoterGroups({
         </div>
         )}
         <div className={cn(
-          "grid w-full grid-cols-3 gap-2 sm:flex sm:w-auto sm:items-center sm:gap-2",
+          "flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-end",
           suppressTitle && "w-full"
         )}>
-          {!selection.deleteMode && !assignOnly && (
-            <ExportMenu
-              onExportPdf={() => exportList("pdf")}
-              onExportExcel={() => exportList("excel")}
-              disabled={isExportingList || groups.length === 0}
-            />
-          )}
-          <DeleteModeButton
-            active={selection.deleteMode}
-            onClick={() =>
-              selection.deleteMode ? selection.exitDeleteMode() : selection.enterDeleteMode()
-            }
-          />
         <Dialog open={isOpen} onOpenChange={(open) => {
             if (!open) {
               setIsOpen(false);
@@ -938,7 +930,7 @@ export default function VoterGroups({
             }
           }}>
           <DialogTrigger asChild>
-            <Button size="sm" className="h-10 w-full justify-center gap-1.5 px-2 sm:w-auto sm:px-3">
+            <Button size="sm" className="h-10 justify-center gap-1.5 px-3">
               <PlusCircle className="h-4 w-4 shrink-0" />
               <span className="truncate">
                 <span className="sm:hidden">Add</span>
@@ -962,12 +954,28 @@ export default function VoterGroups({
               </div>
               <DialogFooter className="pt-2">
                 <Button type="submit" disabled={!groupName.trim() || createMutation.isPending}>
-                  {createMutation.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Creating?</> : "Create Group"}
+                  {createMutation.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Creating…</> : "Create Group"}
                 </Button>
               </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
+        <div className="flex items-center gap-2">
+          {!selection.deleteMode && !assignOnly && (
+            <ExportMenu
+              onExportPdf={() => exportList("pdf")}
+              onExportExcel={() => exportList("excel")}
+              disabled={isExportingList || groups.length === 0}
+              iconOnly
+            />
+          )}
+          <DeleteModeButton
+            active={selection.deleteMode}
+            onClick={() =>
+              selection.deleteMode ? selection.exitDeleteMode() : selection.enterDeleteMode()
+            }
+          />
+        </div>
         </div>
       </div>
 
@@ -1017,90 +1025,101 @@ export default function VoterGroups({
               <span className="text-xs text-gray-500">{groups.length} shown</span>
             </div>
           )}
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-3 md:space-y-4 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
           {groups.map((g) => {
             const voterCount = g.voters?.length ?? 0;
             const canExport = !selection.deleteMode && !assignOnly && voterCount > 0;
 
             return (
-            <Card key={g._id} className="overflow-hidden hover:shadow-md transition-shadow">
-              <CardContent className="p-0">
-                <div className="flex items-start justify-between gap-2 p-3.5">
-                  <div className="flex min-w-0 flex-1 items-start gap-2.5">
-                    {selection.showSelectors && (
-                      <RowSelectCheckbox
-                        checked={selection.isSelected(g._id)}
-                        onCheckedChange={() => selection.toggle(g._id)}
-                        aria-label={`Select ${g.name || "group"}`}
-                        className="mt-0.5"
+            <div key={g._id} className="rounded-lg border border-gray-200 bg-white p-5 space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  {selection.showSelectors && (
+                    <RowSelectCheckbox
+                      checked={selection.isSelected(g._id)}
+                      onCheckedChange={() => selection.toggle(g._id)}
+                      aria-label={`Select ${g.name || "group"}`}
+                    />
+                  )}
+                  <div className="min-w-0">
+                    <h3 className="text-sm md:text-base font-medium text-gray-900 truncate">
+                      {g.name || "Untitled"}
+                    </h3>
+                    {g.description && (
+                      <p className="text-xs text-gray-500 truncate">
+                        {g.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {!selection.deleteMode && (
+                  <div className="flex shrink-0 items-center gap-1">
+                    {canExport && (
+                      <ExportMenu
+                        iconOnly
+                        onExportPdf={() => exportGroupVoters(g, "pdf")}
+                        onExportExcel={() => exportGroupVoters(g, "excel")}
+                        onPrintSlips={() => openGroupPrintSlips(g)}
+                        disabled={exportingGroupId === g._id}
                       />
                     )}
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold leading-snug text-gray-900 truncate">
-                        {g.name || "Untitled"}
-                      </p>
-                      {g.description && (
-                        <p className="text-xs leading-relaxed text-gray-500 truncate mt-0.5">
-                          {g.description}
-                        </p>
-                      )}
-                      <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                        <Badge variant="secondary" className="h-5 px-1.5 text-[11px] font-medium">
-                          {voterCount} voter{voterCount === 1 ? "" : "s"}
-                        </Badge>
-                        <Badge variant="outline" className="h-5 px-1.5 text-[11px] font-medium">
-                          {g.electionIds?.length || 0} election{(g.electionIds?.length || 0) === 1 ? "" : "s"}
-                        </Badge>
-                      </div>
-                    </div>
+                    {assignOnly ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => openGroup(g)}
+                            aria-label={`Assign ${g.name || "group"}`}
+                          >
+                            <Link2 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Assign elections</TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => openGroup(g)}
+                            aria-label={`Manage ${g.name || "group"}`}
+                          >
+                            <Settings2 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Manage group</TooltipContent>
+                      </Tooltip>
+                    )}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700"
+                          onClick={() => setPendingDeleteIds([g._id])}
+                          aria-label={`Delete ${g.name || "group"}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Delete group</TooltipContent>
+                    </Tooltip>
                   </div>
-
-                  {!selection.deleteMode && (
-                    <div className="flex shrink-0 items-center gap-0.5">
-                      {canExport && (
-                        <ExportMenu
-                          iconOnly
-                          onExportPdf={() => exportGroupVoters(g, "pdf")}
-                          onExportExcel={() => exportGroupVoters(g, "excel")}
-                          onPrintSlips={() => openGroupPrintSlips(g)}
-                          disabled={exportingGroupId === g._id}
-                        />
-                      )}
-                      {assignOnly ? (
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className={cardIconBtn}
-                          onClick={() => openGroup(g)}
-                          aria-label={`Assign ${g.name || "group"}`}
-                        >
-                          <Link2 className="h-4 w-4" />
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className={cardIconBtn}
-                          onClick={() => openGroup(g)}
-                          aria-label={`Manage ${g.name || "group"}`}
-                        >
-                          <Settings2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={cn(cardIconBtn, "text-red-600 hover:bg-red-50 hover:text-red-700")}
-                        onClick={() => setPendingDeleteIds([g._id])}
-                        aria-label={`Delete ${g.name || "group"}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                <span className="inline-flex items-center font-medium text-gray-700">
+                  {voterCount} voter{voterCount === 1 ? "" : "s"}
+                </span>
+                <span className="inline-flex items-center font-medium text-gray-700">
+                  {getGroupElectionIds(g).length} election{getGroupElectionIds(g).length === 1 ? "" : "s"}
+                </span>
+              </div>
+            </div>
             );
           })}
         </div>

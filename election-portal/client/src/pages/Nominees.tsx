@@ -581,13 +581,13 @@ export default function Nominees({
                   deleting={deleteNomineesMutation.isPending}
                 />
               )}
-              <div className="divide-y divide-gray-100 md:hidden">
+              <div className="space-y-3 md:hidden">
                 {paginatedNominees.map((nominee: any) => {
                   const nomineeId = getNomineeId(nominee);
                   const election = elections.find((e: any) => {
                     const electionId = e._id?.toString() || e.id?.toString();
-                    const nomineeElectionId = nominee.electionId?._id?.toString() || 
-                                          nominee.electionId?.toString() || 
+                    const nomineeElectionId = nominee.electionId?._id?.toString() ||
+                                          nominee.electionId?.toString() ||
                                           nominee.electionId;
                     return electionId === nomineeElectionId;
                   });
@@ -595,54 +595,57 @@ export default function Nominees({
                   return (
                     <div
                       key={nomineeId}
-                      className="flex items-center gap-2 py-3.5 px-1"
+                      className="rounded-lg border border-gray-200 bg-white p-5 space-y-3"
                     >
-                      {selection.showSelectors && (
-                        <RowSelectCheckbox
-                          checked={selection.isSelected(nomineeId)}
-                          onCheckedChange={() => selection.toggle(nomineeId)}
-                          aria-label={`Select ${nominee.name}`}
-                          className="mt-0.5"
-                        />
-                      )}
-                      <NomineeAvatar nominee={nominee} size="md" />
-                      <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-semibold text-gray-900 truncate">{nominee.name}</h3>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex min-w-0 items-center gap-3">
+                          {selection.showSelectors && (
+                            <RowSelectCheckbox
+                              checked={selection.isSelected(nomineeId)}
+                              onCheckedChange={() => selection.toggle(nomineeId)}
+                              aria-label={`Select ${nominee.name}`}
+                            />
+                          )}
+                          <NomineeAvatar nominee={nominee} size="md" />
+                          <div className="min-w-0">
+                            <h3 className="text-sm md:text-base font-medium text-gray-900 truncate">{nominee.name}</h3>
+                            {!embedded && (
+                              <p className="text-xs text-gray-500 truncate">
+                                {election ? getElectionLabel(election) : "Unknown Election"}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-1">
                           {selectedElectionGenderBased && nominee.gender && (
-                            <Badge variant="outline" className="capitalize text-xs shrink-0">
+                            <Badge variant="outline" className="capitalize text-xs">
                               {nominee.gender}
                             </Badge>
                           )}
+                          {!isReadOnly && !selection.deleteMode && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                aria-label={`Edit ${nominee.name}`}
+                                onClick={() => handleEditNominee(nominee)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-red-600 hover:text-red-900 hover:bg-red-50"
+                                aria-label={`Delete ${nominee.name}`}
+                                onClick={() => handleDeleteClick(nomineeId)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
                         </div>
-                        {!embedded && (
-                          <p className="text-sm text-gray-500 truncate mt-0.5">
-                            {election ? getElectionLabel(election) : "Unknown Election"}
-                          </p>
-                        )}
                       </div>
-                      {!isReadOnly && !selection.deleteMode && (
-                        <div className="flex shrink-0 items-center gap-0.5">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-9 w-9"
-                            aria-label={`Edit ${nominee.name}`}
-                            onClick={() => handleEditNominee(nominee)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-9 w-9 text-red-600 hover:text-red-900 hover:bg-red-50"
-                            aria-label={`Delete ${nominee.name}`}
-                            onClick={() => handleDeleteClick(nomineeId)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      )}
                     </div>
                   );
                 })}

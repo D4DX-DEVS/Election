@@ -167,7 +167,7 @@ export function ElectionsTable({
                 )}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-semibold text-gray-900 leading-tight truncate">
+                    <h3 className="text-sm md:text-base font-medium text-gray-900 leading-tight truncate">
                       {getElectionLabel(election)}
                     </h3>
                     <StatusBadge status={election.status} />

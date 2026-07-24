@@ -152,7 +152,7 @@ export function VotersTable({
   const totalPages = Math.max(Math.ceil(pagination.total / pagination.pageSize), 1);
 
   return (
-    <Card>
+    <Card className="border-0 shadow-none bg-transparent md:border md:bg-white md:shadow-sm">
       <CardContent className="p-0">
         {selectionMode && onToggleSelectAll && voters.length > 0 && (
           <div className="flex items-center justify-between border-b px-4 py-2 md:hidden">
@@ -173,7 +173,7 @@ export function VotersTable({
             <span className="text-xs text-gray-500">{voters.length} shown</span>
           </div>
         )}
-        <div className="divide-y divide-gray-100 md:hidden">
+        <div className="space-y-3 p-4 md:hidden">
           {voters.length > 0 ? (
             voters.map((voter) => {
               const voterId = voter._id?.toString() || voter.id?.toString() || "";
@@ -185,41 +185,41 @@ export function VotersTable({
                 voter.fullName.trim().toLowerCase() !== voter.username.trim().toLowerCase();
 
               return (
-                <div key={voterId} className="flex items-center gap-3 p-4">
-                  {selectionMode && onToggleSelect && isSelected && (
-                    <RowSelectCheckbox
-                      checked={isSelected(voterId)}
-                      onCheckedChange={() => onToggleSelect(voterId)}
-                      aria-label={`Select ${displayName}`}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-gray-900 truncate">{displayName}</p>
-                      <StatusBadge status={voter.status} />
+                <div key={voterId} className="rounded-lg border border-gray-200 bg-white p-5 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-start gap-3">
+                      {selectionMode && onToggleSelect && isSelected && (
+                        <RowSelectCheckbox
+                          checked={isSelected(voterId)}
+                          onCheckedChange={() => onToggleSelect(voterId)}
+                          aria-label={`Select ${displayName}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="mt-0.5"
+                        />
+                      )}
+                      <div className="min-w-0">
+                        <h3 className="text-sm md:text-base font-medium text-gray-900 truncate">{displayName}</h3>
+                        {showUsername && (
+                          <p className="text-xs text-gray-500 truncate">{voter.username}</p>
+                        )}
+                      </div>
                     </div>
-                    {showUsername && (
-                      <p className="text-sm text-gray-500 truncate">{voter.username}</p>
-                    )}
-                    {electionNames.length > 0 && (
-                      <p className="text-xs text-gray-400 mt-0.5 truncate">
-                        {electionNames.join(", ")}
-                      </p>
-                    )}
+                    <div className="flex shrink-0 items-center gap-1">
+                      <StatusBadge status={voter.status} />
+                      <VoterRowActions
+                        voter={voter}
+                        voterId={voterId}
+                        electionNames={electionNames}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                      />
+                    </div>
                   </div>
-                  <VoterRowActions
-                    voter={voter}
-                    voterId={voterId}
-                    electionNames={electionNames}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                  />
                 </div>
               );
             })
           ) : (
-            <div className="p-10 text-center text-sm text-gray-500">No voters found</div>
+            <div className="py-10 text-center text-sm text-gray-500">No voters found</div>
           )}
         </div>
 
@@ -268,9 +268,6 @@ export function VotersTable({
                         {showUsername && (
                           <p className="text-sm text-gray-500">{voter.username}</p>
                         )}
-                        {electionNames.length > 0 && (
-                          <p className="text-xs text-gray-400 mt-0.5">{electionNames.join(" · ")}</p>
-                        )}
                       </TableCell>
                       <TableCell>
                         <StatusBadge status={voter.status} />
@@ -298,7 +295,7 @@ export function VotersTable({
           </Table>
         </div>
       </CardContent>
-      {pagination.total > 0 && (
+      {pagination.total > 0 && totalPages > 1 && (
         <CardFooter className="px-4 py-3 border-t flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-gray-500">
             Page {pagination.page} of {totalPages} · {pagination.total} voters

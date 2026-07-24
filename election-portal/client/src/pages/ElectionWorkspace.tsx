@@ -15,8 +15,6 @@ import {
   Vote,
   BarChart3,
   CalendarDays,
-  CheckCircle2,
-  Trophy,
   ShieldCheck,
 } from "lucide-react";
 import { format } from "date-fns";
@@ -110,7 +108,6 @@ export default function ElectionWorkspace() {
     enabled: !!id,
   });
   const results = resultsResp?.data || null;
-  const ballots = results?.totalBallots ?? 0;
   const turnout = results?.turnout ?? null;
 
   useEffect(() => {
@@ -130,6 +127,14 @@ export default function ElectionWorkspace() {
   };
 
   const electionLocked = isElectionLocked(election?.status);
+
+  // Results & Analytics only exists once the election is completed/archived —
+  // bounce away if reached via a stale/direct link while it's still open.
+  useEffect(() => {
+    if (election && !electionLocked && tab === "results") {
+      handleTabChange("nominees");
+    }
+  }, [election, electionLocked, tab]);
 
   return (
     <MainLayout>
@@ -176,12 +181,6 @@ export default function ElectionWorkspace() {
                         {format(new Date(election.electionDate), "PPP")}
                       </span>
                     )}
-                    {typeof election.numberToBeElected === "number" && (
-                      <span className="inline-flex items-center gap-1">
-                        <Trophy className="h-3.5 w-3.5" />
-                        {election.numberToBeElected} to be elected
-                      </span>
-                    )}
                     <span className="inline-flex items-center gap-1">
                       <Users className="h-3.5 w-3.5" />
                       {nomineeCount} nominees
@@ -189,10 +188,6 @@ export default function ElectionWorkspace() {
                     <span className="inline-flex items-center gap-1">
                       <User className="h-3.5 w-3.5" />
                       {voterCount} voters
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <CheckCircle2 className="h-3.5 w-3.5" />
-                      {ballots} votes cast
                     </span>
                     <span className="inline-flex items-center gap-1">
                       <BarChart3 className="h-3.5 w-3.5" />
@@ -225,9 +220,11 @@ export default function ElectionWorkspace() {
           <TabsTrigger value="voters" className="gap-1.5">
             <User className="h-4 w-4" /> Voters
           </TabsTrigger>
-          <TabsTrigger value="results" className="gap-1.5">
-            <Vote className="h-4 w-4" /> Results &amp; Analytics
-          </TabsTrigger>
+          {electionLocked && (
+            <TabsTrigger value="results" className="gap-1.5">
+              <Vote className="h-4 w-4" /> Results &amp; Analytics
+            </TabsTrigger>
+          )}
           {canManageAdmins && (
             <TabsTrigger value="admin" className="gap-1.5">
               <ShieldCheck className="h-4 w-4" /> Election Admin
@@ -245,9 +242,9 @@ export default function ElectionWorkspace() {
           {id && <Voters embedded electionId={id} readOnly={electionLocked} />}
         </TabsContent>
 
-        {/* Results & Analytics */}
+        {/* Results & Analytics — only once the election is completed/archived */}
         <TabsContent value="results" className="mt-0">
-          {id && (
+          {id && electionLocked && (
             <ElectionResultActions
               electionId={id}
               electionTitle={election ? getElectionLabel(election) : undefined}

@@ -109,12 +109,6 @@ export function Header({ toggleSidebar, user }: HeaderProps) {
                   Profile
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/settings" className="flex items-center cursor-pointer">
-                  <UserCog className="h-4 w-4 mr-2" />
-                  Settings
-                </Link>
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleHelpClick}>
                 <HelpCircle className="h-4 w-4 mr-2" />
                 Help & Tutorial

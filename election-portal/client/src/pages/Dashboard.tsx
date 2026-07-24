@@ -3,7 +3,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { RecentElectionsTable } from "@/components/dashboard/RecentElectionsTable";
 import { FranchiseOverview } from "@/components/dashboard/FranchiseOverview";
-import { Vote, Users, CheckCircle, AlertCircle, Building2, BarChart3 } from "lucide-react";
+import { Vote, Users, AlertCircle, Building2, BarChart3 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { DashboardStats, ElectionWithDetails } from "@/lib/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -152,6 +152,18 @@ export default function Dashboard() {
               />
 
               <StatCard
+                title="Total Elections"
+                value={displayStats.totalElections.toLocaleString()}
+                icon={<BarChart3 className="h-5 w-5" />}
+                iconBgColor="bg-green-100"
+                iconColor="text-green-600"
+                trend={{
+                  value: `${displayStats.totalElections} total`,
+                  direction: "neutral",
+                }}
+              />
+
+              <StatCard
                 title="Registered Voters"
                 value={displayStats.totalVoters.toLocaleString()}
                 icon={<Users className="h-5 w-5" />}
@@ -159,21 +171,6 @@ export default function Dashboard() {
                 iconColor="text-indigo-600"
                 trend={{
                   value: `${displayStats.totalVoters} total`,
-                  direction: "neutral",
-                }}
-              />
-
-              <StatCard
-                title="Votes Cast"
-                value={displayStats.votesCast.toLocaleString()}
-                icon={<CheckCircle className="h-5 w-5" />}
-                iconBgColor="bg-green-100"
-                iconColor="text-green-600"
-                trend={{
-                  value:
-                    displayStats.totalVoters > 0
-                      ? `${Math.round((displayStats.votesCast / displayStats.totalVoters) * 100)}% turnout`
-                      : "No voters yet",
                   direction: "neutral",
                 }}
               />
@@ -203,7 +200,7 @@ export default function Dashboard() {
           )
         )}
 
-        {(user?.role === "super_admin" || user?.role === "franchise_admin") && (
+        {user?.role === "super_admin" && (
           <div className="mt-6">
             {statsLoading ? (
               <Skeleton className="h-64 w-full" />

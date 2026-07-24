@@ -161,8 +161,9 @@ export function Sidebar({ isOpen, userRole = "" }: SidebarProps) {
     <aside
       className={cn(
         "sidebar scrollbar-thin fixed top-16 left-0 bottom-0 w-64 bg-white border-r border-slate-200/80 overflow-y-auto z-20 transition-transform duration-300",
-        // Super admins navigate via the mobile bottom nav; the sidebar is desktop-only for them.
-        isSuperAdmin
+        // Super admins and franchise admins navigate via the mobile bottom nav;
+        // the sidebar is desktop-only for them.
+        isSuperAdmin || isFranchiseAdmin
           ? "hidden lg:block"
           : !isOpen && "transform -translate-x-full lg:translate-x-0"
       )}

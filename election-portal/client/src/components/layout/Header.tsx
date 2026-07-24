@@ -56,8 +56,8 @@ export function Header({ toggleSidebar, user }: HeaderProps) {
     <header className="fixed top-0 left-0 right-0 bg-white shadow-sm border-b border-slate-200 z-30">
       <div className="flex items-center justify-between h-16 px-4">
         <div className="flex items-center">
-          {/* Super admins use the bottom nav on mobile — no sidebar drawer to open */}
-          {user.role !== "super_admin" && (
+          {/* Super admins and franchise admins use the bottom nav on mobile — no sidebar drawer to open */}
+          {user.role !== "super_admin" && user.role !== "franchise_admin" && (
             <Button
               variant="ghost"
               size="icon"

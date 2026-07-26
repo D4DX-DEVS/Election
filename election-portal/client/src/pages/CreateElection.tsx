@@ -6,26 +6,34 @@ import { ElectionForm } from "@/components/elections/ElectionForm";
 import { useToast } from "@/hooks/use-toast";
 import { buildElectionSubmitPayload } from "@/lib/electionHelpers";
 import { queryClient } from "@/lib/queryClient";
+import type { Franchise } from "@/lib/types";
+import { PageContent, PageHeader } from "@/components/layout/PageContent";
+
+interface CurrentUser {
+  role: string;
+  franchiseId?: string;
+}
 
 export default function CreateElection() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
 
-  const { data: user, isLoading: isLoadingUser, isError: isUserError } = useQuery({
+  const { data: user, isLoading: isLoadingUser, isError: isUserError } = useQuery<CurrentUser>({
     queryKey: ["/api/auth/me"],
   });
 
   const userRole = user?.role || "";
   const franchiseId = user?.franchiseId || "";
 
-  const { data: franchises, isLoading: isLoadingFranchises, isError: isFranchisesError } = useQuery({
+  const { data: franchises, isLoading: isLoadingFranchises, isError: isFranchisesError } = useQuery<Franchise[]>({
     queryKey: ["/api/franchises"],
     enabled: userRole === "super_admin",
   });
 
   const handleSubmit = async (formData: Record<string, unknown>) => {
     try {
-      const { payload, logoFile } = buildElectionSubmitPayload(formData);
+      const { payload: builtPayload, logoFile } = buildElectionSubmitPayload(formData);
+      const payload: Record<string, unknown> = builtPayload;
 
       if (userRole === "franchise_admin" && franchiseId) {
         payload.franchiseId = franchiseId;
@@ -108,10 +116,11 @@ export default function CreateElection() {
 
   return (
     <MainLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Create New Election</h1>
-        <p className="text-sm text-gray-600">Configure your election parameters</p>
-      </div>
+      <PageContent>
+      <PageHeader
+        title="Create New Election"
+        description="Configure your election parameters"
+      />
 
       <ElectionForm
         franchises={userRole === "super_admin" ? franchises || [] : []}
@@ -119,6 +128,7 @@ export default function CreateElection() {
         onSubmit={handleSubmit}
         onCancel={handleCancel}
       />
+      </PageContent>
     </MainLayout>
   );
 }

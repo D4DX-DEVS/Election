@@ -103,6 +103,7 @@ export interface BulkVoterGenerationOptions {
   startingNumber: number;
   count: number;
   electionIds?: string[];
+  voterGroupId?: string;
   assignmentType: "election" | "voterGroup";
 }
 

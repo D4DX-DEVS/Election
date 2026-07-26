@@ -9,10 +9,15 @@ import {
   DialogFooter
 } from "@/components/ui/dialog";
 import { Printer, Copy } from "lucide-react";
-import { User } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 
-type VoterForSlip = User & { plainPassword?: string; _id?: string };
+type VoterForSlip = {
+  _id?: string;
+  username: string;
+  status?: string | null;
+  sequenceNumber?: number | null;
+  plainPassword?: string | null;
+};
 
 interface VoterSlipPrinterProps {
   voter: VoterForSlip;

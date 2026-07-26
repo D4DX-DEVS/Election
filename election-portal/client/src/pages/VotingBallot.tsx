@@ -428,6 +428,8 @@ export default function VotingBallot() {
                   type="button"
                   className="w-full text-left"
                   onClick={() => handleNomineeSelection(nominee._id, nominee.gender)}
+                  aria-pressed={selected}
+                  aria-label={`${selected ? 'Deselect' : 'Select'} ${nominee.name}`}
                 >
                   <div
                     className={cn(

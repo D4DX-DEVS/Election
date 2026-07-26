@@ -9,13 +9,20 @@ import {
   DialogFooter,
   DialogDescription
 } from "@/components/ui/dialog";
-import { User, Election } from "@/lib/types";
+import { Election } from "@/lib/types";
 import { getElectionLabel } from "@/lib/electionHelpers";
 import { useToast } from "@/hooks/use-toast";
 import { Printer, FileDown } from "lucide-react";
 import jsPDF from "jspdf";
 
-type VoterForSlip = User & { plainPassword?: string; _id?: string };
+type VoterForSlip = {
+  _id?: string;
+  username: string;
+  status?: string | null;
+  sequenceNumber?: number | null;
+  plainPassword?: string | null;
+  electionAccess?: string[];
+};
 
 // Load the Vote+ logo once and cache it for PDF embedding/watermarking.
 let cachedLogo: HTMLImageElement | null = null;
@@ -66,7 +73,7 @@ export function BulkVoterSlipPrinter({
   const { toast } = useToast();
   
   // Function to get election names for voters
-  const getElectionNamesForVoter = (voter: User) => {
+  const getElectionNamesForVoter = (voter: VoterForSlip) => {
     if (!elections || elections.length === 0) {
       return [];
     }

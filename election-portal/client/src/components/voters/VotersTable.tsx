@@ -107,7 +107,7 @@ function VoterRowActions({
   );
 }
 
-function StatusBadge({ status }: { status?: string }) {
+function StatusBadge({ status }: { status?: string | null }) {
   if (status === "active") {
     return (
       <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">

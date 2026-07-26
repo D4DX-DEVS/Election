@@ -34,14 +34,6 @@ export function MainLayout({ children }: MainLayoutProps) {
         // Create a user-friendly display name
         const displayName = parsedUser.fullName || parsedUser.username || "User";
         
-        // Format role for display (convert snake_case to Title Case)
-        const formattedRole = parsedUser.role 
-          ? parsedUser.role
-              .split('_')
-              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(' ')
-          : "";
-        
         setCurrentUser({
           name: displayName,
           role: parsedUser.role || "",
@@ -55,7 +47,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   }, []);
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-white">
+    <div className="min-h-[100dvh] flex flex-col bg-background">
       <Header 
         toggleSidebar={toggleSidebar} 
         user={{
@@ -73,19 +65,19 @@ export function MainLayout({ children }: MainLayoutProps) {
 
       {/* Backdrop shown when the sidebar drawer is open on mobile */}
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 top-16 bg-black/40 z-10 lg:hidden"
+        <button
+          type="button"
+          className="fixed inset-0 top-[calc(4rem+env(safe-area-inset-top,0px))] bg-black/40 z-10 lg:hidden"
           onClick={() => setSidebarOpen(false)}
-          aria-hidden="true"
+          aria-label="Close navigation menu"
         />
       )}
 
       <main className={cn(
-        "flex flex-1 flex-col w-full bg-white transition-padding duration-300",
+        "flex flex-1 flex-col w-full bg-background transition-padding duration-300",
         "min-h-[calc(100dvh-4rem)]",
-        "py-6 px-4 sm:px-6 lg:px-8",
-        "pt-20",
-        "pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] lg:pb-8",
+        "px-4 pt-[calc(5rem+env(safe-area-inset-top,0px))] sm:px-6 lg:px-8",
+        "pb-[calc(5rem+env(safe-area-inset-bottom,0px))] lg:pb-8",
         "lg:pl-72"
       )}>
         <div className="flex flex-1 flex-col">{children}</div>

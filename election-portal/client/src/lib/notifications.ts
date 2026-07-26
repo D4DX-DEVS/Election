@@ -35,7 +35,7 @@ export function loadReadNotificationIds(): string[] {
 }
 
 export function saveReadNotificationIds(ids: string[]) {
-  localStorage.setItem(READ_KEY, JSON.stringify([...new Set(ids.map(String))]));
+  localStorage.setItem(READ_KEY, JSON.stringify(Array.from(new Set(ids.map(String)))));
 }
 
 export function formatNotificationTime(iso: string): string {

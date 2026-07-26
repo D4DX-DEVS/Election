@@ -13,6 +13,7 @@ async function resolveNomineeElectionScope(user) {
     electionFilter.franchiseId = user.franchiseId;
   } else if (user.role === "election_admin") {
     electionFilter.ids = Array.isArray(user.electionAccess) ? user.electionAccess : [];
+    electionFilter.franchiseId = user.franchiseId;
   } else {
     return null;
   }

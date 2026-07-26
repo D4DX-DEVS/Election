@@ -5,6 +5,20 @@ const roles = require("../lib/roles");
 const { logUserActivity, logAuditFromReq } = require("../utils/auditLog");
 const { resolveShuffledPrefix } = require("../lib/prefixShuffle");
 const { sameFranchise } = require("../lib/roles");
+const elections = require("../lib/elections");
+const {
+  requireFranchiseId,
+  resourceFranchiseId,
+  assertElectionIdsScoped,
+  assertUserIdsScoped,
+} = require("../lib/tenantScope");
+
+function sendError(res, err) {
+  if (!err.statusCode) console.error(err);
+  return res
+    .status(err.statusCode || 500)
+    .json({ success: false, message: err.message || err.toString() });
+}
 
 function generateVoterPassword(prefix) {
   const letters = "abcdefghijklmnopqrstuvwxyz";
@@ -33,16 +47,37 @@ function assertGroupAccess(user, group) {
   }
 }
 
+async function validateGroupRelations(actor, franchiseId, body) {
+  if (body.elections !== undefined) {
+    body.elections = await assertElectionIdsScoped({
+      actor,
+      franchiseId,
+      electionIds: body.elections || [],
+      findElectionById: elections.findById,
+    });
+  }
+  if (body.voters !== undefined) {
+    body.voters = await assertUserIdsScoped({
+      actor,
+      franchiseId,
+      userIds: body.voters || [],
+      findUserById: (id) => users.findById(id, { includePassword: false }),
+    });
+  }
+}
+
 exports.addVoterGroup = async (req, res) => {
   try {
-    req.body.franchiseId = roles.resolveFranchiseIdForActor(req.user, req.body.franchiseId);
+    req.body.franchiseId = requireFranchiseId(
+      roles.resolveFranchiseIdForActor(req.user, req.body.franchiseId)
+    );
+    await validateGroupRelations(req.user, req.body.franchiseId, req.body);
     const voterGroup = await voterGroups.create(req.body);
     await voterGroups.syncGroupVotersAccess(voterGroup);
     await logUserActivity(req.user._id, req.ip, "Created", voterGroup.name, "Voter Group");
     res.status(201).json({ success: true, message: "Voter Group created.", voterGroup });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: err.toString() });
+    sendError(res, err);
   }
 };
 
@@ -66,15 +101,21 @@ exports.updateVoterGroupById = async (req, res) => {
     const existing = await voterGroups.findById(req.params.id);
     if (!existing) return res.status(404).json({ success: false, message: "Voter Group not found." });
     assertGroupAccess(req.user, existing);
-    req.body.franchiseId = roles.resolveFranchiseIdForActor(req.user, req.body.franchiseId);
+    const franchiseId = requireFranchiseId(resolveGroupFranchiseId(existing));
+    if (req.body.franchiseId && !sameFranchise(req.body.franchiseId, franchiseId)) {
+      const err = new Error("A voter group's organization cannot be changed.");
+      err.statusCode = 400;
+      throw err;
+    }
+    delete req.body.franchiseId;
+    await validateGroupRelations(req.user, franchiseId, req.body);
     const vg = await voterGroups.updateById(req.params.id, req.body);
     if (!vg) return res.status(404).json({ success: false, message: "Voter Group not found." });
     await voterGroups.syncGroupVotersAccess(vg);
     await logAuditFromReq(req, "Updated", vg.name, "Voter Group", vg._id || vg.id);
     res.status(200).json({ success: true, data: vg });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: err.toString() });
+    sendError(res, err);
   }
 };
 
@@ -87,14 +128,19 @@ exports.addVotersToGroup = async (req, res) => {
     const existing = await voterGroups.findById(req.params.id);
     if (!existing) return res.status(404).json({ success: false, message: "Voter Group not found." });
     assertGroupAccess(req.user, existing);
+    const scopedIds = await assertUserIdsScoped({
+      actor: req.user,
+      franchiseId: resolveGroupFranchiseId(existing),
+      userIds: voterIds,
+      findUserById: (id) => users.findById(id, { includePassword: false }),
+    });
 
-    const vg = await voterGroups.addVotersToGroup(req.params.id, voterIds);
+    const vg = await voterGroups.addVotersToGroup(req.params.id, scopedIds);
     if (!vg) return res.status(404).json({ success: false, message: "Voter Group not found." });
     await logUserActivity(req.user._id, req.ip, "Added voters to", vg.name, "Voter Group");
     res.status(200).json({ success: true, data: vg });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: err.toString() });
+    sendError(res, err);
   }
 };
 
@@ -175,6 +221,14 @@ exports.updateVoterGroup = async (req, res) => {
       return res.status(404).json({ success: false, message: "Voter Group not found." });
     }
     assertGroupAccess(req.user, existing);
+    const franchiseId = requireFranchiseId(resolveGroupFranchiseId(existing));
+    if (req.body.franchiseId && !sameFranchise(req.body.franchiseId, franchiseId)) {
+      const err = new Error("A voter group's organization cannot be changed.");
+      err.statusCode = 400;
+      throw err;
+    }
+    delete req.body.franchiseId;
+    await validateGroupRelations(req.user, franchiseId, req.body);
     const voterGroup = await voterGroups.updateById(id, req.body);
     if (!voterGroup) {
       return res.status(404).json({ success: false, message: "Voter Group not found." });
@@ -213,14 +267,19 @@ exports.assignElections = async (req, res) => {
     if (!existing) return res.status(404).json({ success: false, message: "Voter Group not found." });
     assertGroupAccess(req.user, existing);
     const { electionIds } = req.body;
-    const group = await voterGroups.updateById(req.params.id, { elections: electionIds || [] });
+    const scopedElectionIds = await assertElectionIdsScoped({
+      actor: req.user,
+      franchiseId: resolveGroupFranchiseId(existing),
+      electionIds: electionIds || [],
+      findElectionById: elections.findById,
+    });
+    const group = await voterGroups.updateById(req.params.id, { elections: scopedElectionIds });
     if (!group) return res.status(404).json({ success: false, message: "Voter Group not found." });
     await voterGroups.syncGroupVotersAccess(group);
     await logAuditFromReq(req, "Assigned elections to", group.name, "Voter Group", group._id || group.id);
     res.status(200).json({ success: true, data: group });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: err.toString() });
+    sendError(res, err);
   }
 };
 
@@ -234,17 +293,26 @@ exports.getGroupVoters = async (req, res) => {
       const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
       const limit = Math.max(parseInt(req.query.limit || req.query.pageSize, 10) || 10, 1);
       const { voters, total } = await voterGroups.findGroupVotersPaginated(req.params.id, { page, limit });
-      const totalPages = Math.max(Math.ceil(total / limit), 1);
+      const groupFranchiseId = resolveGroupFranchiseId(group);
+      const scopedVoters = voters.filter((voter) =>
+        sameFranchise(groupFranchiseId, resourceFranchiseId(voter))
+      );
+      const safeTotal = scopedVoters.length === voters.length ? total : scopedVoters.length;
+      const totalPages = Math.max(Math.ceil(safeTotal / limit), 1);
       return res.status(200).json({
         success: true,
-        count: voters.length,
-        pagination: { total, page, pageSize: limit, totalPages },
-        data: voters,
+        count: scopedVoters.length,
+        pagination: { total: safeTotal, page, pageSize: limit, totalPages },
+        data: scopedVoters,
       });
     }
 
     const fullGroup = await voterGroups.findById(req.params.id, { populateVoters: true });
-    const voters = Array.isArray(fullGroup?.voters) ? fullGroup.voters : [];
+    const voters = (Array.isArray(fullGroup?.voters) ? fullGroup.voters : []).filter(
+      (voter) =>
+        typeof voter === "object" &&
+        sameFranchise(resolveGroupFranchiseId(group), resourceFranchiseId(voter))
+    );
     res.status(200).json({ success: true, count: voters.length, data: voters });
   } catch (err) {
     console.error(err);
@@ -266,7 +334,7 @@ exports.addVoterToGroup = async (req, res) => {
 
     const plainPassword = generateVoterPassword(username);
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
-    const franchiseId = roles.resolveFranchiseIdForActor(req.user, req.body.franchiseId);
+    const franchiseId = requireFranchiseId(resolveGroupFranchiseId(group));
     const electionAccess = (group.elections || []).map((e) => (typeof e === "object" ? e._id || e.id : e));
 
     const voter = await users.create({
@@ -310,7 +378,13 @@ exports.addExistingUsersToGroup = async (req, res) => {
     const newIds = userIds.filter((id) => !existingIds.has(String(id)));
 
     if (newIds.length > 0) {
-      await voterGroups.addVotersToGroup(req.params.id, newIds);
+      const scopedIds = await assertUserIdsScoped({
+        actor: req.user,
+        franchiseId: resolveGroupFranchiseId(group),
+        userIds: newIds,
+        findUserById: (id) => users.findById(id, { includePassword: false }),
+      });
+      await voterGroups.addVotersToGroup(req.params.id, scopedIds);
     }
 
     await logAuditFromReq(
@@ -340,7 +414,7 @@ exports.generateVotersInGroup = async (req, res) => {
     const shuffledPrefix = resolveShuffledPrefix(null, req.body.shuffledPrefix || req.body.prefix);
     const start = parseInt(req.body.startingNumber, 10) || group.startingNumber || 1001;
     const num = Math.min(parseInt(req.body.count, 10) || 10, 1000);
-    const franchiseId = roles.resolveFranchiseIdForActor(req.user, req.body.franchiseId);
+    const franchiseId = requireFranchiseId(resolveGroupFranchiseId(group));
     const electionAccess = (group.elections || []).map((e) => (typeof e === "object" ? e._id || e.id : e));
 
     const usernames = [];

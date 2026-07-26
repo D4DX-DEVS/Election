@@ -1,33 +1,52 @@
 import { Switch, Route, useLocation } from "wouter";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { UpdatePrompt } from "@/components/pwa/UpdatePrompt";
-import Dashboard from "@/pages/Dashboard";
-import Elections from "@/pages/Elections";
-import CreateElection from "@/pages/CreateElection";
-import EditElection from "@/pages/EditElection";
-import ElectionWorkspace from "@/pages/ElectionWorkspace";
-import ElectionResults from "@/pages/ElectionResults";
-import Voters from "@/pages/Voters";
-import Analytics from "@/pages/Analytics";
-import Franchises from "@/pages/Franchises";
-import Admins from "@/pages/Admins";
-import Reports from "@/pages/Reports";
-import Settings from "@/pages/Settings";
-import Profile from "@/pages/Profile";
-import AuditLogs from "@/pages/AuditLogs";
-import Login from "@/pages/Login";
-import ForgotPassword from "@/pages/ForgotPassword";
-import Onboarding from "@/pages/Onboarding";
-import VotingPortal from "@/pages/VotingPortal";
-import VotingBallot from "@/pages/VotingBallot";
-import VotingResults from "@/pages/VotingResults";
-import NotFound from "@/pages/not-found";
-import { useEffect } from "react";
 import { canAccessPath } from "@/lib/roles";
+import { clearAccountSession } from "@/lib/session";
+
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const Elections = lazy(() => import("@/pages/Elections"));
+const CreateElection = lazy(() => import("@/pages/CreateElection"));
+const EditElection = lazy(() => import("@/pages/EditElection"));
+const ElectionWorkspace = lazy(() => import("@/pages/ElectionWorkspace"));
+const ElectionResults = lazy(() => import("@/pages/ElectionResults"));
+const Voters = lazy(() => import("@/pages/Voters"));
+const Franchises = lazy(() => import("@/pages/Franchises"));
+const Admins = lazy(() => import("@/pages/Admins"));
+const Reports = lazy(() => import("@/pages/Reports"));
+const Settings = lazy(() => import("@/pages/Settings"));
+const Profile = lazy(() => import("@/pages/Profile"));
+const AuditLogs = lazy(() => import("@/pages/AuditLogs"));
+const Login = lazy(() => import("@/pages/Login"));
+const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
+const Onboarding = lazy(() => import("@/pages/Onboarding"));
+const VotingPortal = lazy(() => import("@/pages/VotingPortal"));
+const VotingBallot = lazy(() => import("@/pages/VotingBallot"));
+const VotingResults = lazy(() => import("@/pages/VotingResults"));
+const NotFound = lazy(() => import("@/pages/not-found"));
+
+function PageLoader() {
+  return (
+    <div
+      className="min-h-screen flex items-center justify-center bg-white"
+      role="status"
+      aria-live="polite"
+    >
+      <div className="text-center">
+        <div
+          className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"
+          aria-hidden="true"
+        />
+        <p className="mt-2 text-sm text-gray-600">Loading Vote+…</p>
+      </div>
+    </div>
+  );
+}
 
 function RedirectTo({ path }: { path: string }) {
   const [, setLocation] = useLocation();
@@ -39,6 +58,18 @@ function RedirectTo({ path }: { path: string }) {
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
+  const [, refreshSession] = useState(0);
+
+  useEffect(() => {
+    const handleSessionChange = (event: StorageEvent) => {
+      if (event.key === "authToken" || event.key === "user") {
+        queryClient.clear();
+        refreshSession((value) => value + 1);
+      }
+    };
+    window.addEventListener("storage", handleSessionChange);
+    return () => window.removeEventListener("storage", handleSessionChange);
+  }, []);
 
   // Check for token in localStorage first for quicker response
   const hasToken = localStorage.getItem('authToken') !== null;
@@ -62,7 +93,9 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   });
 
   // Check if user onboarding is completed (once we have user data)
-  const { data: onboardingStatus, isLoading: isLoadingOnboarding } = useQuery({
+  const { data: onboardingStatus, isLoading: isLoadingOnboarding } = useQuery<{
+    onboardingCompleted?: boolean;
+  }>({
     queryKey: ['/api/onboarding/status'],
     retry: false,
     enabled: !!user && hasToken, // Only run if we have a user and token
@@ -71,8 +104,8 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // If we have a token but the API call failed, clear localStorage
     if (hasToken && isError && !isLoading) {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
+      clearAccountSession();
+      queryClient.clear();
       if (location !== '/login' && location !== '/forgot-password' && !location.startsWith('/voting/')) {
         setLocation('/login');
       }
@@ -91,9 +124,36 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Skip onboarding
-    const needsOnboarding = false;
-    localStorage.setItem('needsOnboarding', 'false');
+    const needsOnboarding =
+      user?.role !== "voter" &&
+      onboardingStatus?.onboardingCompleted === false;
+    localStorage.setItem('needsOnboarding', String(needsOnboarding));
+
+    if (
+      user &&
+      !isLoadingOnboarding &&
+      onboardingStatus?.onboardingCompleted === true &&
+      location === "/onboarding"
+    ) {
+      const targetPath =
+        user.role === "election_admin"
+          ? "/elections"
+          : user.role === "voter"
+            ? "/voting"
+            : "/";
+      setLocation(targetPath);
+      return;
+    }
+
+    if (
+      user &&
+      !isLoadingOnboarding &&
+      needsOnboarding &&
+      location !== "/onboarding"
+    ) {
+      setLocation("/onboarding");
+      return;
+    }
 
     // If we have user data and we're on login page, redirect to appropriate page
     if (user && location === '/login') {
@@ -130,10 +190,9 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
                             ? '/elections'
                             : '/';
 
-      if (location !== targetPath) {
-        console.log(`Redirecting ${role} to ${targetPath}`);
-        setLocation(targetPath);
-      }
+      console.log(`Redirecting ${role} to ${targetPath}`);
+      setLocation(targetPath);
+      return;
     }
 
     // ── Guard: role-based path access (super_admin > franchise_admin > election_admin > voter) ──
@@ -192,7 +251,16 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       setLocation(adminHome);
       return;
     }
-  }, [user, isLoading, isError, hasToken, location, setLocation]);
+  }, [
+    user,
+    onboardingStatus,
+    isLoading,
+    isLoadingOnboarding,
+    isError,
+    hasToken,
+    location,
+    setLocation,
+  ]);
 
   // Show loading state while checking authentication 
   // Only if we have a token and are still loading (not on login page)
@@ -213,39 +281,41 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 function Router() {
   return (
     <AuthWrapper>
-      <Switch>
-        {/* Public / auth routes */}
-        <Route path="/login" component={Login} />
-        <Route path="/forgot-password" component={ForgotPassword} />
-        <Route path="/onboarding" component={Onboarding} />
+      <Suspense fallback={<PageLoader />}>
+        <Switch>
+          {/* Public / auth routes */}
+          <Route path="/login" component={Login} />
+          <Route path="/forgot-password" component={ForgotPassword} />
+          <Route path="/onboarding" component={Onboarding} />
 
-        {/* Voting routes */}
-        <Route path="/voting" component={VotingPortal} />
-        <Route path="/election/:electionId" component={VotingBallot} />
-        <Route path="/results/:electionId" component={VotingResults} />
+          {/* Voting routes */}
+          <Route path="/voting" component={VotingPortal} />
+          <Route path="/election/:electionId" component={VotingBallot} />
+          <Route path="/results/:electionId" component={VotingResults} />
 
-        {/* Admin routes */}
-        <Route path="/" component={Dashboard} />
-        <Route path="/dashboard" component={Dashboard} />
-        <Route path="/elections/create" component={CreateElection} />
-        <Route path="/elections/:id/edit" component={EditElection} />
-        <Route path="/elections/:id/results" component={ElectionResults} />
-        <Route path="/elections/:id" component={ElectionWorkspace} />
-        <Route path="/elections" component={Elections} />
-        <Route path="/nominees" component={() => <RedirectTo path="/elections" />} />
-        <Route path="/voters" component={Voters} />
-        <Route path="/analytics" component={() => <RedirectTo path="/elections" />} />
-        <Route path="/election-groups" component={() => <RedirectTo path="/elections" />} />
-        <Route path="/franchises" component={Franchises} />
-        <Route path="/admins" component={Admins} />
-        <Route path="/voter-groups" component={() => <RedirectTo path="/voters" />} />
-        <Route path="/reports" component={Reports} />
-        <Route path="/profile" component={Profile} />
-        <Route path="/settings" component={Settings} />
-        <Route path="/audit-logs" component={AuditLogs} />
+          {/* Admin routes */}
+          <Route path="/" component={Dashboard} />
+          <Route path="/dashboard" component={Dashboard} />
+          <Route path="/elections/create" component={CreateElection} />
+          <Route path="/elections/:id/edit" component={EditElection} />
+          <Route path="/elections/:id/results" component={ElectionResults} />
+          <Route path="/elections/:id" component={ElectionWorkspace} />
+          <Route path="/elections" component={Elections} />
+          <Route path="/nominees" component={() => <RedirectTo path="/elections" />} />
+          <Route path="/voters" component={() => <Voters />} />
+          <Route path="/analytics" component={() => <RedirectTo path="/elections" />} />
+          <Route path="/election-groups" component={() => <RedirectTo path="/elections" />} />
+          <Route path="/franchises" component={Franchises} />
+          <Route path="/admins" component={Admins} />
+          <Route path="/voter-groups" component={() => <RedirectTo path="/voters" />} />
+          <Route path="/reports" component={Reports} />
+          <Route path="/profile" component={Profile} />
+          <Route path="/settings" component={Settings} />
+          <Route path="/audit-logs" component={AuditLogs} />
 
-        <Route component={NotFound} />
-      </Switch>
+          <Route component={NotFound} />
+        </Switch>
+      </Suspense>
     </AuthWrapper>
   );
 }

@@ -8,7 +8,7 @@ export interface AuthUser {
   franchiseId?: string;
   isVoter?: boolean;
   status?: string;
-  lastLogin?: string;
+  lastLogin?: string | null;
   createdAt?: string;
   registrationNumber?: string;
   electionAccess?: string[];

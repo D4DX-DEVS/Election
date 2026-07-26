@@ -3,7 +3,8 @@
  */
 export function SiteFooter() {
   return (
-    <footer className="shrink-0 w-full border-t border-gray-100 py-6 text-center text-xs text-gray-400">      <div className="flex items-center justify-center gap-1.5 flex-wrap">
+    <footer className="hidden shrink-0 w-full border-t border-gray-100 py-6 text-center text-xs text-gray-400 sm:block">
+      <div className="flex items-center justify-center gap-1.5 flex-wrap">
         <span>Powered by</span>
         <a
           href="https://d4dx.co"

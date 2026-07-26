@@ -33,6 +33,7 @@ exports.getDashboardStats = async (req, res) => {
     } else if (role === "election_admin") {
       const ids = Array.isArray(req.user?.electionAccess) ? req.user.electionAccess : [];
       electionFilter.ids = ids;
+      electionFilter.franchiseId = franchiseId;
     }
 
     const electionList = await elections.findLean(electionFilter);
@@ -43,7 +44,12 @@ exports.getDashboardStats = async (req, res) => {
     ).length;
 
     const voterFilter = { isVoter: true };
-    if (role === "franchise_admin" && franchiseId) voterFilter.franchiseId = franchiseId;
+    if (
+      (role === "franchise_admin" || role === "election_admin") &&
+      franchiseId
+    ) {
+      voterFilter.franchiseId = franchiseId;
+    }
     const totalVoters = await users.countDocuments(voterFilter);
 
     const voteFilter = electionIds.length ? { electionIds } : { electionIds: [] };

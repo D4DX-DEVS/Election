@@ -474,7 +474,7 @@ export default function Nominees({
       <div className="mb-4 flex flex-col gap-3 lg:mb-6">
         {!embedded && (
           <Select value={selectedElectionId} onValueChange={handleElectionChange}>
-            <SelectTrigger className="h-10 w-full sm:w-64">
+            <SelectTrigger className="w-full sm:w-64">
               <SelectValue placeholder="Select Election" />
             </SelectTrigger>
             <SelectContent>
@@ -500,13 +500,13 @@ export default function Nominees({
             placeholder="Search nominees..."
             value={searchInput}
             onChange={handleSearchChange}
-            className="h-10 min-w-0 flex-1 sm:max-w-md"
+            className="min-w-0 flex-1 sm:max-w-md"
           />
           <div className="ml-auto flex shrink-0 items-center gap-1.5">
             {!isReadOnly && (
               <Button
                 size="sm"
-                className="h-10 w-10 shrink-0 p-0 sm:w-auto sm:px-3"
+                className="w-11 shrink-0 p-0 sm:w-auto sm:px-3"
                 onClick={handleAddNominee}
                 aria-label="Add nominee"
               >

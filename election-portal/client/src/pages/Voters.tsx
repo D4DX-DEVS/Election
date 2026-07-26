@@ -740,17 +740,17 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
           </div>
 
           <nav
-            className="mb-6 flex gap-6 border-b border-gray-200"
+            className="mb-5 grid grid-cols-2 rounded-xl bg-slate-100 p-1"
             aria-label="Voter sections"
           >
             <button
               type="button"
               onClick={() => handleSectionTabChange("groups")}
               className={cn(
-                "-mb-px border-b-2 pb-3 text-sm font-medium transition-colors",
+                "rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors",
                 sectionTab === "groups"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-gray-500 hover:text-gray-800"
+                  ? "bg-white text-primary shadow-sm"
+                  : "text-slate-500 hover:text-slate-800"
               )}
             >
               Manage Groups
@@ -759,10 +759,10 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
               type="button"
               onClick={() => handleSectionTabChange("voters")}
               className={cn(
-                "-mb-px border-b-2 pb-3 text-sm font-medium transition-colors",
+                "rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors",
                 sectionTab === "voters"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-gray-500 hover:text-gray-800"
+                  ? "bg-white text-primary shadow-sm"
+                  : "text-slate-500 hover:text-slate-800"
               )}
             >
               All Voters
@@ -780,7 +780,7 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
       )}
 
       <Dialog open={bulkVoterOpen} onOpenChange={setBulkVoterOpen}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto top-[8vh] translate-y-0 sm:top-[50%] sm:translate-y-[-50%]">
+        <DialogContent className="sm:max-w-4xl">
           <DialogHeader className="pr-8">
             <DialogTitle>Create Bulk Voters</DialogTitle>
             <DialogDescription>

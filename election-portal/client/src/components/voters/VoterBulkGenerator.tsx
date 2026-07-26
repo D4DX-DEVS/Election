@@ -20,6 +20,7 @@ import { shufflePrefix, generateRandomPrefix, buildUsernamePreview } from "@/lib
 interface VoterBulkGeneratorProps {
   elections: Array<{
     _id: string;
+    id?: string;
     title?: string;
     organization: string;
   }>;
@@ -194,9 +195,7 @@ export function VoterBulkGenerator({
                 <Label htmlFor="electionAccess">Assign to Election</Label>
                 <div className="space-y-2 mt-2 max-h-40 overflow-y-auto pr-1 border rounded-md p-3">
                   {elections && elections.map((election) => {
-                    const id = election?._id?.toString() || 
-                              (typeof election?.id === 'object' ? election.id?.toString() : 
-                              (election?.id ? String(election.id) : ''));
+                    const id = election?._id?.toString() || election?.id?.toString() || "";
 
                     if (!id) return null;
                     return (

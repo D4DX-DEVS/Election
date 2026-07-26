@@ -23,8 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AlertCircle, FileText, BarChart3, ExternalLink } from "lucide-react";
-import { PageContent } from "@/components/layout/PageContent";
+import { AlertCircle, BarChart3, ExternalLink } from "lucide-react";
+import { PageContent, PageHeader } from "@/components/layout/PageContent";
 import { getElectionLabel } from "@/lib/electionHelpers";
 import { apiRequest } from "@/lib/queryClient";
 import { DashboardStats, ElectionWithDetails } from "@/lib/types";
@@ -110,15 +110,10 @@ export default function Reports() {
   return (
     <MainLayout>
       <PageContent>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <FileText className="h-6 w-6 text-primary" />
-          Reports
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Summary of all elections — active, completed, and overall participation.
-        </p>
-      </div>
+      <PageHeader
+        title="Reports"
+        description="Summary of all elections — active, completed, and overall participation."
+      />
 
       {loadError && (
         <Alert variant="destructive" className="mb-4">

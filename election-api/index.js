@@ -9,7 +9,19 @@ const path = require("path");
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./swagger-output.json");
 const app = express();
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+app.disable("x-powered-by");
+app.use((_req, res, next) => {
+  res.set("X-Content-Type-Options", "nosniff");
+  res.set("X-Frame-Options", "DENY");
+  res.set("Referrer-Policy", "no-referrer");
+  res.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  next();
+});
+
+if (process.env.NODE_ENV !== "production" || process.env.ENABLE_API_DOCS === "true") {
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+}
 
 const allowedOrigins = [
   "http://localhost:8000",

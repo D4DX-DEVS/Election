@@ -71,7 +71,7 @@ export function NotificationBell() {
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent align="end" className="w-80 sm:w-96 p-0">
+      <PopoverContent align="end" className="w-[calc(100vw-1rem)] max-w-96 p-0">
         <div className="flex items-center justify-between border-b px-4 py-3">
           <div>
             <p className="text-sm font-semibold">Notifications</p>
@@ -83,7 +83,7 @@ export function NotificationBell() {
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 text-xs"
+              className="text-xs"
               onClick={markAllAsRead}
             >
               <CheckCheck className="h-3.5 w-3.5 mr-1" />

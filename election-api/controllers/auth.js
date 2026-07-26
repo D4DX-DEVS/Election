@@ -34,8 +34,9 @@ exports.login = async (req, res) => {
     let isMatch = false;
     try {
       isMatch = await bcrypt.compare(password, user.password);
-    } catch {
-      isMatch = password === user.password;
+    } catch (error) {
+      console.error("Password verification failed:", error);
+      return res.status(401).json({ success: false, message: "Invalid credentials" });
     }
     if (!isMatch) {
       return res.status(401).json({ success: false, message: "Invalid credentials" });
@@ -156,8 +157,9 @@ exports.changePassword = async (req, res) => {
     let isMatch = false;
     try {
       isMatch = await bcrypt.compare(String(currentPassword), user.password);
-    } catch {
-      isMatch = String(currentPassword) === user.password;
+    } catch (error) {
+      console.error("Password verification failed:", error);
+      return res.status(401).json({ success: false, message: "Current password is incorrect." });
     }
     if (!isMatch) {
       return res.status(401).json({ success: false, message: "Current password is incorrect." });

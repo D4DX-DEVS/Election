@@ -35,10 +35,16 @@ async function canAccessElection(user, election) {
 
   if (user.role === "election_admin") {
     const access = Array.isArray(user.electionAccess) ? user.electionAccess.map(String) : [];
-    return access.includes(electionId);
+    return (
+      sameFranchise(user.franchiseId, resolveElectionFranchiseId(election)) &&
+      access.includes(electionId)
+    );
   }
 
   if (user.role === "voter") {
+    if (!sameFranchise(user.franchiseId, resolveElectionFranchiseId(election))) {
+      return false;
+    }
     return users.userHasElectionAccess(String(user._id || user.id), electionId);
   }
 

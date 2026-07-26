@@ -9,6 +9,7 @@ import { DashboardStats, ElectionWithDetails } from "@/lib/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiRequest } from "@/lib/queryClient";
+import { PageContent, PageHeader } from "@/components/layout/PageContent";
 
 const EMPTY_STATS: DashboardStats = {
   activeElections: 0,
@@ -82,13 +83,15 @@ export default function Dashboard() {
 
   return (
     <MainLayout>
-      <div>
-        <div className="mb-4">
-          <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-600">
-            {user ? `Welcome, ${user.fullName || user.username}` : "Overview of all election activities"}
-          </p>
-        </div>
+      <PageContent>
+        <PageHeader
+          title="Dashboard"
+          description={
+            user
+              ? `Welcome, ${user.fullName || user.username}`
+              : "Overview of all election activities"
+          }
+        />
 
         {(statsError || electionsError) && (
           <Alert variant="destructive" className="mb-4">
@@ -102,7 +105,7 @@ export default function Dashboard() {
           </Alert>
         )}
 
-        <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3">
           {statsLoading ? (
             <>
               <Skeleton className="h-24 w-full md:h-28" />
@@ -221,7 +224,7 @@ export default function Dashboard() {
             )}
           </div>
         )}
-      </div>
+      </PageContent>
     </MainLayout>
   );
 }

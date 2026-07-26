@@ -160,7 +160,7 @@ export default function ElectionWorkspace() {
       ) : (
         <Card className="mb-6">
           <CardContent className="p-5">
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex items-start gap-4 min-w-0">
                 {election.logo?.url && (
                   <img
@@ -197,9 +197,9 @@ export default function ElectionWorkspace() {
                 </div>
               </div>
               {!electionLocked && (
-                <div className="flex gap-2 shrink-0">
-                  <Link href={`/elections/${id}/edit`}>
-                    <Button variant="outline" size="sm">
+                <div className="flex w-full gap-2 sm:w-auto sm:shrink-0">
+                  <Link href={`/elections/${id}/edit`} className="w-full sm:w-auto">
+                    <Button variant="outline" size="sm" className="w-full sm:w-auto">
                       <Pencil className="h-4 w-4 mr-1" />
                       Edit Election
                     </Button>
@@ -213,20 +213,20 @@ export default function ElectionWorkspace() {
 
       {/* Tabs */}
       <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="mb-6 flex w-full flex-wrap h-auto justify-start gap-1">
-          <TabsTrigger value="nominees" className="gap-1.5">
+        <TabsList className="mb-5 flex h-auto w-full justify-start gap-1 overflow-x-auto sm:mb-6">
+          <TabsTrigger value="nominees" className="shrink-0 gap-1.5">
             <Users className="h-4 w-4" /> Nominees
           </TabsTrigger>
-          <TabsTrigger value="voters" className="gap-1.5">
+          <TabsTrigger value="voters" className="shrink-0 gap-1.5">
             <User className="h-4 w-4" /> Voters
           </TabsTrigger>
           {electionLocked && (
-            <TabsTrigger value="results" className="gap-1.5">
+            <TabsTrigger value="results" className="shrink-0 gap-1.5">
               <Vote className="h-4 w-4" /> Results &amp; Analytics
             </TabsTrigger>
           )}
           {canManageAdmins && (
-            <TabsTrigger value="admin" className="gap-1.5">
+            <TabsTrigger value="admin" className="shrink-0 gap-1.5">
               <ShieldCheck className="h-4 w-4" /> Election Admin
             </TabsTrigger>
           )}

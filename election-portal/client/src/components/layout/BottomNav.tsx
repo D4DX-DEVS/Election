@@ -74,6 +74,13 @@ export function BottomNav() {
         isActive: (path) => isVoterGroupsSectionPath(path),
       },
     );
+    if (isFranchiseAdmin) {
+      items.push({
+        href: "/admins",
+        label: "Admins",
+        icon: <Users className="h-5 w-5" />,
+      });
+    }
   }
 
   const navItems = items.slice(0, 5);

@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const users = require("../lib/supabase/users");
 const roles = require("../lib/roles");
 const { logUserActivity } = require("../utils/auditLog");
+const { encryptCredential } = require("../lib/credentialVault");
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "24h" });
@@ -166,8 +167,12 @@ exports.changePassword = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(String(newPassword), 10);
-    // User set this themselves, so admins should no longer see it in plaintext.
-    await users.updateById(userId, { password: hashedPassword, plainPassword: null });
+    await users.updateById(userId, {
+      password: hashedPassword,
+      ...(user.role === "voter"
+        ? { credentialCiphertext: encryptCredential(newPassword) }
+        : {}),
+    });
 
     await logUserActivity(userId, req.ip, "Changed password", user.username, "User", userId);
 
@@ -212,8 +217,12 @@ exports.forgotPassword = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(String(newPassword), 10);
-    // User set this themselves, so admins should no longer see it in plaintext.
-    await users.updateById(user._id, { password: hashedPassword, plainPassword: null });
+    await users.updateById(user._id, {
+      password: hashedPassword,
+      ...(user.role === "voter"
+        ? { credentialCiphertext: encryptCredential(newPassword) }
+        : {}),
+    });
 
     await logUserActivity(user._id, req.ip, "Reset password via forgot flow", user.username, "User", user._id);
 

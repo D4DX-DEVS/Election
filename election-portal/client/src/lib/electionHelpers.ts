@@ -83,6 +83,7 @@ export function resolveElectionFormDefaults(initialValues?: Record<string, unkno
       organization: "",
       electionDate: new Date().toISOString().split("T")[0],
       numberToBeElected: 1,
+      ballotSelectionRule: "exact" as const,
       nomineeDisplayOrder: "ALPHA",
       voterResultDisplay: "full",
       maxVoters: 0,
@@ -113,6 +114,11 @@ export function resolveElectionFormDefaults(initialValues?: Record<string, unkno
       ) || new Date().toISOString().split("T")[0],
     numberToBeElected:
       Number(pickField(src, "numberToBeElected", "number_to_be_elected", "maxNominees", "max_nominees") ?? 1) || 1,
+    ballotSelectionRule: (
+      pickField(src, "ballotSelectionRule", "ballot_selection_rule") === "up_to"
+        ? "up_to"
+        : "exact"
+    ) as "exact" | "up_to",
     nomineeDisplayOrder: String(pickField(src, "nomineeDisplayOrder", "nominee_display_order") || "ALPHA"),
     voterResultDisplay: String(pickField(src, "voterResultDisplay", "voter_result_display") || "full"),
     maxVoters: Number(pickField(src, "maxVoters", "max_voters") ?? 0) || 0,

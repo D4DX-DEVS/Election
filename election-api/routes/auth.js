@@ -1,8 +1,9 @@
 const router = require("express").Router();
 const { login, getCurrentUser, updateProfile, changePassword } = require("../controllers/auth");
 const { protect } = require("../middleware/auth");
+const { loginRateLimit } = require("../middleware/loginRateLimit");
 
-router.post("/login", login);
+router.post("/login", loginRateLimit, login);
 // Self-service reset disabled: it only checked username+email match, letting
 // anyone who knows/guesses a user's email take over the account. Re-enable
 // once a token/OTP-verified flow (via lib/email.js) replaces it.

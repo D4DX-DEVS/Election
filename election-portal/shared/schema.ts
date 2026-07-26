@@ -57,6 +57,7 @@ export interface Election extends ApiEntity {
   title?: string;
   electionDate: string | Date;
   numberToBeElected: number;
+  ballotSelectionRule?: "exact" | "up_to";
   nomineeDisplayOrder?: string | null;
   maxVoters?: number | null;
   maxNominees?: number | null;
@@ -141,6 +142,7 @@ export const insertElectionSchema = z.object({
   organization: z.string().min(1, "Organization is required"),
   electionDate: z.union([z.string(), z.date()]),
   numberToBeElected: z.number().int().min(1),
+  ballotSelectionRule: z.enum(["exact", "up_to"]).optional(),
   nomineeDisplayOrder: z.string().optional(),
   maxVoters: z.number().int().optional(),
   maxNominees: z.number().int().optional(),

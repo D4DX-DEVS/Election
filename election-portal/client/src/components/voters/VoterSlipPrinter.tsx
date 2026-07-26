@@ -41,7 +41,7 @@ export function VoterSlipPrinter({
 
   // Plaintext passwords are never persisted (only bcrypt hashes are stored),
   // so this is only available right after the voter was created.
-  const displayPassword = voter.plainPassword || "Not available (shown once, at creation)";
+  const displayPassword = voter.plainPassword || "Not available";
 
   const printSlip = () => {
     const printWindow = window.open('', '_blank');

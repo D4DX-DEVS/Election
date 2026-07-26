@@ -30,6 +30,17 @@ function countInvalidLinks(rows, leftColumn, leftTenants, rightColumn, rightTena
   }).length;
 }
 
+function countDuplicateVotes(rows) {
+  const seen = new Set();
+  let duplicates = 0;
+  for (const vote of rows) {
+    const key = `${vote.voter_id}:${vote.election_id}`;
+    if (seen.has(key)) duplicates += 1;
+    else seen.add(key);
+  }
+  return duplicates;
+}
+
 async function run() {
   const [
     users,
@@ -94,6 +105,7 @@ async function run() {
       "election_id",
       electionTenants
     ),
+    duplicateVotes: countDuplicateVotes(votes),
   };
 
   const invalidTotal = Object.values(checks).reduce((sum, count) => sum + count, 0);

@@ -14,9 +14,11 @@ import { getElectionLabel } from "@/lib/electionHelpers";
 import { useToast } from "@/hooks/use-toast";
 import { Printer, FileDown } from "lucide-react";
 import jsPDF from "jspdf";
+import { apiRequest } from "@/lib/queryClient";
 
 type VoterForSlip = {
   _id?: string;
+  id?: string;
   username: string;
   status?: string | null;
   sequenceNumber?: number | null;
@@ -113,7 +115,7 @@ export function BulkVoterSlipPrinter({
   const printBulkSlips = async () => {
     // If we've already filtered on the backend, use all voters
     // They'll already be filtered by the selected election
-    const filteredVoters = voters;
+    let filteredVoters = voters;
 
     if (filteredVoters.length === 0) {
       toast({
@@ -125,6 +127,50 @@ export function BulkVoterSlipPrinter({
     }
 
     try {
+      const missingCredentials = filteredVoters.filter(
+        (voter) => !voter.plainPassword && (voter._id || voter.id)
+      );
+      if (missingCredentials.length) {
+        const credentialsById = new Map<string, string>();
+        for (let index = 0; index < missingCredentials.length; index += 1000) {
+          const voterIds = missingCredentials
+            .slice(index, index + 1000)
+            .map((voter) => voter._id || voter.id)
+            .filter((id): id is string => !!id);
+          const response = await apiRequest(
+            "POST",
+            "/api/users/voters/credentials",
+            { voterIds }
+          );
+          const body = await response.json();
+          if (!response.ok) {
+            throw new Error(body.message || "Could not load voter credentials.");
+          }
+          (body.data || []).forEach((credential: { id: string; plainPassword?: string | null }) => {
+            if (credential.plainPassword) {
+              credentialsById.set(String(credential.id), credential.plainPassword);
+            }
+          });
+        }
+        filteredVoters = filteredVoters.map((voter) => ({
+          ...voter,
+          plainPassword:
+            voter.plainPassword ||
+            (voter._id || voter.id
+              ? credentialsById.get(String(voter._id || voter.id))
+              : null),
+        }));
+      }
+
+      const unavailableCount = filteredVoters.filter(
+        (voter) => !voter.plainPassword
+      ).length;
+      if (unavailableCount) {
+        throw new Error(
+          `${unavailableCount} voter credential(s) are unavailable. Apply the credential migration before reprinting legacy voters.`
+        );
+      }
+
       // Load the Vote+ logo for the header and per-slip watermark.
       const logo = await loadLogo();
       const logoRatio = logo && logo.naturalHeight

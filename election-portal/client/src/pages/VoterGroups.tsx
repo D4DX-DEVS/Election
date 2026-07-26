@@ -462,11 +462,20 @@ export default function VoterGroups({
       return res.json();
     },
     onSuccess: (data) => {
+      const credential = data?.data?.plainPassword
+        ? [{
+            _id: data.data.id,
+            username: data.data.username,
+            plainPassword: data.data.plainPassword,
+          }]
+        : [];
       toast({
         title: "Voter created",
-        description: `${data.data.username} · password: ${data.data.plainPassword}`,
+        description: `${data.data.username} created. Print or save the credential now.`,
         variant: "success",
       });
+      setSlipPrintVoters(credential);
+      setPrintSlipsOpen(credential.length > 0);
       setSingleVoterUsername("");
       setSingleVoterOpen(false);
       refetchVoters();
@@ -489,7 +498,14 @@ export default function VoterGroups({
       return res.json();
     },
     onSuccess: (data) => {
-      toast({ title: `${data.count} voters created`, description: data.skipped ? `${data.skipped} skipped (already exist)` : undefined, variant: "success" });
+      const generatedCredentials = Array.isArray(data?.data) ? data.data : [];
+      toast({
+        title: `${data.count} voters created`,
+        description: "Print them now or reprint them later from the voter group.",
+        variant: "success",
+      });
+      setSlipPrintVoters(generatedCredentials);
+      setPrintSlipsOpen(generatedCredentials.length > 0);
       setBulkVoterOpen(false);
       refetchVoters();
       queryClient.invalidateQueries({ queryKey: ["/api/voter-groups"] });

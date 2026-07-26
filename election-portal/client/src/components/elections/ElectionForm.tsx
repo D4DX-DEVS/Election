@@ -29,6 +29,7 @@ const formBoolean = z.preprocess((value) => toFormBoolean(value, false), z.boole
 const formSchema = insertElectionSchema.extend({
     electionDate: z.string().min(1, "Election date is required"),
     numberToBeElected: z.coerce.number().min(1, "Must elect at least 1 person"),
+    ballotSelectionRule: z.enum(["exact", "up_to"]).default("exact"),
     maxVoters: z.coerce.number().int().min(0).optional(),
     maleMinimum: z.coerce.number().int().min(0).optional(),
     femaleMinimum: z.coerce.number().int().min(0).optional(),
@@ -79,6 +80,7 @@ export function ElectionForm({
   const votingOpenValue = watch("votingOpen");
   const nomineeDisplayOrder = watch("nomineeDisplayOrder");
   const voterResultDisplay = watch("voterResultDisplay");
+  const ballotSelectionRule = watch("ballotSelectionRule");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -163,6 +165,31 @@ export function ElectionForm({
               {formState.errors.numberToBeElected && (
                 <p className="text-sm text-red-500 mt-1">{formState.errors.numberToBeElected.message}</p>
               )}
+            </div>
+            <div>
+              <Label htmlFor="ballotSelectionRule">Required Voter Selection</Label>
+              <Select
+                value={ballotSelectionRule || "exact"}
+                onValueChange={(value: "exact" | "up_to") =>
+                  setValue("ballotSelectionRule", value, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  })
+                }
+              >
+                <SelectTrigger id="ballotSelectionRule" className="mt-1">
+                  <SelectValue placeholder="Select ballot rule" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="exact">Exactly the number of positions</SelectItem>
+                  <SelectItem value="up_to">Up to the number of positions</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="mt-1 text-xs text-gray-500">
+                {ballotSelectionRule === "up_to"
+                  ? "A voter may submit fewer selections, but never more."
+                  : "A voter must fill every available position before submitting."}
+              </p>
             </div>
             <div>
               <Label htmlFor="nomineeDisplayOrder">Nominee Display Order</Label>

@@ -11,6 +11,7 @@ const swaggerDocument = require("./swagger-output.json");
 const app = express();
 
 app.disable("x-powered-by");
+app.set("trust proxy", 1);
 app.use((_req, res, next) => {
   res.set("X-Content-Type-Options", "nosniff");
   res.set("X-Frame-Options", "DENY");

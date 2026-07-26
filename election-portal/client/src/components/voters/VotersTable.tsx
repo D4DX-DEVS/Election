@@ -13,8 +13,10 @@ import { RowSelectCheckbox } from "@/components/ui/row-select-checkbox";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Pagination, User, Election } from "@/lib/types";
 import { getElectionLabel } from "@/lib/electionHelpers";
-import { MoreHorizontal, Pencil, Printer, Trash2 } from "lucide-react";
+import { Loader2, MoreHorizontal, Pencil, Printer, Trash2 } from "lucide-react";
 import { VoterSlipPrinter } from "./VoterSlipPrinter";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -62,6 +64,37 @@ function VoterRowActions({
   onDelete?: (id: string) => void;
 }) {
   const [printOpen, setPrintOpen] = useState(false);
+  const [printVoter, setPrintVoter] = useState<VoterRecord>(voter);
+  const [loadingCredential, setLoadingCredential] = useState(false);
+  const { toast } = useToast();
+
+  const openPrintableCredential = async () => {
+    setLoadingCredential(true);
+    try {
+      const response = await apiRequest("POST", "/api/users/voters/credentials", {
+        voterIds: [voterId],
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.message || "Could not load voter credential.");
+      const credential = body?.data?.[0];
+      if (!credential?.plainPassword) {
+        throw new Error("This voter does not have a recoverable credential yet.");
+      }
+      setPrintVoter({
+        ...voter,
+        plainPassword: credential.plainPassword,
+      });
+      setPrintOpen(true);
+    } catch (error) {
+      toast({
+        title: "Could not print credential",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingCredential(false);
+    }
+  };
 
   return (
     <>
@@ -78,9 +111,13 @@ function VoterRowActions({
               Edit
             </DropdownMenuItem>
           )}
-          <DropdownMenuItem onClick={() => setPrintOpen(true)}>
-            <Printer className="h-4 w-4 mr-2" />
-            Print slip
+          <DropdownMenuItem onClick={openPrintableCredential} disabled={loadingCredential}>
+            {loadingCredential ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Printer className="h-4 w-4 mr-2" />
+            )}
+            {loadingCredential ? "Loading…" : "Print slip"}
           </DropdownMenuItem>
           {onDelete && (
             <>
@@ -97,7 +134,7 @@ function VoterRowActions({
         </DropdownMenuContent>
       </DropdownMenu>
       <VoterSlipPrinter
-        voter={voter}
+        voter={printVoter}
         electionNames={electionNames}
         open={printOpen}
         onOpenChange={setPrintOpen}

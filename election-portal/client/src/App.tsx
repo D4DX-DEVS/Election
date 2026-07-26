@@ -227,7 +227,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
     // ── Guard: pages that only super_admin may access ──
     // franchise_admin and election_admin are redirected to their own home page.
-    const superAdminOnlyPaths = ['/franchises', '/admins', '/audit-logs'];
+    const superAdminOnlyPaths = ['/franchises', '/audit-logs'];
     if (
       user &&
       user.role !== 'super_admin' &&

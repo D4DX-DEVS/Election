@@ -219,14 +219,14 @@ export default function Elections() {
       <PageHeader
         title="Elections"
         description="Select an election to manage its nominees and voters"
-        actions={
+        actions={userRole !== "election_admin" ? (
           <Link href="/elections/create">
           <Button size="sm">
             <PlusIcon className="mr-1 h-3.5 w-3.5" />
             Add election
           </Button>
           </Link>
-        }
+        ) : undefined}
       />
 
       {franchisesError && (

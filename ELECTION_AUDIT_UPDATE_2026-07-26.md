@@ -12,7 +12,7 @@ This pass fixed current access-control, authentication, onboarding, build, perfo
 
 A follow-up tenant-isolation pass also confirmed that the configured live database currently contains **zero cross-organization relationships** across user/election access, voter groups, election groups, and recorded votes. The application now rejects attempts to create those relationships.
 
-The remaining largest risks are persistent plaintext voter passwords, lack of automated tests and login rate limiting, an unverified database-level double-vote constraint, incomplete authenticated browser testing, and a ballot-rule ambiguity that requires a product decision.
+Generated voter credentials now open immediately for printing and can later be reprinted by an authorized organization administrator from an encrypted credential vault. Normal voter records do not expose passwords, and credential retrieval is audited. Login is protected with rate limiting, and migrations are prepared for double-vote prevention and configurable ballot rules. The largest remaining risks are production database access, incomplete authenticated browser testing, and limited structured security monitoring.
 
 ## Corrections to the older audit
 
@@ -30,6 +30,14 @@ The previous `ELECTION_AUDIT_REPORT.md` is useful background, but several findin
 - Removed the legacy `GET /api/v1/vote/` and `POST /api/v1/vote/` routes.
 - Restricted voter-only endpoints (`available-elections`, `voter-status`, `my-vote`, and `cast`) to the `voter` role.
 - Removed the plaintext password-comparison fallback. Malformed password hashes now fail closed.
+- Removed plaintext voter-password mapping from ordinary records. Generated and reset credentials are returned at creation and stored only as encrypted ciphertext for authorized reprinting.
+- Added encrypted storage for authorized credential reprinting, with a migration that encrypts legacy values before removing the `plain_password` database column.
+- Added an organization-scoped credential-print endpoint and audit logging for every credential retrieval.
+- Added login rate limiting at 10 failed attempts per IP/username combination in 15 minutes, with a retry response and automatic clearing after successful authentication.
+- Added a production unique-index migration for one vote per voter per election.
+- Added rollback of a newly created vote if its nominee rows fail, preventing a partial record from consuming the voter's ballot.
+- Added an election-level ballot rule for Exactly N or Up to N selections and enforced it in both the API and mobile ballot.
+- Newly created voter credentials now open directly in the printable/PDF slip flow.
 - Disabled the Express technology signature.
 - Added baseline API response headers:
   - `X-Content-Type-Options: nosniff`
@@ -56,6 +64,7 @@ The previous `ELECTION_AUDIT_REPORT.md` is useful background, but several findin
 
 - Restored administrator onboarding enforcement. It had been hardcoded off even though the API status check still ran.
 - Removed shared-device onboarding state from `localStorage`; onboarding status now comes from the authenticated account.
+- Corrected role journeys: franchise administrators can manage election administrators, while election administrators cannot create elections or manage administrator accounts.
 - Corrected active-code TypeScript defects involving entity IDs, nullable passwords/statuses, voter-group exports, file saving, election creation, and Vite configuration.
 - Isolated obsolete prototype files from the active type-check surface.
 
@@ -96,9 +105,11 @@ The previous `ELECTION_AUDIT_REPORT.md` is useful background, but several findin
 | Backend JavaScript syntax validation | Pass |
 | Supabase connection through local API | Pass |
 | Tenant-isolation regression test | Pass |
-| Live tenant relationship integrity audit | Pass: 0 invalid relationships |
+| Authentication/security boundary regression | Pass |
+| Role-navigation regression | Pass |
+| Live tenant relationship integrity audit | Pass: 0 invalid relationships and 0 duplicate votes |
 | Older credential-based cross-franchise script | Blocked: configured test credentials were rejected |
-| Authenticated browser flow test | Not completed |
+| Authenticated browser flow test | Blocked: local test URL rejected by enterprise browser policy and test credentials unavailable |
 
 The local API requires Node 20+ for the current Supabase client, while one legacy JWT dependency fails on Node 26. Node 24 successfully starts the API and connects to Supabase. The portal also requires Node 20+.
 
@@ -137,31 +148,29 @@ The local API requires Node 20+ for the current Supabase client, while one legac
 
 ### Remaining high-priority risks
 
-1. **Plaintext voter passwords remain stored in `users.plain_password`.** This is the highest remaining code-level security risk. Credentials should be one-time-return values, not durable database fields.
-2. **No rate limiting** protects login or other authentication endpoints.
-3. **Double-vote protection is not schema-verifiable from the repository.** Confirm a real unique database constraint on `(voter_id, election_id)`.
-4. **Only tenant-isolation regression coverage has been added.** A broader unit/integration/E2E suite is still needed for vote, result-publication, and user-management workflows.
-5. **The older credential-based cross-franchise test accounts are stale.** The new deterministic tenant-isolation test and live read-only relationship audit pass, but an authenticated multi-role browser test still needs replacement accounts.
-6. **No complete Supabase schema migration history** exists in source control.
-7. **Election lifecycle changes are read-triggered**, not reliably scheduled.
-8. **File validation trusts declared MIME type** rather than verifying file signatures/content.
-9. **JWTs remain valid for up to 24 hours** without revocation after password or role changes.
-10. **The ballot rule is ambiguous:** the API accepts one-to-N selections, while the current voter UI requires exactly N. This must be explicitly decided before changing behavior because it affects election validity.
+1. **The prepared credential migration has not been applied to production.** It must add encrypted storage, migrate legacy readable values, and remove the old plaintext column before the new reprint path is deployed.
+2. **The prepared double-vote unique index has not been applied to production.** The live audit found zero existing duplicates, but the database protection is not active until the migration is run.
+3. **Authenticated end-to-end testing remains incomplete.** The enterprise browser policy rejected the local preview URL, and non-production accounts for all four roles are unavailable.
+4. **Automated coverage is improved but still incomplete.** Tenant isolation, authentication boundaries, and role navigation are covered; deeper vote, publication, and user-management integration tests remain advisable.
+5. **No complete Supabase schema migration history** exists in source control.
+6. **Election lifecycle changes are read-triggered**, not reliably scheduled.
+7. **File validation trusts declared MIME type** rather than verifying file signatures/content.
+8. **JWTs remain valid for up to 24 hours** without revocation after password or role changes.
+9. **Structured security-event monitoring is not yet implemented.**
+10. **Recoverable credentials depend on a stable encryption key.** Changing both `CREDENTIAL_ENCRYPTION_KEY` and its configured fallback would make existing printable credentials unrecoverable.
 
 ## Recommended release gate
 
 Do not use the system for a consequential election until all of these are complete:
 
-1. Remove persistent plaintext passwords and migrate existing records.
-2. Confirm/add the database unique vote constraint.
-3. Add authentication rate limiting and structured security logging.
-4. Add automated authorization and ballot-integrity tests.
-5. Replace the stale test accounts and pass the cross-franchise regression suite.
-6. Run authenticated end-to-end tests for all four roles on desktop and mobile.
-7. Decide and document whether ballots require exactly N selections or allow up to N.
-8. Export and version the production Supabase schema.
-9. Complete a WCAG 2.2 AA accessibility pass.
-10. Conduct a final penetration test and restore/backup drill.
+1. Apply the prepared encrypted-credential migration and plaintext-column cleanup.
+2. Approve and apply the prepared unique vote constraint.
+3. Replace the stale test accounts and run authenticated end-to-end tests for all four roles on mobile and desktop against an accessible test URL.
+4. Decide and document whether ballots require exactly N selections or allow up to N.
+5. Add deeper ballot-integrity tests and structured security logging.
+6. Export and version the production Supabase schema.
+7. Complete a WCAG 2.2 AA accessibility pass.
+8. Conduct a final penetration test and restore/backup drill.
 
 ## Overall readiness
 
@@ -173,6 +182,6 @@ Do not use the system for a consequential election until all of these are comple
 | Accessibility | Partial |
 | Frontend build health | Pass |
 | Backend syntax/startup | Pass on Node 24 |
-| Automated testing | Insufficient |
-| Security | Improved in this pass; major password/DB risks remain |
+| Automated testing | Core isolation/auth/role checks pass; E2E coverage still incomplete |
+| Security | Code controls improved; two production database migrations remain |
 | High-stakes production readiness | Not yet approved |

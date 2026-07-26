@@ -238,10 +238,19 @@ exports.castVote = async (req, res) => {
     }
 
     const uniqueNomineeIds = [...new Set(nomineeIds.map((id) => String(id)))];
-    if (uniqueNomineeIds.length > election.numberToBeElected) {
+    const selectionLimit = Math.max(parseInt(election.numberToBeElected, 10) || 1, 1);
+    const ballotSelectionRule =
+      election.ballotSelectionRule === "up_to" ? "up_to" : "exact";
+    if (ballotSelectionRule === "exact" && uniqueNomineeIds.length !== selectionLimit) {
       return res.status(400).json({
         success: false,
-        message: `Maximum nominees to select: ${election.numberToBeElected}`,
+        message: `Select exactly ${selectionLimit} nominee(s).`,
+      });
+    }
+    if (uniqueNomineeIds.length > selectionLimit) {
+      return res.status(400).json({
+        success: false,
+        message: `Select up to ${selectionLimit} nominee(s).`,
       });
     }
 

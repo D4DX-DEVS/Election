@@ -66,7 +66,7 @@ async function mapGroups(rows, { populateElections = false, populateVoters = fal
       const supabase = getSupabase();
       const { data, error } = await supabase
         .from("users")
-        .select("id, username, status, franchise_id, registration_number, voter_prefix, voter_sequence_number, plain_password")
+        .select("id, username, status, franchise_id, registration_number, voter_prefix, voter_sequence_number")
         .in("id", allVoterIds);
       if (error) throw error;
 
@@ -78,7 +78,6 @@ async function mapGroups(rows, { populateElections = false, populateVoters = fal
         status: u.status,
         franchiseId: u.franchise_id,
         registrationNumber: u.registration_number,
-        plainPassword: u.plain_password || undefined,
         voterMetadata:
           u.voter_prefix || u.voter_sequence_number
             ? { prefix: u.voter_prefix, sequenceNumber: u.voter_sequence_number }
@@ -327,7 +326,7 @@ async function findGroupVotersPaginated(groupId, { page = 1, limit = 10 } = {}) 
 
   const { data: userRows, error: userErr } = await supabase
     .from("users")
-    .select("id, username, status, franchise_id, registration_number, voter_prefix, voter_sequence_number, plain_password")
+    .select("id, username, status, franchise_id, registration_number, voter_prefix, voter_sequence_number")
     .in("id", voterIds);
   if (userErr) throw userErr;
 
@@ -339,7 +338,6 @@ async function findGroupVotersPaginated(groupId, { page = 1, limit = 10 } = {}) 
     status: u.status,
     franchiseId: u.franchise_id,
     registrationNumber: u.registration_number,
-    plainPassword: u.plain_password || undefined,
     voterMetadata:
       u.voter_prefix || u.voter_sequence_number
         ? { prefix: u.voter_prefix, sequenceNumber: u.voter_sequence_number }

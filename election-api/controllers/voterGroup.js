@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const roles = require("../lib/roles");
 const { logUserActivity, logAuditFromReq } = require("../utils/auditLog");
 const { resolveShuffledPrefix } = require("../lib/prefixShuffle");
+const { encryptCredential } = require("../lib/credentialVault");
 const { sameFranchise } = require("../lib/roles");
 const elections = require("../lib/elections");
 const {
@@ -340,7 +341,7 @@ exports.addVoterToGroup = async (req, res) => {
     const voter = await users.create({
       username: String(username).trim(),
       password: hashedPassword,
-      plainPassword,
+      credentialCiphertext: encryptCredential(plainPassword),
       fullName: fullName || username,
       registrationNumber: registrationNumber || username,
       role: "voter",
@@ -423,6 +424,7 @@ exports.generateVotersInGroup = async (req, res) => {
     const existingSet = new Set(existing.map((u) => u.username.toLowerCase()));
 
     const usedPasswords = new Set();
+    const credentialsByUsername = new Map();
     const docs = [];
     for (let i = 0; i < num; i++) {
       const seq = start + i;
@@ -433,11 +435,12 @@ exports.generateVotersInGroup = async (req, res) => {
         plainPassword = generateVoterPassword(shuffledPrefix);
       } while (usedPasswords.has(plainPassword));
       usedPasswords.add(plainPassword);
+      credentialsByUsername.set(username, plainPassword);
       const hashedPassword = await bcrypt.hash(plainPassword, 10);
       docs.push({
         username,
         password: hashedPassword,
-        plainPassword,
+        credentialCiphertext: encryptCredential(plainPassword),
         fullName: username,
         role: "voter",
         isVoter: true,
@@ -472,7 +475,11 @@ exports.generateVotersInGroup = async (req, res) => {
       count: created.length,
       skipped: num - created.length,
       shuffledPrefix,
-      data: created.map((u) => ({ id: u._id, username: u.username, plainPassword: u.plainPassword })),
+      data: created.map((u) => ({
+        id: u._id,
+        username: u.username,
+        plainPassword: credentialsByUsername.get(u.username),
+      })),
     });
   } catch (err) {
     console.error(err);

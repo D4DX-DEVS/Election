@@ -31,8 +31,15 @@ export function canAccessPath(role: string | undefined, path: string): boolean {
 
   if (role === "super_admin") return true;
 
-  const superAdminOnly = ["/franchises", "/admins", "/audit-logs"];
+  const superAdminOnly = ["/franchises", "/audit-logs"];
   if (superAdminOnly.some((p) => path === p || path.startsWith(`${p}/`))) {
+    return false;
+  }
+
+  if (
+    role === "election_admin" &&
+    (path === "/admins" || path === "/elections/create")
+  ) {
     return false;
   }
 

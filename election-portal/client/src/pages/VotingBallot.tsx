@@ -148,10 +148,16 @@ export default function VotingBallot() {
 
   const validateSelections = () => {
     if (!election) return false;
-    if (selectedNominees.length !== election.numberToBeElected) {
+    const requiresExactSelection = election.ballotSelectionRule !== "up_to";
+    if (
+      (requiresExactSelection && selectedNominees.length !== election.numberToBeElected) ||
+      (!requiresExactSelection && selectedNominees.length === 0)
+    ) {
       toast({
         title: 'Selection Required',
-        description: `Please select exactly ${election.numberToBeElected} nominee(s)`,
+        description: requiresExactSelection
+          ? `Please select exactly ${election.numberToBeElected} nominee(s)`
+          : `Please select at least 1 and up to ${election.numberToBeElected} nominee(s)`,
         variant: 'destructive',
       });
       return false;
@@ -382,7 +388,7 @@ export default function VotingBallot() {
                 <div>
                   <p className="font-semibold text-sm text-blue-800 dark:text-blue-300">Instructions</p>
                   <p className="text-xs text-blue-700 dark:text-blue-400 mt-0.5">
-                    Tap a nominee to select them. Select exactly{' '}
+                    Tap a nominee to select them. Select {election.ballotSelectionRule === 'up_to' ? 'up to' : 'exactly'}{' '}
                     <strong>{election.numberToBeElected}</strong> nominee{election.numberToBeElected !== 1 ? 's' : ''}.
                   </p>
                 </div>
@@ -512,7 +518,12 @@ export default function VotingBallot() {
             onClick={handleReviewVote}
             className="w-full h-12 rounded-xl text-sm font-bold shadow-lg"
             size="lg"
-            disabled={!election || selectedNominees.length !== election?.numberToBeElected}
+            disabled={
+              !election ||
+              selectedNominees.length === 0 ||
+              (election.ballotSelectionRule !== 'up_to' &&
+                selectedNominees.length !== election.numberToBeElected)
+            }
           >
             Review Selections ({selectedNominees.length}/{election?.numberToBeElected})
             <ChevronRight className="h-4 w-4 ml-1" />

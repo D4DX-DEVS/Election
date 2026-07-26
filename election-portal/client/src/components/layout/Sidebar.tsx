@@ -209,6 +209,9 @@ export function Sidebar({ isOpen, userRole = "" }: SidebarProps) {
               label="Voter Groups"
               isActive={(path) => isVoterGroupsSectionPath(path)}
             />
+            {isFranchiseAdmin && (
+              <NavLink href="/admins" icon={<UserCog />} label="Election Admins" />
+            )}
           </div>
         )}
       </nav>

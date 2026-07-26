@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const { logUserActivity, logAuditFromReq } = require("../utils/auditLog");
 const roles = require("../lib/roles");
 const { resolveShuffledPrefix } = require("../lib/prefixShuffle");
+const { encryptCredential } = require("../lib/credentialVault");
 const elections = require("../lib/elections");
 const {
   requireFranchiseId,
@@ -388,7 +389,7 @@ exports.createVoter = async (req, res) => {
     const user = await users.create({
       username,
       password: hashedPassword,
-      plainPassword,
+      credentialCiphertext: encryptCredential(plainPassword),
       fullName: req.body.fullName || username,
       role: "voter",
       isVoter: true,
@@ -464,6 +465,7 @@ exports.generateVoters = async (req, res) => {
     await assertVoterGroupScoped(req.user, franchiseId, voterGroupId);
 
     const usedPasswords = new Set();
+    const credentialsByUsername = new Map();
     const docs = [];
     for (let i = 0; i < num; i++) {
       const seq = start + i;
@@ -474,11 +476,12 @@ exports.generateVoters = async (req, res) => {
         plainPassword = generatePassword(shuffledPrefix);
       } while (usedPasswords.has(plainPassword));
       usedPasswords.add(plainPassword);
+      credentialsByUsername.set(username, plainPassword);
       const hashedPassword = await bcrypt.hash(plainPassword, 10);
       docs.push({
         username,
         password: hashedPassword,
-        plainPassword,
+        credentialCiphertext: encryptCredential(plainPassword),
         fullName: username,
         role: "voter",
         isVoter: true,
@@ -519,7 +522,11 @@ exports.generateVoters = async (req, res) => {
       message: `Generated ${created.length} voter accounts.`,
       count: created.length,
       skipped: num - created.length,
-      data: created.map((u) => ({ id: u._id, username: u.username, plainPassword: u.plainPassword })),
+      data: created.map((u) => ({
+        id: u._id,
+        username: u.username,
+        plainPassword: credentialsByUsername.get(u.username),
+      })),
     });
   } catch (err) {
     sendError(res, err);
@@ -677,9 +684,55 @@ exports.resetPassword = async (req, res) => {
     const { newPassword } = req.body;
     if (!newPassword) return res.status(400).json({ success: false, message: "newPassword is required." });
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await users.updateById(req.params.id, { password: hashedPassword, plainPassword: newPassword });
+    await users.updateById(req.params.id, {
+      password: hashedPassword,
+      ...(existing.role === "voter"
+        ? { credentialCiphertext: encryptCredential(newPassword) }
+        : {}),
+    });
     await logAuditFromReq(req, "Reset password for", existing.username, "User", existing._id || existing.id);
     res.status(200).json({ success: true, message: "Password reset successfully." });
+  } catch (err) {
+    sendError(res, err);
+  }
+};
+
+exports.getVoterCredentials = async (req, res) => {
+  try {
+    const voterIds = [...new Set((req.body.voterIds || []).map(String))];
+    if (!voterIds.length || voterIds.length > 1000) {
+      return res.status(400).json({
+        success: false,
+        message: "Provide between 1 and 1000 voter IDs.",
+      });
+    }
+
+    const data = [];
+    for (const voterId of voterIds) {
+      const voter = await loadTargetUser(voterId);
+      if (voter.role !== "voter") {
+        return res.status(400).json({
+          success: false,
+          message: "Credentials are available only for voters.",
+        });
+      }
+      roles.assertCanManageUser(req.user, voter);
+      data.push({
+        id: voter._id || voter.id,
+        username: voter.username,
+        plainPassword: await users.getPrintableCredential(voterId),
+        sequenceNumber: voter.voterMetadata?.sequenceNumber || null,
+        electionAccess: voter.electionAccess || [],
+      });
+    }
+
+    await logAuditFromReq(
+      req,
+      "Printed credentials for",
+      `${data.length} voter(s)`,
+      "Voter Credentials"
+    );
+    res.status(200).json({ success: true, count: data.length, data });
   } catch (err) {
     sendError(res, err);
   }

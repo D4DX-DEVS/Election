@@ -7,8 +7,24 @@ require("dotenv").config({ path: require("path").join(__dirname, "../.env") });
 const fs = require("fs");
 const path = require("path");
 const { Client } = require("pg");
+const { encryptCredential } = require("../lib/credentialVault");
 
 const MIGRATIONS_DIR = path.join(__dirname, "../migrations");
+
+async function migrateLegacyVoterCredentials(client) {
+  const { rows } = await client.query(
+    "SELECT id, plain_password FROM public.users WHERE plain_password IS NOT NULL AND plain_password <> ''"
+  );
+  for (const row of rows) {
+    await client.query(
+      "UPDATE public.users SET credential_ciphertext = $1 WHERE id = $2",
+      [encryptCredential(row.plain_password), row.id]
+    );
+  }
+  if (rows.length) {
+    console.log(`  ✓ encrypted ${rows.length} legacy voter credential(s)`);
+  }
+}
 
 async function verifyColumns(supabaseUrl, serviceKey) {
   const { createClient } = require("@supabase/supabase-js");
@@ -17,9 +33,14 @@ async function verifyColumns(supabaseUrl, serviceKey) {
   });
   const { error } = await supabase
     .from("elections")
-    .select("admin_voting_details_enabled, manual_winner_selection, manual_winner_ids")
+    .select("admin_voting_details_enabled, manual_winner_selection, manual_winner_ids, ballot_selection_rule")
     .limit(1);
-  return !error;
+  if (error) return false;
+  const { error: userError } = await supabase
+    .from("users")
+    .select("credential_ciphertext")
+    .limit(1);
+  return !userError;
 }
 
 async function main() {
@@ -55,6 +76,9 @@ async function main() {
 
   try {
     for (const file of files) {
+      if (file === "remove-persistent-plain-passwords.sql") {
+        await migrateLegacyVoterCredentials(client);
+      }
       const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, file), "utf8").trim();
       if (!sql) continue;
       console.log(`Running ${file}...`);

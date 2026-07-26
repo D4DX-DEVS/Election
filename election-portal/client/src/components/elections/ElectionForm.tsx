@@ -29,6 +29,7 @@ const formBoolean = z.preprocess((value) => toFormBoolean(value, false), z.boole
 const formSchema = insertElectionSchema.extend({
     electionDate: z.string().min(1, "Election date is required"),
     numberToBeElected: z.coerce.number().min(1, "Must elect at least 1 person"),
+    ballotSelectionRule: z.enum(["exact", "up_to"]).default("exact"),
     maxVoters: z.coerce.number().int().min(0).optional(),
     maleMinimum: z.coerce.number().int().min(0).optional(),
     femaleMinimum: z.coerce.number().int().min(0).optional(),
@@ -79,6 +80,7 @@ export function ElectionForm({
   const votingOpenValue = watch("votingOpen");
   const nomineeDisplayOrder = watch("nomineeDisplayOrder");
   const voterResultDisplay = watch("voterResultDisplay");
+  const ballotSelectionRule = watch("ballotSelectionRule");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -88,7 +90,7 @@ export function ElectionForm({
 
   return (
     <Card>
-      <CardContent className="p-6">
+      <CardContent className="p-4 sm:p-6">
         <form
           onSubmit={handleSubmit(
             (values) => {
@@ -116,7 +118,7 @@ export function ElectionForm({
             }
           )}
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="mb-5 grid grid-cols-1 gap-4 md:mb-6 md:grid-cols-2 md:gap-6">
             <div>
               <Label htmlFor="organization">Organization Name</Label>
               <Input
@@ -131,7 +133,7 @@ export function ElectionForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="mb-5 grid grid-cols-1 gap-4 md:mb-6 md:grid-cols-3 md:gap-6">
             <div>
               <Label htmlFor="electionDate">Election Date</Label>
               <Input
@@ -163,6 +165,31 @@ export function ElectionForm({
               {formState.errors.numberToBeElected && (
                 <p className="text-sm text-red-500 mt-1">{formState.errors.numberToBeElected.message}</p>
               )}
+            </div>
+            <div>
+              <Label htmlFor="ballotSelectionRule">Required Voter Selection</Label>
+              <Select
+                value={ballotSelectionRule || "exact"}
+                onValueChange={(value: "exact" | "up_to") =>
+                  setValue("ballotSelectionRule", value, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  })
+                }
+              >
+                <SelectTrigger id="ballotSelectionRule" className="mt-1">
+                  <SelectValue placeholder="Select ballot rule" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="exact">Exactly the number of positions</SelectItem>
+                  <SelectItem value="up_to">Up to the number of positions</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="mt-1 text-xs text-gray-500">
+                {ballotSelectionRule === "up_to"
+                  ? "A voter may submit fewer selections, but never more."
+                  : "A voter must fill every available position before submitting."}
+              </p>
             </div>
             <div>
               <Label htmlFor="nomineeDisplayOrder">Nominee Display Order</Label>
@@ -204,7 +231,7 @@ export function ElectionForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="mb-5 grid grid-cols-1 gap-4 md:mb-6 md:grid-cols-2 md:gap-6">
             <div>
               <Label htmlFor="maxVoters">Max Voters to Participate</Label>
               <Input
@@ -256,7 +283,7 @@ export function ElectionForm({
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="mb-5 grid grid-cols-1 gap-4 md:mb-6 md:grid-cols-2 md:gap-6">
             <div className="flex items-center space-x-2">
               <Controller
                 name="genderBasedSelection"
@@ -397,7 +424,7 @@ export function ElectionForm({
 
           <div className="mb-6">
             <Label htmlFor="logo">Election Logo (Optional)</Label>
-            <div className="flex items-center mt-1">
+            <div className="mt-1 flex flex-wrap items-center gap-2">
               <Input
                 id="logo"
                 type="file"
@@ -412,17 +439,17 @@ export function ElectionForm({
                 <Upload className="mr-2 h-4 w-4" />
                 Choose File
               </Label>
-              <span className="ml-2 text-sm text-gray-500">
+              <span className="min-w-0 break-all text-sm text-gray-500">
                 {selectedFile ? selectedFile.name : "No file chosen"}
               </span>
             </div>
           </div>
 
-          <div className="flex justify-end space-x-4">
-            <Button type="button" variant="outline" onClick={onCancel}>
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
+            <Button type="button" variant="outline" onClick={onCancel} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button type="submit" disabled={formState.isSubmitting}>
+            <Button type="submit" disabled={formState.isSubmitting} className="w-full sm:w-auto">
               {initialValues ? "Update Election" : "Create Election"}
             </Button>
           </div>

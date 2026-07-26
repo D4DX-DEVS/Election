@@ -88,7 +88,12 @@ export function BallotForm({ election, nominees, onSubmit }: BallotFormProps) {
       <CardContent className="p-6">
         <div className="mb-6">
           <p className="text-gray-700">
-            Please select <span className="font-bold">up to {election.numberToBeElected}</span> candidates from the list below.
+            Please select{" "}
+            <span className="font-bold">
+              {election.ballotSelectionRule === "up_to" ? "up to" : "exactly"}{" "}
+              {election.numberToBeElected}
+            </span>{" "}
+            candidates from the list below.
           </p>
           {(election.maleMinimum > 0 || election.femaleMinimum > 0) && (
             <p className="text-sm text-gray-500 mt-1">

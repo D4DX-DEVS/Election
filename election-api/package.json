@@ -7,9 +7,11 @@
     "dev": "nodemon index.js",
     "migrate": "node scripts/run-migration.js",
     "migrate:from-api": "node scripts/migrate-from-production-api.js",
-    "seed:smoke": "node scripts/seed-smoke-data.js",
     "smoke:test": "node scripts/smoke-test-local.js",
     "security:test:franchise": "node scripts/security-franchise-scope-test.js",
+    "security:test:tenant": "node scripts/security-tenant-isolation-test.js",
+    "security:test:auth": "node scripts/security-auth-boundaries-test.js",
+    "security:audit:tenant": "node scripts/audit-tenant-integrity.js",
     "reset-password": "node scripts/reset-user-password.js"
   },
   "keywords": [],

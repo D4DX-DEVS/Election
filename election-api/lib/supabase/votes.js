@@ -92,7 +92,11 @@ async function create(data) {
       nominee_id: nomineeId,
     }));
     const { error: nErr } = await supabase.from("vote_nominees").insert(rows);
-    if (nErr) throw nErr;
+    if (nErr) {
+      // Do not leave a consumed empty ballot if nominee linking fails.
+      await supabase.from("votes").delete().eq("id", created.id);
+      throw nErr;
+    }
   }
 
   return mapVote(created, nomineeIds);

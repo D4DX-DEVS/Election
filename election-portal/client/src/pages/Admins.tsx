@@ -418,8 +418,8 @@ export default function Admins() {
   
   return (
     <MainLayout>
-      <div className="mb-6">
-        <div className="flex items-center justify-between gap-3">
+      <div className="mb-5 sm:mb-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <h1 className="text-xl font-bold text-gray-900">Administrators</h1>
 
           {/* Single unified create flow: asks for the administrator type, then shows matching fields */}
@@ -427,11 +427,11 @@ export default function Admins() {
             <DialogTrigger asChild>
               <Button
                 size="sm"
-                className="h-6 px-3 rounded-md shrink-0 text-xs"
+                className="w-full shrink-0 sm:w-auto"
                 onClick={() => setAdminType(canCreateFranchiseAdmin ? 'franchise' : 'election')}
               >
                 <PlusIcon className="mr-1 h-3.5 w-3.5" />
-                Add
+                Add administrator
               </Button>
             </DialogTrigger>
           <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto">

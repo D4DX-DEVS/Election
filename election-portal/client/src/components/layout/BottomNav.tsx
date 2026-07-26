@@ -74,6 +74,13 @@ export function BottomNav() {
         isActive: (path) => isVoterGroupsSectionPath(path),
       },
     );
+    if (isFranchiseAdmin) {
+      items.push({
+        href: "/admins",
+        label: "Admins",
+        icon: <Users className="h-5 w-5" />,
+      });
+    }
   }
 
   const navItems = items.slice(0, 5);
@@ -88,10 +95,10 @@ export function BottomNav() {
 
   return (
     <nav
-      className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-[0_-1px_6px_rgba(0,0,0,0.06)] mobile-bottom-nav"
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-slate-200/80 shadow-[0_-8px_24px_rgba(15,23,42,0.06)] mobile-bottom-nav"
       aria-label="Primary navigation"
     >
-      <ul className="flex h-14 items-stretch justify-around">
+      <ul className="flex h-16 items-stretch justify-around">
         {navItems.map((item) => {
           const active = isActive(item);
           return (
@@ -99,11 +106,12 @@ export function BottomNav() {
               <Link
                 href={item.href}
                 className={cn(
-                  "flex h-full flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors active:opacity-60",
-                  active ? "text-primary" : "text-gray-500 hover:text-gray-700"
+                  "relative flex h-full flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold transition-colors active:bg-primary/5",
+                  active ? "text-primary" : "text-slate-500 hover:text-slate-700"
                 )}
+                aria-current={active ? "page" : undefined}
               >
-                <span className={cn(active && "text-primary")}>{item.icon}</span>
+                <span className={cn("rounded-xl px-4 py-1", active && "bg-primary/10 text-primary")}>{item.icon}</span>
                 <span className="leading-none">{item.label}</span>
               </Link>
             </li>

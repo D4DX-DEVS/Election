@@ -14,6 +14,7 @@ import { Link, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { HelpDialog } from "@/components/help/HelpDialog";
 import { NotificationBell } from "@/components/layout/NotificationBell";
+import { clearAccountSession } from "@/lib/session";
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -31,8 +32,7 @@ export function Header({ toggleSidebar, user }: HeaderProps) {
   const queryClient = useQueryClient();
 
   const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("user");
+    clearAccountSession();
     queryClient.clear();
     navigate("/login");
   };
@@ -53,8 +53,8 @@ export function Header({ toggleSidebar, user }: HeaderProps) {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-white shadow-sm border-b border-slate-200 z-30">
-      <div className="flex items-center justify-between h-16 px-4">
+    <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md border-b border-slate-200/80 z-30 pt-safe">
+      <div className="flex items-center justify-between h-16 px-4 sm:px-6">
         <div className="flex items-center">
           {/* Super admins and franchise admins use the bottom nav on mobile — no sidebar drawer to open */}
           {user.role !== "super_admin" && user.role !== "franchise_admin" && (
@@ -63,6 +63,7 @@ export function Header({ toggleSidebar, user }: HeaderProps) {
               size="icon"
               className="lg:hidden mr-2"
               onClick={toggleSidebar}
+              aria-label="Open navigation menu"
             >
               <Menu className="h-5 w-5" />
             </Button>
@@ -72,12 +73,12 @@ export function Header({ toggleSidebar, user }: HeaderProps) {
             <img
               src="/logo.png"
               alt="Vote+"
-              className="h-12 w-auto object-contain"
+              className="h-9 w-auto object-contain"
             />
           </div>
         </div>
 
-        <div className="flex items-center">
+        <div className="flex items-center gap-1">
           {/* Notifications — hidden for super admins */}
           {user.role !== "super_admin" && (
             <div className="relative mr-2">

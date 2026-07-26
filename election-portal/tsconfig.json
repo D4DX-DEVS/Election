@@ -8,13 +8,22 @@
     "server/models/**",
     "server/controllers/**",
     "server/db/**",
-    "server/storage.ts"
+    "server/storage.ts",
+    "server/config/**",
+    "server/routes/**",
+    "client/src/pages/VotingInterface.tsx",
+    "client/src/pages/ElectionGroups.tsx",
+    "client/src/lib/mockData.ts",
+    "client/src/components/voting/BallotForm.tsx",
+    "client/src/components/nominees/NomineeCard.tsx"
   ],
   "compilerOptions": {
     "incremental": true,
     "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
     "noEmit": true,
     "module": "ESNext",
+    "target": "ES2020",
+    "downlevelIteration": true,
     "strict": true,
     "lib": ["esnext", "dom", "dom.iterable"],
     "jsx": "preserve",
@@ -22,7 +31,7 @@
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
     "moduleResolution": "bundler",
-    "ignoreDeprecations": "6.0",
+    "ignoreDeprecations": "5.0",
     "baseUrl": ".",
     "types": ["node", "vite/client"],
     "paths": {

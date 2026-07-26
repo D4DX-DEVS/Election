@@ -146,7 +146,7 @@ export function Sidebar({ isOpen, userRole = "" }: SidebarProps) {
     return (
       <aside
         className={cn(
-          "sidebar scrollbar-thin fixed top-16 left-0 bottom-0 w-64 bg-white border-r border-slate-200/80 overflow-y-auto z-20 transition-transform duration-300",
+          "sidebar scrollbar-thin fixed top-[calc(4rem+env(safe-area-inset-top,0px))] left-0 bottom-0 w-64 bg-white border-r border-slate-200/80 overflow-y-auto z-20 transition-transform duration-300",
           !isOpen && "transform -translate-x-full lg:translate-x-0"
         )}
       >
@@ -160,7 +160,7 @@ export function Sidebar({ isOpen, userRole = "" }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "sidebar scrollbar-thin fixed top-16 left-0 bottom-0 w-64 bg-white border-r border-slate-200/80 overflow-y-auto z-20 transition-transform duration-300",
+        "sidebar scrollbar-thin fixed top-[calc(4rem+env(safe-area-inset-top,0px))] left-0 bottom-0 w-64 bg-white border-r border-slate-200/80 overflow-y-auto z-20 transition-transform duration-300",
         // Super admins and franchise admins navigate via the mobile bottom nav;
         // the sidebar is desktop-only for them.
         isSuperAdmin || isFranchiseAdmin
@@ -209,6 +209,9 @@ export function Sidebar({ isOpen, userRole = "" }: SidebarProps) {
               label="Voter Groups"
               isActive={(path) => isVoterGroupsSectionPath(path)}
             />
+            {isFranchiseAdmin && (
+              <NavLink href="/admins" icon={<UserCog />} label="Election Admins" />
+            )}
           </div>
         )}
       </nav>

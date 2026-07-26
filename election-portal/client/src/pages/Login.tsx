@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { clearAccountSession, storeAccountSession } from '@/lib/session';
 
 interface LoginResponse {
   success: boolean;
@@ -42,8 +43,8 @@ export default function Login() {
       return data as LoginResponse;
     },
     onSuccess: (data) => {
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      queryClient.clear();
+      storeAccountSession(data.token, data.user);
 
       toast({
         title: 'Welcome back!',
@@ -61,8 +62,6 @@ export default function Login() {
           });
         }
       }
-
-      queryClient.clear();
 
       if (data.user.role === 'voter') {
         navigate('/voting');
@@ -101,11 +100,11 @@ export default function Login() {
           navigate('/voting');
         }
       } catch {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
+        clearAccountSession();
+        queryClient.clear();
       }
     }
-  }, [navigate]);
+  }, [navigate, queryClient]);
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">

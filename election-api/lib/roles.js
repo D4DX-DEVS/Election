@@ -87,7 +87,7 @@ function assertCanManageUser(actor, target) {
 
 function resolveFranchiseIdForActor(actor, bodyFranchiseId) {
   if (actor.role === "super_admin") return bodyFranchiseId;
-  return actor.franchiseId || bodyFranchiseId;
+  return actor.franchiseId || undefined;
 }
 
 function filterUsersForActor(actor, list) {

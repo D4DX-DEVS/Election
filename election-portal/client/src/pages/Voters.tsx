@@ -66,6 +66,13 @@ type VoterRecord = User & EntityRecord & { electionAccess?: string[] };
 type ElectionRecord = Election & EntityRecord;
 type VotersResponse = { data?: VoterRecord[]; pagination?: Pagination };
 type ElectionsResponse = { data?: ElectionRecord[] };
+type CredentialSlipVoter = {
+  _id?: string;
+  username: string;
+  plainPassword: string;
+  sequenceNumber?: number;
+  electionAccess?: string[];
+};
 
 function getRecordId(record: EntityRecord): string {
   return record._id?.toString() || record.id?.toString() || "";
@@ -89,6 +96,7 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
   const [createVoterOpen, setCreateVoterOpen] = useState(false);
   const [bulkVoterOpen, setBulkVoterOpen] = useState(false);
   const [printSlipsOpen, setPrintSlipsOpen] = useState(false);
+  const [credentialSlipVoters, setCredentialSlipVoters] = useState<CredentialSlipVoter[]>([]);
   const [importOpen, setImportOpen] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importPreview, setImportPreview] = useState<ParsedVoterImportRow[]>([]);
@@ -239,13 +247,24 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
       const response = await apiRequest('POST', '/api/users/voters/generate', options);
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data, options) => {
+      const generatedCredentials: CredentialSlipVoter[] = Array.isArray(data?.data)
+        ? data.data.map((voter: any, index: number) => ({
+            _id: voter.id,
+            username: voter.username,
+            plainPassword: voter.plainPassword,
+            sequenceNumber: options.startingNumber + index,
+            electionAccess: options.electionIds || [],
+          }))
+        : [];
       toast({
         title: "Voters generated",
-        description: `Successfully generated ${data.count} voter accounts`,
+        description: `Generated ${data.count} voter accounts. You can print them now or reprint them later from the voter list.`,
         variant: "success",
       });
       setBulkVoterOpen(false);
+      setCredentialSlipVoters(generatedCredentials);
+      setPrintSlipsOpen(generatedCredentials.length > 0);
       
       // Invalidate and refetch voters
       queryClient.invalidateQueries({ queryKey: ['/api/users/voters'] });
@@ -266,11 +285,23 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
       return response.json();
     },
     onSuccess: (data) => {
+      const credential = data?.data?.password
+        ? [{
+            _id: data.data.id,
+            username: data.data.username,
+            plainPassword: data.data.password,
+            electionAccess: newVoter.electionId ? [newVoter.electionId] : [],
+          }]
+        : [];
       toast({
         title: "Voter created",
-        description: `Voter "${data?.data?.username}" created${data?.data?.password ? ` (password: ${data.data.password})` : ''}`,
+        description: credential.length
+          ? `Voter "${data.data.username}" created. Print or save the credential now.`
+          : `Voter "${data?.data?.username}" created.`,
         variant: "success",
       });
+      setCredentialSlipVoters(credential);
+      setPrintSlipsOpen(credential.length > 0);
       queryClient.invalidateQueries({ queryKey: ['/api/users/voters'] });
       setCreateVoterOpen(false);
       setNewVoter({ fullName: "", username: "", password: "", registrationNumber: "", electionId: electionId || "" });
@@ -653,23 +684,31 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
               />
             </div>
             <BulkVoterSlipPrinter
-              voters={voters}
+              voters={credentialSlipVoters.length ? credentialSlipVoters : voters}
               elections={displayElections}
               selectedElectionId={selectedElectionId}
               open={printSlipsOpen}
-              onOpenChange={setPrintSlipsOpen}
+              onOpenChange={(open) => {
+                setPrintSlipsOpen(open);
+                if (!open) setCredentialSlipVoters([]);
+              }}
               hideTrigger
+              title={credentialSlipVoters.length ? "New Voter Credentials · Print Now" : undefined}
             />
           </div>
         )}
         {isReadOnly && (
           <BulkVoterSlipPrinter
-            voters={voters}
+            voters={credentialSlipVoters.length ? credentialSlipVoters : voters}
             elections={displayElections}
             selectedElectionId={selectedElectionId}
             open={printSlipsOpen}
-            onOpenChange={setPrintSlipsOpen}
+            onOpenChange={(open) => {
+              setPrintSlipsOpen(open);
+              if (!open) setCredentialSlipVoters([]);
+            }}
             hideTrigger
+            title={credentialSlipVoters.length ? "New Voter Credentials · Print Now" : undefined}
           />
         )}
       </div>
@@ -740,17 +779,17 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
           </div>
 
           <nav
-            className="mb-6 flex gap-6 border-b border-gray-200"
+            className="mb-5 grid grid-cols-2 rounded-xl bg-slate-100 p-1"
             aria-label="Voter sections"
           >
             <button
               type="button"
               onClick={() => handleSectionTabChange("groups")}
               className={cn(
-                "-mb-px border-b-2 pb-3 text-sm font-medium transition-colors",
+                "rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors",
                 sectionTab === "groups"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-gray-500 hover:text-gray-800"
+                  ? "bg-white text-primary shadow-sm"
+                  : "text-slate-500 hover:text-slate-800"
               )}
             >
               Manage Groups
@@ -759,10 +798,10 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
               type="button"
               onClick={() => handleSectionTabChange("voters")}
               className={cn(
-                "-mb-px border-b-2 pb-3 text-sm font-medium transition-colors",
+                "rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors",
                 sectionTab === "voters"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-gray-500 hover:text-gray-800"
+                  ? "bg-white text-primary shadow-sm"
+                  : "text-slate-500 hover:text-slate-800"
               )}
             >
               All Voters
@@ -780,7 +819,7 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
       )}
 
       <Dialog open={bulkVoterOpen} onOpenChange={setBulkVoterOpen}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto top-[8vh] translate-y-0 sm:top-[50%] sm:translate-y-[-50%]">
+        <DialogContent className="sm:max-w-4xl">
           <DialogHeader className="pr-8">
             <DialogTitle>Create Bulk Voters</DialogTitle>
             <DialogDescription>

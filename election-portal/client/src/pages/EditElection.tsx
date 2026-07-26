@@ -6,6 +6,7 @@ import { ElectionForm } from "@/components/elections/ElectionForm";
 import { useToast } from "@/hooks/use-toast";
 import { getElectionLabel, isElectionLocked, buildElectionSubmitPayload } from "@/lib/electionHelpers";
 import { apiRequest, apiFormRequest, queryClient } from "@/lib/queryClient";
+import { PageContent, PageHeader } from "@/components/layout/PageContent";
 
 export default function EditElection() {
   const { id } = useParams<{ id: string }>();
@@ -103,10 +104,11 @@ export default function EditElection() {
 
   return (
     <MainLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Edit Election</h1>
-        <p className="text-sm text-gray-600">{getElectionLabel(election)}</p>
-      </div>
+      <PageContent>
+      <PageHeader
+        title="Edit Election"
+        description={getElectionLabel(election)}
+      />
 
       <ElectionForm
         key={id}
@@ -114,6 +116,7 @@ export default function EditElection() {
         onSubmit={handleSubmit}
         onCancel={handleCancel}
       />
+      </PageContent>
     </MainLayout>
   );
 }

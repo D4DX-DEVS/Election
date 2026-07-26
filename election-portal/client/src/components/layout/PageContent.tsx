@@ -10,7 +10,31 @@ export function PageContent({
   className?: string;
 }) {
   return (
-    <div className={cn("flex flex-1 flex-col", className)}>{children}</div>
+    <div className={cn("app-page", className)}>{children}</div>
+  );
+}
+
+export function PageHeader({
+  title,
+  description,
+  actions,
+  className,
+}: {
+  title: ReactNode;
+  description?: ReactNode;
+  actions?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <header className={cn("app-page-header", className)}>
+      <div className="min-w-0">
+        <h1 className="app-page-title">{title}</h1>
+        {description ? (
+          <p className="app-page-description">{description}</p>
+        ) : null}
+      </div>
+      {actions ? <div className="app-page-actions">{actions}</div> : null}
+    </header>
   );
 }
 

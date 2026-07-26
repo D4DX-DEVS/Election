@@ -1,6 +1,7 @@
 const { getSupabase } = require("../../config/supabase");
 const { mapUser, userToRow } = require("./map");
 const { matchesVoterSearch } = require("./searchHelpers");
+const { decryptCredential } = require("../credentialVault");
 
 const { isEntityId, isUuid } = require("../entityId");
 
@@ -62,7 +63,7 @@ async function attachFranchiseDetails(users) {
 
 function stripPassword(user) {
   if (!user) return user;
-  const { password, ...rest } = user;
+  const { password, plainPassword, ...rest } = user;
   return rest;
 }
 
@@ -75,6 +76,19 @@ async function findById(id, { includePassword = true } = {}) {
   const accessMap = await getElectionAccessForUsers([id]);
   const user = mapUser(data, { electionAccess: accessMap.get(String(id)) || [] });
   return includePassword ? user : stripPassword(user);
+}
+
+async function getPrintableCredential(id) {
+  if (!isUuid(id)) return null;
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("users")
+    .select("credential_ciphertext")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data?.credential_ciphertext) return null;
+  return decryptCredential(data.credential_ciphertext);
 }
 
 async function findByUsername(username) {
@@ -290,12 +304,11 @@ async function create(data) {
 async function insertMany(docs) {
   const created = [];
   for (const doc of docs) {
-    const { electionAccess, voterGroupId, plainPassword, voterMetadata, ...rest } = doc;
+    const { electionAccess, voterGroupId, voterMetadata, ...rest } = doc;
     const user = await create({
       ...rest,
       electionAccess,
       voterMetadata,
-      plainPassword,
     });
     created.push(user);
   }
@@ -540,5 +553,6 @@ module.exports = {
   attachElectionAccess,
   attachFranchiseDetails,
   userHasElectionAccess,
+  getPrintableCredential,
   stripPassword,
 };

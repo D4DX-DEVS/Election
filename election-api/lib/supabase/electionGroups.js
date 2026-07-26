@@ -24,8 +24,29 @@ async function mapGroups(rows) {
   if (!rows.length) return [];
   const ids = rows.map((r) => r.id);
   const electionsMap = await loadElectionIds(ids);
+  const allElectionIds = [
+    ...new Set([].concat(...Array.from(electionsMap.values())).map(String)),
+  ];
+  const electionFranchises = new Map();
+  if (allElectionIds.length) {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from("elections")
+      .select("id, franchise_id")
+      .in("id", allElectionIds);
+    if (error) throw error;
+    (data || []).forEach((election) => {
+      electionFranchises.set(String(election.id), String(election.franchise_id || ""));
+    });
+  }
   return rows.map((row) =>
-    mapElectionGroup(row, { elections: electionsMap.get(String(row.id)) || [] })
+    mapElectionGroup(row, {
+      elections: (electionsMap.get(String(row.id)) || []).filter(
+        (electionId) =>
+          String(row.franchise_id || "") &&
+          electionFranchises.get(String(electionId)) === String(row.franchise_id)
+      ),
+    })
   );
 }
 

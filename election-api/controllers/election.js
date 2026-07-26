@@ -8,9 +8,15 @@ const {
   syncElectionLifecycle,
 } = require("../lib/electionLifecycle");
 const { normalizeElectionBody } = require("../lib/electionBody");
+const { resolveFranchiseIdForActor } = require("../lib/roles");
+const { requireFranchiseId } = require("../lib/tenantScope");
 
 exports.addElection = async (req, res) => {
   try {
+    req.body.franchiseId = requireFranchiseId(
+      resolveFranchiseIdForActor(req.user, req.body.franchiseId)
+    );
+    req.body.createdBy = req.user._id || req.user.id;
     normalizeElectionBody(req.body);
     applyElectionLifecycleRules(req.body);
     if (req.file?.cdnUrl) {
@@ -55,6 +61,9 @@ exports.updateElectionById = async (req, res) => {
     }
     if (await denyUnlessCanAccessElection(req, res, existing)) return;
 
+    // An election's organization is immutable after creation.
+    delete req.body.franchiseId;
+    delete req.body.createdBy;
     normalizeElectionBody(req.body);
     applyElectionLifecycleRules(req.body, existing);
     if (req.file?.cdnUrl) {
@@ -186,6 +195,7 @@ exports.getElections = async (req, res) => {
     } else if (user.role === "election_admin") {
       const ids = Array.isArray(user.electionAccess) ? user.electionAccess : [];
       filter.ids = ids;
+      filter.franchiseId = user.franchiseId;
     } else if (req.query.franchiseId) {
       filter.franchiseId = req.query.franchiseId;
     }
@@ -228,6 +238,8 @@ exports.updateElection = async (req, res) => {
       return res.status(404).json({ success: false, message: "Election not found." });
     }
     if (await denyUnlessCanAccessElection(req, res, existing)) return;
+    delete req.body.franchiseId;
+    delete req.body.createdBy;
     const election = await elections.updateById(id, req.body);
     if (!election) {
       return res.status(404).json({ success: false, message: "Election not found." });

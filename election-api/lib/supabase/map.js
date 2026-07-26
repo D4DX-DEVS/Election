@@ -32,8 +32,6 @@ function mapUser(row, extras = {}) {
       sequenceNumber: row.voter_sequence_number,
     };
   }
-  const plainPassword = extras.plainPassword || row.plain_password;
-  if (plainPassword) user.plainPassword = plainPassword;
   return user;
 }
 
@@ -41,7 +39,9 @@ function userToRow(data) {
   const row = {};
   if (data.username !== undefined) row.username = data.username;
   if (data.password !== undefined) row.password = data.password;
-  if (data.plainPassword !== undefined) row.plain_password = data.plainPassword;
+  if (data.credentialCiphertext !== undefined) {
+    row.credential_ciphertext = data.credentialCiphertext;
+  }
   if (data.email !== undefined) row.email = data.email;
   if (data.fullName !== undefined) row.full_name = data.fullName;
   if (data.role !== undefined) row.role = data.role;
@@ -111,6 +111,7 @@ function mapElection(row) {
     title: row.title,
     electionDate: row.election_date,
     numberToBeElected: row.number_to_be_elected,
+    ballotSelectionRule: row.ballot_selection_rule === "up_to" ? "up_to" : "exact",
     nomineeDisplayOrder: row.nominee_display_order,
     maxVoters: row.max_voters,
     maxNominees: row.max_nominees,
@@ -143,6 +144,9 @@ function electionToRow(data) {
   if (data.title !== undefined) row.title = data.title;
   if (data.electionDate !== undefined) row.election_date = data.electionDate;
   if (data.numberToBeElected !== undefined) row.number_to_be_elected = data.numberToBeElected;
+  if (data.ballotSelectionRule !== undefined) {
+    row.ballot_selection_rule = data.ballotSelectionRule === "up_to" ? "up_to" : "exact";
+  }
   if (data.nomineeDisplayOrder !== undefined) row.nominee_display_order = data.nomineeDisplayOrder;
   if (data.maxVoters !== undefined) row.max_voters = data.maxVoters;
   if (data.maxNominees !== undefined) row.max_nominees = data.maxNominees;

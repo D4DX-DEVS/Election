@@ -9,10 +9,15 @@ import {
   DialogFooter
 } from "@/components/ui/dialog";
 import { Printer, Copy } from "lucide-react";
-import { User } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 
-type VoterForSlip = User & { plainPassword?: string; _id?: string };
+type VoterForSlip = {
+  _id?: string;
+  username: string;
+  status?: string | null;
+  sequenceNumber?: number | null;
+  plainPassword?: string | null;
+};
 
 interface VoterSlipPrinterProps {
   voter: VoterForSlip;
@@ -36,7 +41,7 @@ export function VoterSlipPrinter({
 
   // Plaintext passwords are never persisted (only bcrypt hashes are stored),
   // so this is only available right after the voter was created.
-  const displayPassword = voter.plainPassword || "Not available (shown once, at creation)";
+  const displayPassword = voter.plainPassword || "Not available";
 
   const printSlip = () => {
     const printWindow = window.open('', '_blank');

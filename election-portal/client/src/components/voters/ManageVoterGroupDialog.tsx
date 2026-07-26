@@ -161,7 +161,7 @@ export function ManageVoterGroupDialog({
 
   const removeVotersMutation = useMutation({
     mutationFn: async (voterIds: string[]) => {
-      setRemovingIds((prev) => new Set([...prev, ...voterIds]));
+      setRemovingIds((prev) => new Set([...Array.from(prev), ...voterIds]));
       const res = await apiRequest(
         "POST",
         `/api/voter-groups/${group!._id}/remove-voters`,

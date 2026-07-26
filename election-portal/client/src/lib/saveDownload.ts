@@ -8,6 +8,21 @@ type SaveBlobOptions = {
   extension: string;
 };
 
+type SaveFilePickerWindow = Window & {
+  showSaveFilePicker?: (options: {
+    suggestedName: string;
+    types: Array<{
+      description: string;
+      accept: Record<string, string[]>;
+    }>;
+  }) => Promise<{
+    createWritable: () => Promise<{
+      write: (blob: Blob) => Promise<void>;
+      close: () => Promise<void>;
+    }>;
+  }>;
+};
+
 /**
  * Save a blob via the native save dialog. Resolves with saved:true only after
  * the user confirms Save; cancelled dialogs return saved:false.
@@ -17,7 +32,7 @@ export async function saveBlobDownload(
   filename: string,
   options: SaveBlobOptions
 ): Promise<SaveDownloadResult> {
-  const picker = window.showSaveFilePicker;
+  const picker = (window as SaveFilePickerWindow).showSaveFilePicker;
 
   if (picker) {
     try {

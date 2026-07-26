@@ -4,6 +4,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import VoterLayout from "@/components/layouts/VoterLayout";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AuthUser } from "@/lib/authUser";
+import { PageContent } from "@/components/layout/PageContent";
 
 interface AccountShellProps {
   children: ReactNode;
@@ -13,7 +14,7 @@ interface AccountShellProps {
 
 function LoadingShell() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="space-y-3 w-full max-w-md px-6">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-32 w-full" />
@@ -40,5 +41,9 @@ export function AccountShell({ children, title, voterShowBack = true }: AccountS
     );
   }
 
-  return <MainLayout>{children}</MainLayout>;
+  return (
+    <MainLayout>
+      <PageContent>{children}</PageContent>
+    </MainLayout>
+  );
 }

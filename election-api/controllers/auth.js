@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const users = require("../lib/supabase/users");
 const roles = require("../lib/roles");
 const { logUserActivity } = require("../utils/auditLog");
+const { encryptCredential } = require("../lib/credentialVault");
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "24h" });
@@ -34,8 +35,9 @@ exports.login = async (req, res) => {
     let isMatch = false;
     try {
       isMatch = await bcrypt.compare(password, user.password);
-    } catch {
-      isMatch = password === user.password;
+    } catch (error) {
+      console.error("Password verification failed:", error);
+      return res.status(401).json({ success: false, message: "Invalid credentials" });
     }
     if (!isMatch) {
       return res.status(401).json({ success: false, message: "Invalid credentials" });
@@ -156,16 +158,21 @@ exports.changePassword = async (req, res) => {
     let isMatch = false;
     try {
       isMatch = await bcrypt.compare(String(currentPassword), user.password);
-    } catch {
-      isMatch = String(currentPassword) === user.password;
+    } catch (error) {
+      console.error("Password verification failed:", error);
+      return res.status(401).json({ success: false, message: "Current password is incorrect." });
     }
     if (!isMatch) {
       return res.status(401).json({ success: false, message: "Current password is incorrect." });
     }
 
     const hashedPassword = await bcrypt.hash(String(newPassword), 10);
-    // User set this themselves, so admins should no longer see it in plaintext.
-    await users.updateById(userId, { password: hashedPassword, plainPassword: null });
+    await users.updateById(userId, {
+      password: hashedPassword,
+      ...(user.role === "voter"
+        ? { credentialCiphertext: encryptCredential(newPassword) }
+        : {}),
+    });
 
     await logUserActivity(userId, req.ip, "Changed password", user.username, "User", userId);
 
@@ -210,8 +217,12 @@ exports.forgotPassword = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(String(newPassword), 10);
-    // User set this themselves, so admins should no longer see it in plaintext.
-    await users.updateById(user._id, { password: hashedPassword, plainPassword: null });
+    await users.updateById(user._id, {
+      password: hashedPassword,
+      ...(user.role === "voter"
+        ? { credentialCiphertext: encryptCredential(newPassword) }
+        : {}),
+    });
 
     await logUserActivity(user._id, req.ip, "Reset password via forgot flow", user.username, "User", user._id);
 

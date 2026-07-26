@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { getStoredUser } from "@/lib/authUser";
 
@@ -39,7 +39,6 @@ export default function Onboarding() {
   const { toast } = useToast();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [activeTab, setActiveTab] = useState("welcome");
-  const [onboardingComplete, setOnboardingComplete] = useState(false);
   const [progress, setProgress] = useState(0);
   const [completedStepIds, setCompletedStepIds] = useState<Set<string>>(new Set());
 
@@ -170,16 +169,6 @@ export default function Onboarding() {
     setProgress(newProgress);
   }, [completedStepIds, steps.length]);
 
-  // Check if onboarding is already completed - runs only once on mount
-  useEffect(() => {
-    const onboardingStatus = localStorage.getItem("onboardingComplete");
-    const shouldComplete = onboardingStatus === "true";
-
-    if (shouldComplete !== onboardingComplete) {
-      setOnboardingComplete(shouldComplete);
-    }
-  }, []); // Only run once on mount
-
   // API call to update user's onboarding status
   const completeOnboardingMutation = useMutation({
     mutationFn: async () => {
@@ -199,8 +188,8 @@ export default function Onboarding() {
       return await response.json();
     },
     onSuccess: () => {
-      // Update local storage and redirect
-      localStorage.setItem("onboardingComplete", "true");
+      queryClient.invalidateQueries({ queryKey: ["/api/onboarding/status"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       toast({
         title: "Onboarding Complete!",
         description: "Welcome to Vote+",
@@ -249,22 +238,6 @@ export default function Onboarding() {
   const skipOnboarding = () => {
     completeOnboardingMutation.mutate();
   };
-
-  // If onboarding is already completed, redirect to appropriate page
-  useEffect(() => {
-    if (!onboardingComplete) return;
-    if (userRole === "super_admin") {
-      navigate("/");
-    } else if (userRole === "franchise_admin" || userRole === "election_admin") {
-      navigate("/elections");
-    } else {
-      navigate("/");
-    }
-  }, [onboardingComplete, userRole, navigate]);
-
-  if (onboardingComplete) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col">

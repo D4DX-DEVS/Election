@@ -23,6 +23,7 @@ export interface ElectionWithDetails extends ApiEntityFormat {
   organization: string;
   electionDate: string | Date;
   numberToBeElected: number;
+  ballotSelectionRule?: "exact" | "up_to";
   status: string;
   maxVoters?: number;
   maxNominees?: number;
@@ -103,6 +104,7 @@ export interface BulkVoterGenerationOptions {
   startingNumber: number;
   count: number;
   electionIds?: string[];
+  voterGroupId?: string;
   assignmentType: "election" | "voterGroup";
 }
 

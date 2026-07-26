@@ -663,6 +663,7 @@ export function NomineeForm({
                         <SelectContent>
                           {Array.isArray(elections) && elections.map((election) => {
                                 const electionId = election._id?.toString() || election.id?.toString();
+                                if (!electionId) return null;
                                 return (
                                   <SelectItem key={electionId} value={electionId}>
                                     {getElectionLabel(election)}
@@ -768,6 +769,7 @@ export function NomineeForm({
                             <SelectContent>
                               {Array.isArray(elections) && elections.map((election) => {
                                 const electionId = election._id?.toString() || election.id?.toString();
+                                if (!electionId) return null;
                                 return (
                                   <SelectItem key={electionId} value={electionId}>
                                     {getElectionLabel(election)}
@@ -867,6 +869,7 @@ export function NomineeForm({
                             <SelectContent>
                               {Array.isArray(elections) && elections.map((election) => {
                                 const electionId = election._id?.toString() || election.id?.toString();
+                                if (!electionId) return null;
                                 return (
                                   <SelectItem key={electionId} value={electionId}>
                                     {getElectionLabel(election)}
@@ -952,6 +955,7 @@ export function NomineeForm({
                             <SelectContent>
                               {Array.isArray(elections) && elections.map((election) => {
                                 const electionId = election._id?.toString() || election.id?.toString();
+                                if (!electionId) return null;
                                 return (
                                   <SelectItem key={electionId} value={electionId}>
                                     {getElectionLabel(election)}
@@ -987,6 +991,7 @@ export function NomineeForm({
                             <SelectContent>
                               {Array.isArray(elections) && elections.map((election) => {
                                 const electionId = election._id?.toString() || election.id?.toString();
+                                if (!electionId) return null;
                                 return (
                                   <SelectItem key={electionId} value={electionId}>
                                     {getElectionLabel(election)}

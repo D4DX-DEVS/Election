@@ -4,6 +4,8 @@ const nominees = require("../lib/supabase/nominees");
 const users = require("../lib/supabase/users");
 const { logUserActivity, logAuditFromReq } = require("../utils/auditLog");
 const { denyUnlessCanAccessElection } = require("../lib/electionAccess");
+const { sameFranchise } = require("../lib/roles");
+const { resourceFranchiseId } = require("../lib/tenantScope");
 
 function computeElectedIds(sortedResults, election) {
   if (election.manualWinnerSelection) {
@@ -165,7 +167,12 @@ exports.getAvailableElections = async (req, res) => {
     if (!voter || !voter.electionAccess || voter.electionAccess.length === 0) {
       return res.status(200).json({ success: true, count: 0, data: [] });
     }
-    const data = await elections.findByIdsWithFranchise(voter.electionAccess, { votingOpen: true });
+    const assigned = await elections.findByIdsWithFranchise(voter.electionAccess, {
+      votingOpen: true,
+    });
+    const data = assigned.filter((election) =>
+      sameFranchise(voter.franchiseId, resourceFranchiseId(election))
+    );
     res.status(200).json({ success: true, count: data.length, data });
   } catch (err) {
     console.error(err);
@@ -177,9 +184,15 @@ exports.checkVoterStatus = async (req, res) => {
   try {
     const voteList = await votes.findByVoter(req.user._id);
     const votingStatus = {};
-    voteList.forEach((v) => {
-      votingStatus[String(v.electionId)] = "voted";
-    });
+    for (const vote of voteList) {
+      const election = await elections.findById(vote.electionId);
+      if (
+        election &&
+        sameFranchise(req.user.franchiseId, resourceFranchiseId(election))
+      ) {
+        votingStatus[String(vote.electionId)] = "voted";
+      }
+    }
     res.status(200).json({ success: true, data: votingStatus });
   } catch (err) {
     console.error(err);
@@ -216,6 +229,7 @@ exports.castVote = async (req, res) => {
 
     const election = await elections.findById(electionId);
     if (!election) return res.status(404).json({ success: false, message: "Election not found." });
+    if (await denyUnlessCanAccessElection(req, res, election)) return;
     if (!election.votingOpen) return res.status(400).json({ success: false, message: "Election is not open for voting." });
 
     const hasAccess = await users.userHasElectionAccess(req.user._id, electionId);
@@ -224,10 +238,19 @@ exports.castVote = async (req, res) => {
     }
 
     const uniqueNomineeIds = [...new Set(nomineeIds.map((id) => String(id)))];
-    if (uniqueNomineeIds.length > election.numberToBeElected) {
+    const selectionLimit = Math.max(parseInt(election.numberToBeElected, 10) || 1, 1);
+    const ballotSelectionRule =
+      election.ballotSelectionRule === "up_to" ? "up_to" : "exact";
+    if (ballotSelectionRule === "exact" && uniqueNomineeIds.length !== selectionLimit) {
       return res.status(400).json({
         success: false,
-        message: `Maximum nominees to select: ${election.numberToBeElected}`,
+        message: `Select exactly ${selectionLimit} nominee(s).`,
+      });
+    }
+    if (uniqueNomineeIds.length > selectionLimit) {
+      return res.status(400).json({
+        success: false,
+        message: `Select up to ${selectionLimit} nominee(s).`,
       });
     }
 

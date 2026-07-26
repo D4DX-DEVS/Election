@@ -22,6 +22,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { PageContent } from "@/components/layout/PageContent";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { Pagination } from "@/lib/types";
+import { clearAccountSession } from "@/lib/session";
 
 interface Franchise {
   _id: string;
@@ -537,22 +538,22 @@ export default function Franchises() {
 
   // Handle logout
   const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("user");
+    clearAccountSession();
+    queryClient.clear();
     navigate("/login");
   };
 
   return (
     <MainLayout>
       <PageContent>
-            <div className="mb-6">
-              <div className="flex items-center justify-between gap-3">
+            <div className="mb-5 sm:mb-6">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <h1 className="text-2xl font-bold text-gray-900">Franchises</h1>
                 <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button size="sm" className="h-6 px-3 rounded-md shrink-0 text-xs">
+                    <Button size="sm" className="w-full shrink-0 sm:w-auto">
                       <Plus className="mr-1 h-3.5 w-3.5" />
-                      Add
+                      Add franchise
                     </Button>
                   </DialogTrigger>
                 <DialogContent className="sm:max-w-[525px]">

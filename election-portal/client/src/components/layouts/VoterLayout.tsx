@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { clearAccountSession } from '@/lib/session';
 
 interface VoterLayoutProps {
   children: React.ReactNode;
@@ -37,9 +38,7 @@ export default function VoterLayout({ children, title, showBack, onBack }: Voter
   }, [title]);
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    localStorage.removeItem('userFullName');
+    clearAccountSession();
     queryClient.clear();
     navigate('/login');
   };
@@ -72,16 +71,16 @@ export default function VoterLayout({ children, title, showBack, onBack }: Voter
   const isOnSettings = location === '/settings';
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
+    <div className="min-h-[100dvh] flex flex-col bg-background dark:bg-gray-900">
       {/* ── Header ── */}
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30 shadow-sm">
-        <div className="flex items-center justify-between h-14 px-4">
+      <header className="bg-white/95 backdrop-blur-md dark:bg-gray-800 border-b border-slate-200/80 dark:border-gray-700 sticky top-0 z-30 pt-safe">
+        <div className="flex items-center justify-between h-16 px-4 sm:px-6">
           {/* Left: back button or logo */}
           {showBack || onBack ? (
             <button
               type="button"
               onClick={onBack ?? (() => navigate('/voting'))}
-              className="flex items-center justify-center w-10 h-10 -ml-2 rounded-full text-gray-600 hover:bg-primary/10 active:bg-gray-200 transition-colors"
+              className="flex items-center justify-center w-11 h-11 -ml-2 rounded-xl text-gray-600 hover:bg-primary/10 active:bg-gray-200 transition-colors"
               aria-label="Go back"
             >
               <ChevronLeft className="h-5 w-5" />
@@ -115,7 +114,7 @@ export default function VoterLayout({ children, title, showBack, onBack }: Voter
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 text-primary font-bold text-sm hover:bg-primary/20 active:scale-95 transition-all"
+                  className="flex items-center justify-center w-11 h-11 rounded-xl bg-primary/10 text-primary font-bold text-sm hover:bg-primary/20 active:scale-95 transition-all"
                   title={`Logged in as ${userFullName}`}
                   aria-label="Account menu"
                 >
@@ -152,24 +151,24 @@ export default function VoterLayout({ children, title, showBack, onBack }: Voter
       </header>
 
       {/* ── Main Content ── */}
-      <main className="flex flex-1 flex-col min-h-[calc(100dvh-4rem)] pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] lg:pb-8 bg-gray-50/80 dark:bg-gray-900">
+      <main className="flex flex-1 flex-col min-h-[calc(100dvh-4rem)] pb-[calc(5rem+env(safe-area-inset-bottom,0px))] lg:pb-8 bg-background dark:bg-gray-900">
         <div className="flex flex-1 flex-col w-full">{children}</div>
         <SiteFooter />
       </main>
 
       {/* ── Bottom Navigation (mobile only) ── */}
       <nav
-        className="lg:hidden bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-t border-gray-200 dark:border-gray-700 fixed bottom-0 left-0 right-0 z-50 shadow-[0_-1px_6px_rgba(0,0,0,0.06)] mobile-bottom-nav"
+        className="lg:hidden bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-t border-slate-200/80 dark:border-gray-700 fixed bottom-0 left-0 right-0 z-50 shadow-[0_-8px_24px_rgba(15,23,42,0.06)] mobile-bottom-nav"
         aria-label="Voter navigation"
       >
-        <ul className="flex h-14 items-stretch justify-around">
+        <ul className="flex h-16 items-stretch justify-around">
           <li className="flex-1">
             <button
               type="button"
               onClick={() => navigate('/voting')}
               className={cn(
-                'w-full flex flex-col items-center justify-center gap-1 py-3 text-[11px] font-semibold transition-colors active:opacity-60',
-                !isOnBallot && !isOnResults && !isOnProfile && !isOnSettings ? 'text-primary' : 'text-gray-500 dark:text-gray-400',
+                'mx-auto w-[calc(100%-0.5rem)] flex flex-col items-center justify-center gap-1 rounded-xl py-2 text-[11px] font-semibold transition-colors active:bg-primary/5',
+                !isOnBallot && !isOnResults && !isOnProfile && !isOnSettings ? 'bg-primary/10 text-primary' : 'text-gray-500 dark:text-gray-400',
               )}
             >
               <Vote className="h-5 w-5" />
@@ -181,8 +180,8 @@ export default function VoterLayout({ children, title, showBack, onBack }: Voter
               type="button"
               onClick={() => navigate('/profile')}
               className={cn(
-                'w-full flex flex-col items-center justify-center gap-1 py-3 text-[11px] font-semibold transition-colors active:opacity-60',
-                isOnProfile ? 'text-primary' : 'text-gray-500 dark:text-gray-400',
+                'mx-auto w-[calc(100%-0.5rem)] flex flex-col items-center justify-center gap-1 rounded-xl py-2 text-[11px] font-semibold transition-colors active:bg-primary/5',
+                isOnProfile ? 'bg-primary/10 text-primary' : 'text-gray-500 dark:text-gray-400',
               )}
             >
               <User className="h-5 w-5" />
@@ -194,8 +193,8 @@ export default function VoterLayout({ children, title, showBack, onBack }: Voter
               type="button"
               onClick={() => navigate('/settings')}
               className={cn(
-                'w-full flex flex-col items-center justify-center gap-1 py-3 text-[11px] font-semibold transition-colors active:opacity-60',
-                isOnSettings ? 'text-primary' : 'text-gray-500 dark:text-gray-400',
+                'mx-auto w-[calc(100%-0.5rem)] flex flex-col items-center justify-center gap-1 rounded-xl py-2 text-[11px] font-semibold transition-colors active:bg-primary/5',
+                isOnSettings ? 'bg-primary/10 text-primary' : 'text-gray-500 dark:text-gray-400',
               )}
             >
               <Settings className="h-5 w-5" />

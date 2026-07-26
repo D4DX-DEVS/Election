@@ -3,6 +3,8 @@ const votes = require("../supabase/votes");
 const users = require("../supabase/users");
 const nominees = require("../supabase/nominees");
 const auditLogs = require("../supabase/auditLogs");
+const { sameFranchise } = require("../roles");
+const { resourceFranchiseId } = require("../tenantScope");
 
 const MS_DAY = 24 * 60 * 60 * 1000;
 const MS_HOUR = 60 * 60 * 1000;
@@ -236,7 +238,12 @@ async function buildVoterNotifications(user) {
   const access = (user.electionAccess || []).map(String).filter(Boolean);
   if (!access.length) return items;
 
-  const electionList = await elections.findByIdsWithFranchise(access, { votingOpen: true });
+  const assignedElections = await elections.findByIdsWithFranchise(access, {
+    votingOpen: true,
+  });
+  const electionList = assignedElections.filter((election) =>
+    sameFranchise(user.franchiseId, resourceFranchiseId(election))
+  );
 
   for (const election of electionList) {
     const id = String(election._id || election.id);

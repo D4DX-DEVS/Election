@@ -1,6 +1,27 @@
 const electionGroups = require("../lib/supabase/electionGroups");
 const { logUserActivity, logAuditFromReq } = require("../utils/auditLog");
 const { resolveFranchiseIdForActor, sameFranchise } = require("../lib/roles");
+const elections = require("../lib/elections");
+const {
+  requireFranchiseId,
+  assertElectionIdsScoped,
+} = require("../lib/tenantScope");
+
+function sendError(res, err) {
+  if (!err.statusCode) console.error(err);
+  return res
+    .status(err.statusCode || 500)
+    .json({ success: false, message: err.message || err.toString() });
+}
+
+async function validateElections(actor, franchiseId, electionIds) {
+  return assertElectionIdsScoped({
+    actor,
+    franchiseId,
+    electionIds: electionIds || [],
+    findElectionById: elections.findById,
+  });
+}
 
 function resolveGroupFranchiseId(group) {
   if (!group?.franchiseId) return "";
@@ -25,7 +46,10 @@ exports.addElectionGroup = async (req, res) => {
   try {
     const body = { ...req.body };
     const user = req.user || {};
-    body.franchiseId = resolveFranchiseIdForActor(user, body.franchiseId);
+    body.franchiseId = requireFranchiseId(
+      resolveFranchiseIdForActor(user, body.franchiseId)
+    );
+    body.elections = await validateElections(user, body.franchiseId, body.elections);
     if (!body.createdBy && user._id) {
       body.createdBy = user._id;
     }
@@ -33,8 +57,7 @@ exports.addElectionGroup = async (req, res) => {
     await logUserActivity(req.user._id, req.ip, "Created", electionGroup.name, "Election Group");
     res.status(201).json({ success: true, message: "Election Group created.", electionGroup });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: err.toString() });
+    sendError(res, err);
   }
 };
 
@@ -55,13 +78,26 @@ exports.updateElectionGroupById = async (req, res) => {
     const existing = await electionGroups.findById(req.params.id);
     if (!existing) return res.status(404).json({ success: false, message: "Election Group not found." });
     assertElectionGroupAccess(req.user, existing);
+    const franchiseId = requireFranchiseId(resolveGroupFranchiseId(existing));
+    if (req.body.franchiseId && !sameFranchise(req.body.franchiseId, franchiseId)) {
+      const err = new Error("An election group's organization cannot be changed.");
+      err.statusCode = 400;
+      throw err;
+    }
+    delete req.body.franchiseId;
+    if (req.body.elections !== undefined) {
+      req.body.elections = await validateElections(
+        req.user,
+        franchiseId,
+        req.body.elections
+      );
+    }
     const eg = await electionGroups.updateById(req.params.id, req.body);
     if (!eg) return res.status(404).json({ success: false, message: "Election Group not found." });
     await logAuditFromReq(req, "Updated", eg.name, "Election Group", eg._id || eg.id);
     res.status(200).json({ success: true, data: eg });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: err.toString() });
+    sendError(res, err);
   }
 };
 
@@ -119,6 +155,20 @@ exports.updateElectionGroup = async (req, res) => {
       return res.status(404).json({ success: false, message: "Election Group not found." });
     }
     assertElectionGroupAccess(req.user, existing);
+    const franchiseId = requireFranchiseId(resolveGroupFranchiseId(existing));
+    if (req.body.franchiseId && !sameFranchise(req.body.franchiseId, franchiseId)) {
+      const err = new Error("An election group's organization cannot be changed.");
+      err.statusCode = 400;
+      throw err;
+    }
+    delete req.body.franchiseId;
+    if (req.body.elections !== undefined) {
+      req.body.elections = await validateElections(
+        req.user,
+        franchiseId,
+        req.body.elections
+      );
+    }
     const electionGroup = await electionGroups.updateById(id, req.body);
     if (!electionGroup) {
       return res.status(404).json({ success: false, message: "Election Group not found." });
@@ -126,8 +176,7 @@ exports.updateElectionGroup = async (req, res) => {
     await logAuditFromReq(req, "Updated", electionGroup.name, "Election Group", electionGroup._id || electionGroup.id);
     res.status(200).json({ success: true, data: electionGroup });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: err.toString() });
+    sendError(res, err);
   }
 };
 

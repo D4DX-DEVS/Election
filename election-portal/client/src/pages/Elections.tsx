@@ -10,7 +10,7 @@ import { ElectionFilter, ElectionWithDetails, Franchise, Pagination } from "@/li
 import { useCallback } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { PaginationControls } from "@/components/ui/pagination-controls";
-import { PageContent, PageBottom } from "@/components/layout/PageContent";
+import { PageContent, PageBottom, PageHeader } from "@/components/layout/PageContent";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { deleteByIds } from "@/lib/bulkDelete";
 import { useToast } from "@/hooks/use-toast";
@@ -216,20 +216,18 @@ export default function Elections() {
   return (
     <MainLayout>
       <PageContent>
-      <div className="mb-6 flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Elections</h1>
-          <p className="text-sm text-gray-600">
-            Select an election to manage its nominees and voters
-          </p>
-        </div>
-        <Link href="/elections/create">
-          <Button size="sm" className="h-6 px-3 rounded-md shrink-0 text-xs">
+      <PageHeader
+        title="Elections"
+        description="Select an election to manage its nominees and voters"
+        actions={userRole !== "election_admin" ? (
+          <Link href="/elections/create">
+          <Button size="sm">
             <PlusIcon className="mr-1 h-3.5 w-3.5" />
-            Add
+            Add election
           </Button>
-        </Link>
-      </div>
+          </Link>
+        ) : undefined}
+      />
 
       {franchisesError && (
         <Alert variant="destructive" className="mb-4">

@@ -35,7 +35,7 @@ import { cn } from "@/lib/utils";
 import { getElectionLabel, getElectionSubtitle } from "@/lib/electionHelpers";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { PageContent, PageBottom } from "@/components/layout/PageContent";
-import { Pagination } from "@/lib/types";
+import { Pagination, type Election as AppElection } from "@/lib/types";
 import { VoterSlipPrinter } from "@/components/voters/VoterSlipPrinter";
 import { BulkVoterSlipPrinter } from "@/components/voters/BulkVoterSlipPrinter";
 import { ExportMenu } from "@/components/ui/export-menu";
@@ -77,11 +77,11 @@ function getGroupElectionIds(g: Pick<VoterGroup, "elections">): string[] {
   );
 }
 
-interface Election {
+type Election = AppElection & {
   _id: string;
   title: string;
   organization: string;
-}
+};
 
 interface GroupVoter {
   _id: string;
@@ -462,11 +462,20 @@ export default function VoterGroups({
       return res.json();
     },
     onSuccess: (data) => {
+      const credential = data?.data?.plainPassword
+        ? [{
+            _id: data.data.id,
+            username: data.data.username,
+            plainPassword: data.data.plainPassword,
+          }]
+        : [];
       toast({
         title: "Voter created",
-        description: `${data.data.username} · password: ${data.data.plainPassword}`,
+        description: `${data.data.username} created. Print or save the credential now.`,
         variant: "success",
       });
+      setSlipPrintVoters(credential);
+      setPrintSlipsOpen(credential.length > 0);
       setSingleVoterUsername("");
       setSingleVoterOpen(false);
       refetchVoters();
@@ -489,7 +498,14 @@ export default function VoterGroups({
       return res.json();
     },
     onSuccess: (data) => {
-      toast({ title: `${data.count} voters created`, description: data.skipped ? `${data.skipped} skipped (already exist)` : undefined, variant: "success" });
+      const generatedCredentials = Array.isArray(data?.data) ? data.data : [];
+      toast({
+        title: `${data.count} voters created`,
+        description: "Print them now or reprint them later from the voter group.",
+        variant: "success",
+      });
+      setSlipPrintVoters(generatedCredentials);
+      setPrintSlipsOpen(generatedCredentials.length > 0);
       setBulkVoterOpen(false);
       refetchVoters();
       queryClient.invalidateQueries({ queryKey: ["/api/voter-groups"] });
@@ -906,7 +922,7 @@ export default function VoterGroups({
   return (
     <Wrapper>
       <PageContent>
-      <div className={cn("mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between", suppressTitle && "sm:justify-end")}>
+      <div className={cn("mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-end sm:justify-between", suppressTitle && "sm:justify-end")}>
         {!suppressTitle && (
         <div>
           <h1 className={embedded ? "text-lg font-semibold text-gray-900 flex items-center gap-2" : "text-2xl font-bold text-gray-900 flex items-center gap-2"}>
@@ -917,7 +933,7 @@ export default function VoterGroups({
         </div>
         )}
         <div className={cn(
-          "flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-end",
+          "flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end",
           suppressTitle && "w-full"
         )}>
         <Dialog open={isOpen} onOpenChange={(open) => {
@@ -930,10 +946,10 @@ export default function VoterGroups({
             }
           }}>
           <DialogTrigger asChild>
-            <Button size="sm" className="h-10 justify-center gap-1.5 px-3">
+            <Button size="sm" className="flex-1 justify-center gap-1.5 sm:flex-none">
               <PlusCircle className="h-4 w-4 shrink-0" />
               <span className="truncate">
-                <span className="sm:hidden">Add</span>
+                <span className="sm:hidden">Add group</span>
                 <span className="hidden sm:inline">New Group</span>
               </span>
             </Button>

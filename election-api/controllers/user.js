@@ -4,6 +4,14 @@ const bcrypt = require("bcryptjs");
 const { logUserActivity, logAuditFromReq } = require("../utils/auditLog");
 const roles = require("../lib/roles");
 const { resolveShuffledPrefix } = require("../lib/prefixShuffle");
+const { encryptCredential } = require("../lib/credentialVault");
+const elections = require("../lib/elections");
+const {
+  requireFranchiseId,
+  resourceFranchiseId,
+  assertElectionIdsScoped,
+  assertUserIdsScoped,
+} = require("../lib/tenantScope");
 
 const generatePassword = (prefix) => {
   const letters = "abcdefghijklmnopqrstuvwxyz";
@@ -55,6 +63,31 @@ async function loadTargetUser(id) {
   return user;
 }
 
+async function validateElectionAssignments(actor, franchiseId, electionIds) {
+  return assertElectionIdsScoped({
+    actor,
+    franchiseId,
+    electionIds,
+    findElectionById: elections.findById,
+  });
+}
+
+async function assertVoterGroupScoped(actor, franchiseId, voterGroupId) {
+  if (!voterGroupId) return null;
+  const group = await voterGroups.findById(voterGroupId);
+  if (!group) {
+    const err = new Error("Voter group not found.");
+    err.statusCode = 404;
+    throw err;
+  }
+  if (!roles.sameFranchise(franchiseId, resourceFranchiseId(group))) {
+    const err = new Error("A voter group from another organization cannot be assigned.");
+    err.statusCode = 403;
+    throw err;
+  }
+  return group;
+}
+
 exports.addUser = async (req, res) => {
   try {
     const targetRole = req.body.role || "voter";
@@ -72,17 +105,23 @@ exports.addUser = async (req, res) => {
     });
 
     const franchiseId = roles.resolveFranchiseIdForActor(req.user, req.body.franchiseId);
-    if (
-      (targetRole === "franchise_admin" || targetRole === "election_admin" || targetRole === "voter") &&
-      !franchiseId &&
-      req.user.role !== "super_admin"
-    ) {
-      const err = new Error("franchiseId is required.");
-      err.statusCode = 400;
-      throw err;
-    }
+    if (targetRole !== "super_admin") requireFranchiseId(franchiseId);
+    const electionAccess =
+      targetRole === "super_admin"
+        ? []
+        : await validateElectionAssignments(
+            req.user,
+            franchiseId,
+            req.body.electionAccess || []
+          );
 
-    const user = await users.create({ ...req.body, username, role: targetRole, franchiseId });
+    const user = await users.create({
+      ...req.body,
+      username,
+      role: targetRole,
+      franchiseId,
+      electionAccess,
+    });
     await logUserActivity(req.user._id, req.ip, "Created", user.username, "User");
     res.status(201).json({ success: true, message: "User created.", user: users.stripPassword(user) });
   } catch (err) {
@@ -140,11 +179,29 @@ exports.updateUser = async (req, res) => {
       }
     }
 
+    if (req.body.franchiseId && !roles.sameFranchise(req.body.franchiseId, existing.franchiseId)) {
+      const err = new Error("A user's organization cannot be changed after creation.");
+      err.statusCode = 400;
+      throw err;
+    }
+    delete req.body.franchiseId;
+
     if (req.user.role !== "super_admin") {
-      delete req.body.franchiseId;
       if (req.user.role === "election_admin") {
         delete req.body.role;
         delete req.body.electionAccess;
+      }
+    }
+
+    const finalRole = req.body.role || existing.role;
+    if (finalRole !== "super_admin") {
+      requireFranchiseId(existing.franchiseId);
+      if (req.body.electionAccess !== undefined) {
+        req.body.electionAccess = await validateElectionAssignments(
+          req.user,
+          existing.franchiseId,
+          req.body.electionAccess
+        );
       }
     }
 
@@ -176,7 +233,7 @@ exports.getUserById = async (req, res) => {
     if (!roles.canManageUser(req.user, user) && String(req.user._id) !== String(user._id)) {
       return res.status(403).json({ success: false, message: "You are not allowed to view this user." });
     }
-    res.status(200).json({ success: true, data: user });
+    res.status(200).json({ success: true, data: users.stripPassword(user) });
   } catch (err) {
     sendError(res, err);
   }
@@ -313,18 +370,26 @@ exports.createVoter = async (req, res) => {
         ? String(req.body.password).trim()
         : generatePassword(username);
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
-    const franchiseId = roles.resolveFranchiseIdForActor(req.user, req.body.franchiseId);
+    const franchiseId = requireFranchiseId(
+      roles.resolveFranchiseIdForActor(req.user, req.body.franchiseId)
+    );
     const { electionIds } = req.body;
-    const electionAccess = Array.isArray(electionIds)
+    const requestedElectionAccess = Array.isArray(electionIds)
       ? electionIds
       : electionIds
       ? [electionIds]
       : [];
+    const electionAccess = await validateElectionAssignments(
+      req.user,
+      franchiseId,
+      requestedElectionAccess
+    );
+    await assertVoterGroupScoped(req.user, franchiseId, req.body.voterGroupId);
 
     const user = await users.create({
       username,
       password: hashedPassword,
-      plainPassword,
+      credentialCiphertext: encryptCredential(plainPassword),
       fullName: req.body.fullName || username,
       role: "voter",
       isVoter: true,
@@ -380,7 +445,7 @@ exports.generateVoters = async (req, res) => {
       return res.status(400).json({ success: false, message: "count must be between 1 and 1000." });
     }
 
-    const electionAccess =
+    const requestedElectionAccess =
       assignmentType === "election" && Array.isArray(electionIds) ? electionIds : [];
 
     const usernames = [];
@@ -389,9 +454,18 @@ exports.generateVoters = async (req, res) => {
     const existing = await users.findByUsernames(usernames);
     const existingLower = new Set(existing.map((u) => u.username.toLowerCase()));
 
-    const franchiseId = roles.resolveFranchiseIdForActor(req.user, req.body.franchiseId);
+    const franchiseId = requireFranchiseId(
+      roles.resolveFranchiseIdForActor(req.user, req.body.franchiseId)
+    );
+    const electionAccess = await validateElectionAssignments(
+      req.user,
+      franchiseId,
+      requestedElectionAccess
+    );
+    await assertVoterGroupScoped(req.user, franchiseId, voterGroupId);
 
     const usedPasswords = new Set();
+    const credentialsByUsername = new Map();
     const docs = [];
     for (let i = 0; i < num; i++) {
       const seq = start + i;
@@ -402,11 +476,12 @@ exports.generateVoters = async (req, res) => {
         plainPassword = generatePassword(shuffledPrefix);
       } while (usedPasswords.has(plainPassword));
       usedPasswords.add(plainPassword);
+      credentialsByUsername.set(username, plainPassword);
       const hashedPassword = await bcrypt.hash(plainPassword, 10);
       docs.push({
         username,
         password: hashedPassword,
-        plainPassword,
+        credentialCiphertext: encryptCredential(plainPassword),
         fullName: username,
         role: "voter",
         isVoter: true,
@@ -447,7 +522,11 @@ exports.generateVoters = async (req, res) => {
       message: `Generated ${created.length} voter accounts.`,
       count: created.length,
       skipped: num - created.length,
-      data: created.map((u) => ({ id: u._id, username: u.username, plainPassword: u.plainPassword })),
+      data: created.map((u) => ({
+        id: u._id,
+        username: u.username,
+        plainPassword: credentialsByUsername.get(u.username),
+      })),
     });
   } catch (err) {
     sendError(res, err);
@@ -477,13 +556,18 @@ exports.assignVotersToElection = async (req, res) => {
       });
     }
 
-    for (const voterId of validVoterIds) {
-      const voter = await loadTargetUser(voterId);
-      if (voter.role !== "voter") {
-        return res.status(400).json({ success: false, message: "Only voters can be assigned to elections." });
-      }
-      roles.assertCanManageUser(req.user, voter);
+    const election = await elections.findById(electionId);
+    if (!election) {
+      return res.status(404).json({ success: false, message: "Election not found." });
     }
+    const franchiseId = requireFranchiseId(resourceFranchiseId(election));
+    await validateElectionAssignments(req.user, franchiseId, [electionId]);
+    await assertUserIdsScoped({
+      actor: req.user,
+      franchiseId,
+      userIds: validVoterIds,
+      findUserById: loadTargetUser,
+    });
 
     const result = await users.assignVotersToElection(validVoterIds, electionId);
 
@@ -555,7 +639,9 @@ exports.createElectionAdmin = async (req, res) => {
 
     const { password, fullName, electionAccess } = req.body;
     const username = await assertNoDuplicateUser({ username: req.body.username, email: req.body.email });
-    const franchiseId = roles.resolveFranchiseIdForActor(req.user, req.body.franchiseId);
+    const franchiseId = requireFranchiseId(
+      roles.resolveFranchiseIdForActor(req.user, req.body.franchiseId)
+    );
 
     if (!franchiseId) {
       return res.status(400).json({ success: false, message: "franchiseId is required." });
@@ -563,6 +649,11 @@ exports.createElectionAdmin = async (req, res) => {
     if (!password) {
       return res.status(400).json({ success: false, message: "password is required." });
     }
+    const scopedElectionAccess = await validateElectionAssignments(
+      req.user,
+      franchiseId,
+      electionAccess || []
+    );
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await users.create({
@@ -570,7 +661,7 @@ exports.createElectionAdmin = async (req, res) => {
       password: hashedPassword,
       fullName,
       franchiseId,
-      electionAccess,
+      electionAccess: scopedElectionAccess,
       role: "election_admin",
       status: "active",
     });
@@ -593,9 +684,55 @@ exports.resetPassword = async (req, res) => {
     const { newPassword } = req.body;
     if (!newPassword) return res.status(400).json({ success: false, message: "newPassword is required." });
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await users.updateById(req.params.id, { password: hashedPassword, plainPassword: newPassword });
+    await users.updateById(req.params.id, {
+      password: hashedPassword,
+      ...(existing.role === "voter"
+        ? { credentialCiphertext: encryptCredential(newPassword) }
+        : {}),
+    });
     await logAuditFromReq(req, "Reset password for", existing.username, "User", existing._id || existing.id);
     res.status(200).json({ success: true, message: "Password reset successfully." });
+  } catch (err) {
+    sendError(res, err);
+  }
+};
+
+exports.getVoterCredentials = async (req, res) => {
+  try {
+    const voterIds = [...new Set((req.body.voterIds || []).map(String))];
+    if (!voterIds.length || voterIds.length > 1000) {
+      return res.status(400).json({
+        success: false,
+        message: "Provide between 1 and 1000 voter IDs.",
+      });
+    }
+
+    const data = [];
+    for (const voterId of voterIds) {
+      const voter = await loadTargetUser(voterId);
+      if (voter.role !== "voter") {
+        return res.status(400).json({
+          success: false,
+          message: "Credentials are available only for voters.",
+        });
+      }
+      roles.assertCanManageUser(req.user, voter);
+      data.push({
+        id: voter._id || voter.id,
+        username: voter.username,
+        plainPassword: await users.getPrintableCredential(voterId),
+        sequenceNumber: voter.voterMetadata?.sequenceNumber || null,
+        electionAccess: voter.electionAccess || [],
+      });
+    }
+
+    await logAuditFromReq(
+      req,
+      "Printed credentials for",
+      `${data.length} voter(s)`,
+      "Voter Credentials"
+    );
+    res.status(200).json({ success: true, count: data.length, data });
   } catch (err) {
     sendError(res, err);
   }

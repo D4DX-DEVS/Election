@@ -14,6 +14,7 @@ import { Link, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { HelpDialog } from "@/components/help/HelpDialog";
 import { NotificationBell } from "@/components/layout/NotificationBell";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { clearAccountSession } from "@/lib/session";
 
 interface HeaderProps {
@@ -28,6 +29,7 @@ interface HeaderProps {
 
 export function Header({ toggleSidebar, user }: HeaderProps) {
   const [helpOpen, setHelpOpen] = useState(false);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
 
@@ -115,7 +117,7 @@ export function Header({ toggleSidebar, user }: HeaderProps) {
                 Help & Tutorial
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
+              <DropdownMenuItem onClick={() => setLogoutConfirmOpen(true)}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
               </DropdownMenuItem>
@@ -125,6 +127,15 @@ export function Header({ toggleSidebar, user }: HeaderProps) {
       </div>
 
       <HelpDialog open={helpOpen} onOpenChange={setHelpOpen} />
+      <ConfirmDialog
+        open={logoutConfirmOpen}
+        onOpenChange={setLogoutConfirmOpen}
+        onConfirm={handleLogout}
+        title="Log out?"
+        description="You'll need to sign in again to access your account."
+        confirmText="Logout"
+        variant="default"
+      />
     </header>
   );
 }

@@ -24,6 +24,8 @@ import {
 import { jsPDF } from "jspdf";
 import { autoTable } from "jspdf-autotable";
 import * as XLSX from 'xlsx';
+import { drawPdfHeader, drawPdfFooter, brandedTableTheme } from "@/lib/pdfBranding";
+import { autoSizeColumns } from "@/lib/excelHelpers";
 import {
   Select,
   SelectContent,
@@ -304,9 +306,6 @@ export default function Nominees({
   const exportToPDF = async () => {
     try {
       const displayNominees = await fetchAllNomineesForExport();
-      // Create a new PDF document
-      const doc = new jsPDF();
-      
       // Get the title for the PDF based on selected election
       let title = "All Nominees";
       if (selectedElectionId && selectedElectionId !== 'all') {
@@ -318,13 +317,11 @@ export default function Nominees({
           title = `${getElectionLabel(election)} Nominees`;
         }
       }
-      
-      // Add title to PDF
-      doc.setFontSize(18);
-      doc.text(title, 14, 22);
-      doc.setFontSize(12);
-      doc.text(`Generated on ${new Date().toLocaleDateString("en-GB")}`, 14, 30);
-      
+
+      // Create a new PDF document with the shared branded letterhead
+      const doc = new jsPDF();
+      const startY = await drawPdfHeader(doc, title, `${displayNominees.length} nominee(s)`);
+
       // Prepare data for table
       const tableColumn = ["Name", "Election"];
       const tableRows = displayNominees.map((nominee: any) => {
@@ -346,13 +343,13 @@ export default function Nominees({
       });
 
       autoTable(doc, {
-        startY: 40,
+        ...brandedTableTheme,
+        startY,
         head: [tableColumn],
         body: tableRows,
-        theme: "grid",
-        headStyles: { fillColor: [41, 128, 185], textColor: 255 },
       });
 
+      drawPdfFooter(doc);
       doc.save(`${title.replace(/\s+/g, "_")}_${new Date().toLocaleDateString("en-GB").replace(/\//g, "-")}.pdf`);
 
       toast({
@@ -395,7 +392,8 @@ export default function Nominees({
       
       // Convert data to worksheet
       const worksheet = XLSX.utils.json_to_sheet(excelData);
-      
+      worksheet["!cols"] = autoSizeColumns(excelData);
+
       // Get the title for the Excel sheet based on selected election
       let title = "All Nominees";
       if (selectedElectionId && selectedElectionId !== 'all') {

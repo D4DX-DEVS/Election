@@ -91,6 +91,35 @@ async function getPrintableCredential(id) {
   return decryptCredential(data.credential_ciphertext);
 }
 
+async function findByIds(ids, { includePassword = true } = {}) {
+  const validIds = [...new Set((ids || []).map(String))].filter(isUuid);
+  if (!validIds.length) return [];
+  const supabase = getSupabase();
+  const { data, error } = await supabase.from("users").select("*").in("id", validIds);
+  if (error) throw error;
+  const accessMap = await getElectionAccessForUsers(validIds);
+  const mapped = (data || []).map((row) =>
+    mapUser(row, { electionAccess: accessMap.get(String(row.id)) || [] })
+  );
+  return includePassword ? mapped : mapped.map(stripPassword);
+}
+
+async function getPrintableCredentials(ids) {
+  const validIds = [...new Set((ids || []).map(String))].filter(isUuid);
+  const map = new Map();
+  if (!validIds.length) return map;
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("users")
+    .select("id, credential_ciphertext")
+    .in("id", validIds);
+  if (error) throw error;
+  (data || []).forEach((row) => {
+    map.set(String(row.id), row.credential_ciphertext ? decryptCredential(row.credential_ciphertext) : null);
+  });
+  return map;
+}
+
 async function findByUsername(username) {
   const normalized = String(username || "").trim();
   if (!normalized) return null;
@@ -554,5 +583,7 @@ module.exports = {
   attachFranchiseDetails,
   userHasElectionAccess,
   getPrintableCredential,
+  findByIds,
+  getPrintableCredentials,
   stripPassword,
 };

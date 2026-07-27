@@ -2,6 +2,7 @@ import * as XLSX from "xlsx";
 import { apiRequest } from "@/lib/queryClient";
 import type { Election, User } from "@/lib/types";
 import { getElectionLabel } from "@/lib/electionHelpers";
+import { autoSizeColumns } from "@/lib/excelHelpers";
 
 export type VoterRow = User & { _id?: string; id?: string; electionAccess?: string[] };
 
@@ -237,6 +238,7 @@ export function exportVotersToExcel(
 
   const workbook = XLSX.utils.book_new();
   const worksheet = XLSX.utils.json_to_sheet(excelData);
+  worksheet["!cols"] = autoSizeColumns(excelData);
   XLSX.utils.book_append_sheet(workbook, worksheet, "Voters");
 
   const label = options.electionFilterLabel || "All_Voters";
@@ -245,8 +247,7 @@ export function exportVotersToExcel(
 }
 
 export function downloadVoterImportTemplate() {
-  const workbook = XLSX.utils.book_new();
-  const worksheet = XLSX.utils.json_to_sheet([
+  const rows = [
     {
       username: "voter001",
       full_name: "John Doe",
@@ -254,7 +255,10 @@ export function downloadVoterImportTemplate() {
       registration_number: "voter001",
       elections: "Board Election - Acme Corp",
     },
-  ]);
+  ];
+  const workbook = XLSX.utils.book_new();
+  const worksheet = XLSX.utils.json_to_sheet(rows);
+  worksheet["!cols"] = autoSizeColumns(rows);
   XLSX.utils.book_append_sheet(workbook, worksheet, "Template");
   XLSX.writeFile(workbook, "voter_import_template.xlsx");
 }

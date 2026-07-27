@@ -350,6 +350,50 @@ async function findGroupVotersPaginated(groupId, { page = 1, limit = 10 } = {}) 
   return { voters, total: count || 0 };
 }
 
+async function findByName(franchiseId, name, excludeId) {
+  if (!franchiseId || !name) return null;
+  const supabase = getSupabase();
+  let query = supabase
+    .from("voter_groups")
+    .select("id, name")
+    .eq("franchise_id", franchiseId)
+    .ilike("name", name.trim())
+    .limit(1);
+  if (excludeId) query = query.neq("id", excludeId);
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data && data[0]) || null;
+}
+
+async function findConflictingGroupMemberships(voterIds, franchiseId, excludeGroupId) {
+  const ids = [...new Set((voterIds || []).map(String))].filter(isUuid);
+  if (!ids.length || !franchiseId) return [];
+
+  const supabase = getSupabase();
+  let query = supabase.from("voter_group_voters").select("user_id, voter_group_id").in("user_id", ids);
+  if (excludeGroupId) query = query.neq("voter_group_id", excludeGroupId);
+  const { data: rows, error } = await query;
+  if (error) throw error;
+  if (!rows.length) return [];
+
+  const groupIds = [...new Set(rows.map((r) => r.voter_group_id))];
+  const { data: groupRows, error: gErr } = await supabase
+    .from("voter_groups")
+    .select("id, name, franchise_id")
+    .in("id", groupIds)
+    .eq("franchise_id", franchiseId);
+  if (gErr) throw gErr;
+  const groupById = new Map(groupRows.map((g) => [g.id, g]));
+
+  return rows
+    .filter((r) => groupById.has(r.voter_group_id))
+    .map((r) => ({
+      voterId: r.user_id,
+      groupId: r.voter_group_id,
+      groupName: groupById.get(r.voter_group_id).name,
+    }));
+}
+
 async function findGroupsByElection(electionId) {
   const supabase = getSupabase();
   const { data, error } = await supabase
@@ -378,4 +422,6 @@ module.exports = {
   findVoterIdsByGroupId,
   findGroupVotersPaginated,
   findGroupsByElection,
+  findByName,
+  findConflictingGroupMemberships,
 };

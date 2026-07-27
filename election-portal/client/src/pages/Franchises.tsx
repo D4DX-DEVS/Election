@@ -925,8 +925,8 @@ export default function Franchises() {
               </Dialog>
             </div>
 
-            <Card className="border-0 shadow-none bg-transparent md:border md:bg-white md:shadow-sm">
-              <CardHeader className="hidden md:block md:px-6 md:py-4 md:border-b md:border-gray-200">
+            <Card className="border-0 shadow-none bg-transparent lg:border lg:bg-white lg:shadow-sm">
+              <CardHeader className="hidden lg:block lg:px-6 lg:py-4 lg:border-b lg:border-gray-200">
                 <CardTitle className="text-lg font-medium text-gray-900">All Franchises</CardTitle>
                 <CardDescription>
                   View and manage all franchises in your election system
@@ -945,7 +945,7 @@ export default function Franchises() {
                   </div>
                 ) : franchises && Array.isArray(franchises) && franchises.length > 0 ? (
                   <>
-                  <div className="space-y-3 md:space-y-4 md:hidden">
+                  <div className="space-y-3 lg:space-y-4 lg:hidden">
                     {franchises.map((franchise: Franchise) => {
                       const contact = resolveFranchiseContact(franchise);
                       const expanded = expandedFranchiseIds.has(franchise._id);
@@ -1033,7 +1033,7 @@ export default function Franchises() {
                     );
                     })}
                   </div>
-                  <div className="hidden md:block">
+                  <div className="hidden lg:block">
                   <Table>
                     <TableHeader>
                       <TableRow>

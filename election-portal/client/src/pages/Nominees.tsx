@@ -579,7 +579,7 @@ export default function Nominees({
                   deleting={deleteNomineesMutation.isPending}
                 />
               )}
-              <div className="space-y-3 md:hidden">
+              <div className="space-y-3 lg:hidden">
                 {paginatedNominees.map((nominee: any) => {
                   const nomineeId = getNomineeId(nominee);
                   const election = elections.find((e: any) => {
@@ -648,7 +648,7 @@ export default function Nominees({
                   );
                 })}
               </div>
-              <div className="hidden overflow-auto md:block">
+              <div className="hidden overflow-auto lg:block">
                 <Table>
                 <TableHeader>
                   <TableRow>

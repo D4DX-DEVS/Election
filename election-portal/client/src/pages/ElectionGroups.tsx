@@ -604,7 +604,7 @@ export default function ElectionGroups() {
             <div className="p-6 text-center">Loading groups...</div>
           ) : electionGroups && electionGroups.length > 0 ? (
             <div className="space-y-6">
-              <div className="divide-y divide-gray-100 md:hidden">
+              <div className="divide-y divide-gray-100 lg:hidden">
                 {electionGroups.map((group) => {
                   const groupId = getEntityId(group._id || group.id);
                   const franchiseId = getEntityId(group.franchiseId);
@@ -653,7 +653,7 @@ export default function ElectionGroups() {
                   );
                 })}
               </div>
-              <div className="hidden md:block">
+              <div className="hidden lg:block">
               <Table>
                 <TableHeader>
                   <TableRow>

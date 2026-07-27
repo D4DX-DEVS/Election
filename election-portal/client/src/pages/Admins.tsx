@@ -722,8 +722,8 @@ export default function Admins() {
       <div className="space-y-6">
         {/* Franchise Administrators (super admins only) */}
         {canCreateFranchiseAdmin && (
-          <Card className="border-0 shadow-none bg-transparent md:border md:bg-white md:shadow-sm">
-            <CardHeader className="hidden md:block">
+          <Card className="border-0 shadow-none bg-transparent lg:border lg:bg-white lg:shadow-sm">
+            <CardHeader className="hidden lg:block">
               <div>
                 <CardTitle>Franchise Administrators</CardTitle>
                 <CardDescription>
@@ -731,7 +731,7 @@ export default function Admins() {
                 </CardDescription>
               </div>
             </CardHeader>
-            <CardContent className="p-0 md:p-6">
+            <CardContent className="p-0 lg:p-6">
               {franchiseAdminsError && (
                 <Alert variant="destructive" className="mb-4">
                   <AlertCircle className="h-4 w-4" />
@@ -750,7 +750,7 @@ export default function Admins() {
                 </div>
               ) : franchiseAdminList.length > 0 ? (
                 <>
-                <div className="space-y-3 md:space-y-4 md:hidden">
+                <div className="space-y-3 lg:space-y-4 lg:hidden">
                   {franchiseAdminList.map((admin) => {
                     const expanded = expandedAdminIds.has(admin._id);
                     return (
@@ -809,7 +809,7 @@ export default function Admins() {
                     );
                   })}
                 </div>
-                <div className="hidden md:block">
+                <div className="hidden lg:block">
                 <Table>
                   <TableHeader>
                     <TableRow>

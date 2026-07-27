@@ -42,7 +42,7 @@ export function RecentElectionsTable({ elections }: RecentElectionsTableProps) {
           </Button>
         </Link>
       </div>
-      <div className="md:hidden space-y-3">
+      <div className="lg:hidden space-y-3">
         {elections.map((election) => {
           const electionId = (election as any)._id?.toString() || (election as any).id?.toString();
           const totalVoters = election.analytics?.totalVoters || 0;
@@ -101,8 +101,8 @@ export function RecentElectionsTable({ elections }: RecentElectionsTableProps) {
           );
         })}
       </div>
-      <Card className="hidden md:block">
-        <div className="overflow-x-auto">
+      <Card className="hidden lg:block">
+        <div>
           <Table>
             <TableHeader>
               <TableRow>
@@ -142,24 +142,28 @@ export function RecentElectionsTable({ elections }: RecentElectionsTableProps) {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Link href={`/elections/${electionId}`}>
-                        <Button variant="link" className="text-primary hover:text-primary-dark mr-3">
-                          View
-                        </Button>
-                      </Link>
-                      {isElectionEditable(election.status) ? (
-                        <Link href={`/elections/${electionId}/edit`}>
-                          <Button variant="link" className="text-gray-600 hover:text-gray-900">
-                            Edit
+                      <div className="flex items-center justify-end gap-3">
+                        <Link href={`/elections/${electionId}`}>
+                          <Button variant="link" className="text-primary hover:text-primary-dark">
+                            View
                           </Button>
                         </Link>
-                      ) : (
-                        <Link href={`/elections/${electionId}?tab=results`}>
-                          <Button variant="link" className="text-gray-600 hover:text-gray-900">
-                            Results
-                          </Button>
-                        </Link>
-                      )}
+                        <span className="inline-block w-16 text-left">
+                          {isElectionEditable(election.status) ? (
+                            <Link href={`/elections/${electionId}/edit`}>
+                              <Button variant="link" className="text-gray-600 hover:text-gray-900">
+                                Edit
+                              </Button>
+                            </Link>
+                          ) : (
+                            <Link href={`/elections/${electionId}?tab=results`}>
+                              <Button variant="link" className="text-gray-600 hover:text-gray-900">
+                                Results
+                              </Button>
+                            </Link>
+                          )}
+                        </span>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );

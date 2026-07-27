@@ -93,6 +93,15 @@ export default function Franchises() {
   // Admin management state
   const [isAdminDialogOpen, setIsAdminDialogOpen] = useState(false);
   const [selectedFranchise, setSelectedFranchise] = useState<Franchise | null>(null);
+  const [expandedFranchiseIds, setExpandedFranchiseIds] = useState<Set<string>>(new Set());
+  const toggleFranchiseExpanded = (id: string) => {
+    setExpandedFranchiseIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
   const [adminFormData, setAdminFormData] = useState<AdminFormData>({
     username: "",
     fullName: "",
@@ -939,8 +948,13 @@ export default function Franchises() {
                   <div className="space-y-3 md:space-y-4 md:hidden">
                     {franchises.map((franchise: Franchise) => {
                       const contact = resolveFranchiseContact(franchise);
+                      const expanded = expandedFranchiseIds.has(franchise._id);
                       return (
-                      <div key={franchise._id} className="rounded-lg border border-gray-200 bg-white p-5 space-y-4">
+                      <div
+                        key={franchise._id}
+                        className="rounded-lg border border-gray-200 bg-white p-5 space-y-4 cursor-pointer"
+                        onClick={() => toggleFranchiseExpanded(franchise._id)}
+                      >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex min-w-0 flex-1 items-center gap-3">
                             {franchise.logo?.url ? (
@@ -989,7 +1003,11 @@ export default function Franchises() {
                           )}
                         </div>
 
-                        <div className="flex items-center gap-1 border-t border-gray-100 pt-2">
+                        {expanded && (
+                        <div
+                          className="flex items-center gap-1 border-t border-gray-100 pt-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <Button variant="ghost" size="sm" onClick={() => handleEditFranchise(franchise)}>
                             <Edit className="h-4 w-4 mr-1" /> Edit
                           </Button>
@@ -1010,6 +1028,7 @@ export default function Franchises() {
                             <Trash2 className="h-4 w-4 mr-1" /> Delete
                           </Button>
                         </div>
+                        )}
                       </div>
                     );
                     })}

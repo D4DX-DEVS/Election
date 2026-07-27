@@ -30,7 +30,7 @@ import { DeleteModeButton } from "@/components/ui/delete-mode-button";
 import { RowSelectCheckbox } from "@/components/ui/row-select-checkbox";
 import { useBulkDeleteMode } from "@/hooks/useBulkDeleteMode";
 import { deleteByIds } from "@/lib/bulkDelete";
-import { AlertCircle, Users, PlusCircle, Trash2, ArrowLeft, Settings2, Loader2, Link2, Shuffle } from "lucide-react";
+import { AlertCircle, Users, PlusCircle, Trash2, ArrowLeft, Settings2, Loader2, Link2, Shuffle, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getElectionLabel, getElectionSubtitle } from "@/lib/electionHelpers";
 import { PaginationControls } from "@/components/ui/pagination-controls";
@@ -98,18 +98,25 @@ export default function VoterGroups({
   embedded = false,
   electionId,
   suppressTitle = false,
-}: { embedded?: boolean; electionId?: string; suppressTitle?: boolean } = {}) {
-  const assignOnly = embedded && !!electionId;
+  mode,
+}: {
+  embedded?: boolean;
+  electionId?: string;
+  suppressTitle?: boolean;
+  mode?: "assign" | "view";
+} = {}) {
+  const assignOnly = embedded && !!electionId && mode !== "view";
+  const viewOnly = embedded && !!electionId && mode === "view";
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const voterPageParams = useVoterPageParams();
-  const syncUrl = !assignOnly;
+  const syncUrl = !assignOnly && !viewOnly;
   const [isOpen, setIsOpen] = useState(false);
   const [groupName, setGroupName] = useState("");
   const [pendingDeleteIds, setPendingDeleteIds] = useState<string[] | null>(null);
   const [pendingDeleteGroupVoterIds, setPendingDeleteGroupVoterIds] = useState<string[] | null>(null);
   const [page, setPage] = useState(1);
-  const pageSize = 10;
+  const pageSize = viewOnly ? 200 : 10;
   const [groupVotersPage, setGroupVotersPage] = useState(1);
   const groupVotersPageSize = 10;
 
@@ -200,7 +207,30 @@ export default function VoterGroups({
   const groupVoters = groupVotersData?.data || [];
   const groupVotersPagination = groupVotersData?.pagination;
   const groupVotersTotal = groupVotersPagination?.total ?? groupVoters.length;
-  const groups = Array.isArray(data?.data) ? data!.data : [];
+  const groupVoterIds = groupVoters.map((v) => v._id).filter(Boolean);
+
+  const { data: groupVoterCredentials } = useQuery<{
+    data: { id: string; plainPassword?: string }[];
+  }>({
+    queryKey: ["/api/users/voters/credentials", groupVoterIds],
+    queryFn: async () => {
+      const res = await apiRequest("POST", "/api/users/voters/credentials", {
+        voterIds: groupVoterIds,
+      });
+      return res.json();
+    },
+    enabled: groupVoterIds.length > 0,
+  });
+  const groupVoterPasswordById = new Map(
+    (groupVoterCredentials?.data || []).map((c) => [String(c.id), c.plainPassword])
+  );
+  const allGroups = Array.isArray(data?.data) ? data!.data : [];
+  const groups = viewOnly
+    ? allGroups.filter((g) => getGroupElectionIds(g).map(String).includes(String(electionId)))
+    : allGroups;
+  const unassignedGroups = viewOnly
+    ? allGroups.filter((g) => !getGroupElectionIds(g).map(String).includes(String(electionId)))
+    : [];
   const pagination = data?.pagination;
 
   const applyGroupSelection = (g: VoterGroup | null, view?: "voters" | "elections") => {
@@ -266,6 +296,7 @@ export default function VoterGroups({
         name: groupName.trim(),
         description: groupDescription.trim() || undefined,
         franchiseId: franchiseId || undefined,
+        elections: viewOnly && electionId ? [electionId] : undefined,
       });
       return res.json();
     },
@@ -454,6 +485,21 @@ export default function VoterGroups({
     },
   });
 
+  const quickAssignElectionMutation = useMutation({
+    mutationFn: async (group: VoterGroup) => {
+      const electionIds = [...new Set([...getGroupElectionIds(group), String(electionId)])];
+      const res = await apiRequest("PUT", `/api/voter-groups/${group._id}/elections`, { electionIds });
+      return res.json();
+    },
+    onSuccess: (_data, group) => {
+      toast({ title: "Group assigned", description: `"${group.name}" now has access to this election.`, variant: "success" });
+      queryClient.invalidateQueries({ queryKey: ["/api/voter-groups"] });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Could not assign group", description: err.message, variant: "destructive" });
+    },
+  });
+
   const addSingleVoterMutation = useMutation({
     mutationFn: async () => {
       const res = await apiRequest("POST", `/api/voter-groups/${selectedGroup!._id}/voter`, {
@@ -611,13 +657,13 @@ export default function VoterGroups({
             <ArrowLeft className="h-4 w-4" /> All Groups
           </Button>
           <div className="flex items-start justify-between gap-3">
-            <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <h1 className="text-lg font-bold leading-tight text-gray-900 sm:text-xl">
+            <div className="min-w-0">
+              <h1 className="text-lg font-bold leading-tight text-gray-900 sm:text-xl truncate">
                 {selectedGroup.name || "Voter Group"}
               </h1>
-              <Badge variant="outline" className="h-6 text-xs font-medium">
+              <p className="text-sm text-gray-500 mt-0.5">
                 {groupVotersTotal} voter{groupVotersTotal === 1 ? "" : "s"}
-              </Badge>
+              </p>
             </div>
             <ExportMenu
               iconOnly
@@ -848,13 +894,13 @@ export default function VoterGroups({
                           </td>
                         )}
                         <td className="px-4 py-2 font-mono">{getDisplayUsername(v)}</td>
-                        <td className="px-4 py-2 font-mono text-gray-600">{(v as any).plainPassword || <span className="text-gray-400 italic">hidden</span>}</td>
+                        <td className="px-4 py-2 font-mono text-gray-600">{groupVoterPasswordById.get(String(v._id)) || <span className="text-gray-400 italic">unavailable</span>}</td>
                         <td className="px-4 py-2">
                           <Badge variant={v.status === "active" ? "default" : "secondary"}>{v.status || "active"}</Badge>
                         </td>
                         <td className="px-4 py-2">
                           <div className="flex items-center gap-1">
-                            <VoterSlipPrinter voter={v as any} electionNames={elections.filter(e => (v.electionAccess || []).includes(e._id)).map(e => getElectionLabel(e))} />
+                            <VoterSlipPrinter voter={{ ...v, plainPassword: groupVoterPasswordById.get(String(v._id)) } as any} electionNames={elections.filter(e => (v.electionAccess || []).includes(e._id)).map(e => getElectionLabel(e))} />
                             {!groupVoterSelection.deleteMode && (
                               <Button
                                 variant="ghost"
@@ -956,9 +1002,40 @@ export default function VoterGroups({
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>Create Voter Group</DialogTitle>
-              <DialogDescription>Set up the group details. You can add voters after creation.</DialogDescription>
+              <DialogTitle>{viewOnly ? "Add a Voter Group" : "Create Voter Group"}</DialogTitle>
+              <DialogDescription>
+                {viewOnly
+                  ? "Assign an existing group to this election, or create a new one."
+                  : "Set up the group details. You can add voters after creation."}
+              </DialogDescription>
             </DialogHeader>
+            {viewOnly && unassignedGroups.length > 0 && (
+              <div className="space-y-2 border-b pb-4">
+                <Label>Existing groups</Label>
+                <div className="max-h-48 space-y-1 overflow-y-auto pr-1">
+                  {unassignedGroups.map((g) => (
+                    <div
+                      key={g._id}
+                      className="flex items-center justify-between gap-2 rounded-md border border-gray-200 px-3 py-2"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-gray-900">{g.name || "Untitled"}</p>
+                        <p className="text-xs text-gray-500">{g.voters?.length ?? 0} voters</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="shrink-0"
+                        onClick={() => quickAssignElectionMutation.mutate(g)}
+                        disabled={quickAssignElectionMutation.isPending}
+                      >
+                        Assign
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <form onSubmit={(e) => { e.preventDefault(); if (groupName.trim()) createMutation.mutate(); }} className="space-y-3 pt-1">
               <div className="space-y-1.5">
                 <Label htmlFor="gname">Group Name *</Label>
@@ -1006,7 +1083,7 @@ export default function VoterGroups({
       {isLoading ? (
         <div className="space-y-3">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-20 w-full rounded-lg" />)}</div>
       ) : groups.length === 0 ? (
-        <Card><CardContent className="py-12 text-center text-gray-500">No voter groups yet. Create one to get started.</CardContent></Card>
+        <Card><CardContent className="py-12 text-center text-gray-500">{viewOnly ? "No voter groups are assigned to this election yet." : "No voter groups yet. Create one to get started."}</CardContent></Card>
       ) : (
         <>
           <DeleteModeBar
@@ -1093,6 +1170,21 @@ export default function VoterGroups({
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>Assign elections</TooltipContent>
+                      </Tooltip>
+                    ) : viewOnly ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => openGroup(g, "voters")}
+                            aria-label={`View ${g.name || "group"}`}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>View voters</TooltipContent>
                       </Tooltip>
                     ) : (
                       <Tooltip>

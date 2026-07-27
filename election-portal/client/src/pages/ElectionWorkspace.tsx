@@ -15,7 +15,6 @@ import {
   Vote,
   BarChart3,
   CalendarDays,
-  ShieldCheck,
 } from "lucide-react";
 import { format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
@@ -23,11 +22,9 @@ import Nominees from "@/pages/Nominees";
 import Voters from "@/pages/Voters";
 import Analytics from "@/pages/Analytics";
 import { ElectionResultActions } from "@/components/elections/ElectionResultActions";
-import { ElectionAdminTab } from "@/components/elections/ElectionAdminTab";
 import { AdminVotingDetailsPanel } from "@/components/elections/AdminVotingDetailsPanel";
 import { ManualWinnerPicker } from "@/components/elections/ManualWinnerPicker";
 import { getElectionLabel, isElectionLocked } from "@/lib/electionHelpers";
-import { getStoredUser } from "@/lib/authUser";
 
 function StatusBadge({ status }: { status?: string }) {
   const map: Record<string, string> = {
@@ -56,11 +53,6 @@ export default function ElectionWorkspace() {
   const [location, navigate] = useLocation();
   const [tab, setTab] = useState(getTabFromSearch);
 
-  // Role: only super/franchise admins may create election admins
-  const userData = getStoredUser();
-  const role = userData?.role;
-  const canManageAdmins = role === "super_admin" || role === "franchise_admin";
-
   // Election details
   const { data: electionResp, isLoading: electionLoading } = useQuery({
     queryKey: [`/api/elections/${id}`],
@@ -71,10 +63,6 @@ export default function ElectionWorkspace() {
     enabled: !!id,
   });
   const election = electionResp?.data || electionResp || null;
-  const electionFranchiseId =
-    typeof election?.franchiseId === "object"
-      ? election?.franchiseId?._id
-      : election?.franchiseId;
 
   // Nominee count
   const { data: nomineesResp } = useQuery({
@@ -160,52 +148,50 @@ export default function ElectionWorkspace() {
       ) : (
         <Card className="mb-6">
           <CardContent className="p-5">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="flex items-start gap-4 min-w-0">
-                {election.logo?.url && (
-                  <img
-                    src={election.logo.url}
-                    alt={election.logo?.alt || getElectionLabel(election)}
-                    className="h-14 w-14 rounded-lg object-cover border border-gray-200 shrink-0"
-                  />
-                )}
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-start gap-4 min-w-0">
+              {election.logo?.url && (
+                <img
+                  src={election.logo.url}
+                  alt={election.logo?.alt || getElectionLabel(election)}
+                  className="h-14 w-14 rounded-lg object-cover border border-gray-200 shrink-0"
+                />
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex min-w-0 items-center gap-2 flex-wrap">
                     <h1 className="text-2xl font-bold text-gray-900 truncate">{getElectionLabel(election)}</h1>
                     <StatusBadge status={election.status} />
                   </div>
-                  <p className="text-sm text-gray-500 mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
-                    {election.electionDate && (
-                      <span className="inline-flex items-center gap-1">
-                        <CalendarDays className="h-3.5 w-3.5" />
-                        {format(new Date(election.electionDate), "PPP")}
-                      </span>
-                    )}
-                    <span className="inline-flex items-center gap-1">
-                      <Users className="h-3.5 w-3.5" />
-                      {nomineeCount} nominees
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <User className="h-3.5 w-3.5" />
-                      {voterCount} voters
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <BarChart3 className="h-3.5 w-3.5" />
-                      {turnout != null ? `${turnout}% turnout` : "— turnout"}
-                    </span>
-                  </p>
+                  {!electionLocked && (
+                    <Link href={`/elections/${id}/edit`} className="shrink-0">
+                      <Button variant="outline" size="sm">
+                        <Pencil className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                    </Link>
+                  )}
                 </div>
+                <p className="text-sm text-gray-500 mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
+                  {election.electionDate && (
+                    <span className="inline-flex items-center gap-1">
+                      <CalendarDays className="h-3.5 w-3.5" />
+                      {format(new Date(election.electionDate), "PPP")}
+                    </span>
+                  )}
+                  <span className="inline-flex items-center gap-1">
+                    <Users className="h-3.5 w-3.5" />
+                    {nomineeCount} nominees
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <User className="h-3.5 w-3.5" />
+                    {voterCount} voters
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <BarChart3 className="h-3.5 w-3.5" />
+                    {turnout != null ? `${turnout}% turnout` : "— turnout"}
+                  </span>
+                </p>
               </div>
-              {!electionLocked && (
-                <div className="flex w-full gap-2 sm:w-auto sm:shrink-0">
-                  <Link href={`/elections/${id}/edit`} className="w-full sm:w-auto">
-                    <Button variant="outline" size="sm" className="w-full sm:w-auto">
-                      <Pencil className="h-4 w-4 mr-1" />
-                      Edit Election
-                    </Button>
-                  </Link>
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -223,11 +209,6 @@ export default function ElectionWorkspace() {
           {electionLocked && (
             <TabsTrigger value="results" className="shrink-0 gap-1.5">
               <Vote className="h-4 w-4" /> Results &amp; Analytics
-            </TabsTrigger>
-          )}
-          {canManageAdmins && (
-            <TabsTrigger value="admin" className="shrink-0 gap-1.5">
-              <ShieldCheck className="h-4 w-4" /> Election Admin
             </TabsTrigger>
           )}
         </TabsList>
@@ -271,19 +252,6 @@ export default function ElectionWorkspace() {
           )}
           {id && <Analytics embedded electionId={id} />}
         </TabsContent>
-
-        {/* Election Admin */}
-        {canManageAdmins && (
-          <TabsContent value="admin" className="mt-0">
-            {id && (
-              <ElectionAdminTab
-                electionId={id}
-                franchiseId={electionFranchiseId}
-                electionTitle={election ? getElectionLabel(election) : undefined}
-              />
-            )}
-          </TabsContent>
-        )}
       </Tabs>
     </MainLayout>
   );

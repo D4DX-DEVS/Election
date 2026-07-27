@@ -6,6 +6,8 @@ import { getElectionLabel } from "@/lib/electionHelpers";
 import type { Election } from "@/lib/types";
 import { getDisplayUsername } from "@/lib/voterPrefix";
 import { savePdfBlob, saveXlsxBlob, type SaveDownloadResult } from "@/lib/saveDownload";
+import { drawPdfHeader, drawPdfFooter, brandedTableTheme } from "@/lib/pdfBranding";
+import { autoSizeColumns } from "@/lib/excelHelpers";
 
 export interface VoterGroupExportRow {
   _id: string;
@@ -63,7 +65,19 @@ export async function fetchGroupVoters(
 ): Promise<GroupVoterExportRow[]> {
   const res = await apiRequest("GET", `/api/voter-groups/${groupId}/voters`);
   const json = await res.json();
-  return Array.isArray(json.data) ? json.data : [];
+  const voters: GroupVoterExportRow[] = Array.isArray(json.data) ? json.data : [];
+  if (!voters.length) return voters;
+
+  const voterIds = voters.map((v) => v._id).filter(Boolean);
+  const credRes = await apiRequest("POST", "/api/users/voters/credentials", { voterIds });
+  const credJson = await credRes.json();
+  const passwordById = new Map(
+    (Array.isArray(credJson.data) ? credJson.data : []).map((c: { id: string; plainPassword?: string }) => [
+      String(c.id),
+      c.plainPassword,
+    ])
+  );
+  return voters.map((v) => ({ ...v, plainPassword: passwordById.get(String(v._id)) }));
 }
 
 export async function exportGroupsListToPdf(
@@ -71,24 +85,25 @@ export async function exportGroupsListToPdf(
   title = "Voter Groups"
 ): Promise<SaveDownloadResult> {
   const doc = new jsPDF();
-  doc.setFontSize(18);
-  doc.text(title, 14, 22);
-  doc.setFontSize(11);
-  doc.text(`Generated on ${new Date().toLocaleDateString("en-GB")}`, 14, 30);
+  const startY = await drawPdfHeader(doc, title, `${groups.length} group(s)`);
 
   autoTable(doc, {
-    startY: 38,
+    ...brandedTableTheme,
+    startY,
     head: [["Name", "Description", "Voters", "Elections"]],
     body: groups.map((g) => [
       g.name || "Untitled",
-      g.description || "",
+      g.description || "—",
       String(g.voters?.length ?? 0),
       String(g.electionIds?.length ?? 0),
     ]),
-    theme: "grid",
-    headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+    columnStyles: {
+      2: { halign: "right", cellWidth: 22 },
+      3: { halign: "right", cellWidth: 22 },
+    },
   });
 
+  drawPdfFooter(doc);
   const filename = `${safeFileName(title)}_${fileDateSuffix()}.pdf`;
   return savePdfBlob(doc.output("blob"), filename);
 }
@@ -106,6 +121,7 @@ export async function exportGroupsListToExcel(
 
   const workbook = XLSX.utils.book_new();
   const worksheet = XLSX.utils.json_to_sheet(rows);
+  worksheet["!cols"] = autoSizeColumns(rows);
   XLSX.utils.book_append_sheet(workbook, worksheet, "Groups");
   const filename = `${safeFileName(title)}_${fileDateSuffix()}.xlsx`;
   const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
@@ -122,25 +138,25 @@ export async function exportGroupVotersToPdf(
 ): Promise<SaveDownloadResult> {
   const title = `${groupName || "Voter Group"} — Voters`;
   const doc = new jsPDF();
-  doc.setFontSize(18);
-  doc.text(title, 14, 22);
-  doc.setFontSize(11);
-  doc.text(`Generated on ${new Date().toLocaleDateString("en-GB")}`, 14, 30);
-  doc.text(`${voters.length} voter(s)`, 14, 37);
+  const startY = await drawPdfHeader(doc, title, `${voters.length} voter(s)`);
 
   autoTable(doc, {
-    startY: 44,
+    ...brandedTableTheme,
+    startY,
     head: [["Username", "Password", "Status", "Elections"]],
     body: voters.map((v) => [
       getDisplayUsername(v),
       v.plainPassword || "Not available",
       v.status || "active",
-      electionNamesForVoter(v, elections),
+      electionNamesForVoter(v, elections) || "—",
     ]),
-    theme: "grid",
-    headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+    columnStyles: {
+      1: { cellWidth: 32 },
+      2: { cellWidth: 24 },
+    },
   });
 
+  drawPdfFooter(doc);
   const filename = `${safeFileName(groupName || "group")}_voters_${fileDateSuffix()}.pdf`;
   return savePdfBlob(doc.output("blob"), filename);
 }
@@ -161,6 +177,7 @@ export async function exportGroupVotersToExcel(
 
   const workbook = XLSX.utils.book_new();
   const worksheet = XLSX.utils.json_to_sheet(rows);
+  worksheet["!cols"] = autoSizeColumns(rows);
   XLSX.utils.book_append_sheet(workbook, worksheet, "Voters");
   const filename = `${safeFileName(groupName || "group")}_voters_${fileDateSuffix()}.xlsx`;
   const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });

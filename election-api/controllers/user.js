@@ -707,24 +707,26 @@ exports.getVoterCredentials = async (req, res) => {
       });
     }
 
-    const data = [];
-    for (const voterId of voterIds) {
-      const voter = await loadTargetUser(voterId);
-      if (voter.role !== "voter") {
-        return res.status(400).json({
-          success: false,
-          message: "Credentials are available only for voters.",
-        });
-      }
-      roles.assertCanManageUser(req.user, voter);
-      data.push({
-        id: voter._id || voter.id,
-        username: voter.username,
-        plainPassword: await users.getPrintableCredential(voterId),
-        sequenceNumber: voter.voterMetadata?.sequenceNumber || null,
-        electionAccess: voter.electionAccess || [],
+    const voters = await users.findByIds(voterIds, { includePassword: false });
+    if (voters.length !== voterIds.length) {
+      return res.status(404).json({ success: false, message: "One or more voters were not found." });
+    }
+    if (voters.some((v) => v.role !== "voter")) {
+      return res.status(400).json({
+        success: false,
+        message: "Credentials are available only for voters.",
       });
     }
+    voters.forEach((voter) => roles.assertCanManageUser(req.user, voter));
+
+    const credentialById = await users.getPrintableCredentials(voterIds);
+    const data = voters.map((voter) => ({
+      id: voter._id || voter.id,
+      username: voter.username,
+      plainPassword: credentialById.get(String(voter._id || voter.id)) || null,
+      sequenceNumber: voter.voterMetadata?.sequenceNumber || null,
+      electionAccess: voter.electionAccess || [],
+    }));
 
     await logAuditFromReq(
       req,

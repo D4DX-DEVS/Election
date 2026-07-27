@@ -1,13 +1,6 @@
 import { useState, useEffect, Fragment } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { useLocation } from "wouter";
-import {
-  buildAllVotersUrl,
-  buildVoterGroupsListUrl,
-  navigateVotersPage,
-  useVoterPageParams,
-} from "@/lib/voterGroupNav";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { VoterBulkGenerator } from "@/components/voters/VoterBulkGenerator";
 import { VotersTable } from "@/components/voters/VotersTable";
@@ -78,14 +71,7 @@ function getRecordId(record: EntityRecord): string {
   return record._id?.toString() || record.id?.toString() || "";
 }
 
-function getVotersPageTab(): "voters" | "groups" {
-  return new URLSearchParams(window.location.search).get("tab") === "voters" ? "voters" : "groups";
-}
-
 export default function Voters({ embedded = false, electionId, readOnly = false }: { embedded?: boolean; electionId?: string; readOnly?: boolean } = {}) {
-  const [location, navigate] = useLocation();
-  const voterPageParams = useVoterPageParams();
-  const [sectionTab, setSectionTab] = useState<"voters" | "groups">(getVotersPageTab);
   const [page, setPage] = useState(1);
   const pageSize = 10;
   const [pendingDeleteIds, setPendingDeleteIds] = useState<string[] | null>(null);
@@ -520,25 +506,8 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
   }, [selectedElectionId, searchQuery]);
 
   useEffect(() => {
-    if (!embedded) {
-      document.title = sectionTab === "groups" ? "Voter Groups | Vote+" : "Voters | Vote+";
-    }
-  }, [embedded, sectionTab]);
-
-  useEffect(() => {
-    if (!embedded) setSectionTab(voterPageParams.tab);
-  }, [location, embedded, voterPageParams.tab]);
-
-  const handleSectionTabChange = (value: string) => {
-    const nextTab = value === "groups" ? "groups" : "voters";
-    setSectionTab(nextTab);
-    if (!embedded) {
-      navigateVotersPage(
-        nextTab === "groups" ? buildVoterGroupsListUrl() : buildAllVotersUrl(),
-        navigate
-      );
-    }
-  };
+    if (!embedded) document.title = "Voter Groups | Vote+";
+  }, [embedded]);
 
   useEffect(() => {
     if (embedded) document.title = "Voters | Vote+";
@@ -761,7 +730,6 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
             someSelected={selection.someSelected}
             onToggleSelectAll={selection.toggleAll}
           />
-          {embedded && !isReadOnly && <VoterGroups embedded electionId={electionId} />}
         </div>
       )}
     </>
@@ -770,50 +738,9 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
   return (
     <Wrapper>
       {!embedded ? (
-        <>
-          <div className="mb-5">
-            <h1 className="text-2xl font-bold text-gray-900">Voter Groups</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Manage groups and voter accounts in one place.
-            </p>
-          </div>
-
-          <nav
-            className="mb-5 grid grid-cols-2 rounded-xl bg-slate-100 p-1"
-            aria-label="Voter sections"
-          >
-            <button
-              type="button"
-              onClick={() => handleSectionTabChange("groups")}
-              className={cn(
-                "rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors",
-                sectionTab === "groups"
-                  ? "bg-white text-primary shadow-sm"
-                  : "text-slate-500 hover:text-slate-800"
-              )}
-            >
-              Manage Groups
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSectionTabChange("voters")}
-              className={cn(
-                "rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors",
-                sectionTab === "voters"
-                  ? "bg-white text-primary shadow-sm"
-                  : "text-slate-500 hover:text-slate-800"
-              )}
-            >
-              All Voters
-            </button>
-          </nav>
-
-          {sectionTab === "groups" ? (
-            <VoterGroups embedded suppressTitle />
-          ) : (
-            votersListContent
-          )}
-        </>
+        <VoterGroups embedded />
+      ) : electionId ? (
+        <VoterGroups embedded electionId={electionId} suppressTitle mode="view" />
       ) : (
         votersListContent
       )}

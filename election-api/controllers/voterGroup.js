@@ -72,7 +72,22 @@ exports.addVoterGroup = async (req, res) => {
     req.body.franchiseId = requireFranchiseId(
       roles.resolveFranchiseIdForActor(req.user, req.body.franchiseId)
     );
+    if (req.body.name) {
+      const dup = await voterGroups.findByName(req.body.franchiseId, req.body.name);
+      if (dup) {
+        return res.status(409).json({ success: false, message: "A voter group with this name already exists." });
+      }
+    }
     await validateGroupRelations(req.user, req.body.franchiseId, req.body);
+    if (req.body.voters?.length) {
+      const conflicts = await voterGroups.findConflictingGroupMemberships(req.body.voters, req.body.franchiseId);
+      if (conflicts.length) {
+        return res.status(409).json({
+          success: false,
+          message: `Some voters already belong to another group in this franchise: ${[...new Set(conflicts.map((c) => c.groupName))].join(", ")}.`,
+        });
+      }
+    }
     const voterGroup = await voterGroups.create(req.body);
     await voterGroups.syncGroupVotersAccess(voterGroup);
     await logUserActivity(req.user._id, req.ip, "Created", voterGroup.name, "Voter Group");
@@ -109,7 +124,22 @@ exports.updateVoterGroupById = async (req, res) => {
       throw err;
     }
     delete req.body.franchiseId;
+    if (req.body.name) {
+      const dup = await voterGroups.findByName(franchiseId, req.body.name, req.params.id);
+      if (dup) {
+        return res.status(409).json({ success: false, message: "A voter group with this name already exists." });
+      }
+    }
     await validateGroupRelations(req.user, franchiseId, req.body);
+    if (req.body.voters?.length) {
+      const conflicts = await voterGroups.findConflictingGroupMemberships(req.body.voters, franchiseId, req.params.id);
+      if (conflicts.length) {
+        return res.status(409).json({
+          success: false,
+          message: `Some voters already belong to another group in this franchise: ${[...new Set(conflicts.map((c) => c.groupName))].join(", ")}.`,
+        });
+      }
+    }
     const vg = await voterGroups.updateById(req.params.id, req.body);
     if (!vg) return res.status(404).json({ success: false, message: "Voter Group not found." });
     await voterGroups.syncGroupVotersAccess(vg);
@@ -129,12 +159,21 @@ exports.addVotersToGroup = async (req, res) => {
     const existing = await voterGroups.findById(req.params.id);
     if (!existing) return res.status(404).json({ success: false, message: "Voter Group not found." });
     assertGroupAccess(req.user, existing);
+    const franchiseId = resolveGroupFranchiseId(existing);
     const scopedIds = await assertUserIdsScoped({
       actor: req.user,
-      franchiseId: resolveGroupFranchiseId(existing),
+      franchiseId,
       userIds: voterIds,
       findUserById: (id) => users.findById(id, { includePassword: false }),
     });
+
+    const conflicts = await voterGroups.findConflictingGroupMemberships(scopedIds, franchiseId, req.params.id);
+    if (conflicts.length) {
+      return res.status(409).json({
+        success: false,
+        message: `Some voters already belong to another group in this franchise: ${[...new Set(conflicts.map((c) => c.groupName))].join(", ")}.`,
+      });
+    }
 
     const vg = await voterGroups.addVotersToGroup(req.params.id, scopedIds);
     if (!vg) return res.status(404).json({ success: false, message: "Voter Group not found." });

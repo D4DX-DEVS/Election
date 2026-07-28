@@ -14,6 +14,11 @@ const {
   assertUserIdsScoped,
 } = require("../lib/tenantScope");
 
+function isValidNameField(value) {
+  const trimmed = String(value || "").trim();
+  return trimmed.length > 0 && /[a-zA-Z]/.test(trimmed);
+}
+
 function sendError(res, err) {
   if (!err.statusCode) console.error(err);
   return res
@@ -72,11 +77,15 @@ exports.addVoterGroup = async (req, res) => {
     req.body.franchiseId = requireFranchiseId(
       roles.resolveFranchiseIdForActor(req.user, req.body.franchiseId)
     );
-    if (req.body.name) {
-      const dup = await voterGroups.findByName(req.body.franchiseId, req.body.name);
-      if (dup) {
-        return res.status(409).json({ success: false, message: "A voter group with this name already exists." });
-      }
+    if (!isValidNameField(req.body.name)) {
+      return res.status(400).json({
+        success: false,
+        message: "Voter group name cannot be numbers only.",
+      });
+    }
+    const dup = await voterGroups.findByName(req.body.franchiseId, req.body.name);
+    if (dup) {
+      return res.status(409).json({ success: false, message: "A voter group with this name already exists." });
     }
     await validateGroupRelations(req.user, req.body.franchiseId, req.body);
     if (req.body.voters?.length) {
@@ -124,7 +133,13 @@ exports.updateVoterGroupById = async (req, res) => {
       throw err;
     }
     delete req.body.franchiseId;
-    if (req.body.name) {
+    if (req.body.name !== undefined) {
+      if (!isValidNameField(req.body.name)) {
+        return res.status(400).json({
+          success: false,
+          message: "Voter group name cannot be numbers only.",
+        });
+      }
       const dup = await voterGroups.findByName(franchiseId, req.body.name, req.params.id);
       if (dup) {
         return res.status(409).json({ success: false, message: "A voter group with this name already exists." });
@@ -368,6 +383,12 @@ exports.addVoterToGroup = async (req, res) => {
 
     const { username, fullName, registrationNumber } = req.body;
     if (!username) return res.status(400).json({ success: false, message: "username is required." });
+    if (!isValidNameField(username)) {
+      return res.status(400).json({ success: false, message: "Username cannot be numbers only." });
+    }
+    if (fullName && !isValidNameField(fullName)) {
+      return res.status(400).json({ success: false, message: "Full name cannot be numbers only." });
+    }
 
     const existing = await users.findByUsername(String(username).trim());
     if (existing) return res.status(409).json({ success: false, message: "Username already exists." });

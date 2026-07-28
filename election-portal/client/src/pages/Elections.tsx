@@ -239,8 +239,8 @@ export default function Elections() {
         </Alert>
       )}
 
-      {/* Only show franchise filter if user is not a franchise admin */}
-      {userRole !== 'franchise_admin' && !franchisesLoading && (
+      {/* Only super admins need cross-franchise filtering; franchise/election admins are already scoped */}
+      {userRole === 'super_admin' && !franchisesLoading && (
         <ElectionFilters
           franchises={displayFranchises}
           onApplyFilters={handleApplyFilters}

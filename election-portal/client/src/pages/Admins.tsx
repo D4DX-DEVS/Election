@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { getElectionLabel } from "@/lib/electionHelpers";
+import { isValidNameField } from "@/lib/utils";
 import { 
   Card, 
   CardContent, 
@@ -61,18 +62,33 @@ import type { Pagination } from "@/lib/types";
 import { entityIdSchema, selectedEntityIdSchema } from "@shared/entityId";
 
 // Schema for franchise admin creation
+const usernameField = z
+  .string()
+  .min(3, "Username must be at least 3 characters")
+  .refine((value) => isValidNameField(value), {
+    message: "Username cannot be numbers only — mix in at least one letter.",
+  });
+
+const fullNameField = z
+  .string()
+  .optional()
+  .or(z.literal(""))
+  .refine((value) => !value || isValidNameField(value), {
+    message: "Full name cannot be numbers only — mix in at least one letter.",
+  });
+
 const franchiseAdminSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
+  username: usernameField,
   password: z.string().min(6, "Password must be at least 6 characters"),
-  fullName: z.string().optional().or(z.literal("")),
+  fullName: fullNameField,
   franchiseId: selectedEntityIdSchema("Please select a franchise")
 });
 
 // Schema for election admin creation
 const electionAdminSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
+  username: usernameField,
   password: z.string().min(6, "Password must be at least 6 characters"),
-  fullName: z.string().optional().or(z.literal("")),
+  fullName: fullNameField,
   franchiseId: selectedEntityIdSchema("Please select a franchise"),
   electionAccess: z.array(entityIdSchema).min(1, "Please select at least one election")
 });

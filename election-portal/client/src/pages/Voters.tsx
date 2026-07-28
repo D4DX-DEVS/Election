@@ -52,7 +52,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+import { cn, isValidNameField } from "@/lib/utils";
 
 type EntityRecord = { _id?: string; id?: string };
 type VoterRecord = User & EntityRecord & { electionAccess?: string[] };
@@ -489,6 +489,14 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
   const handleSubmitNewVoter = () => {
     if (!newVoter.username.trim()) {
       toast({ title: "Username required", description: "Please enter a username for the voter", variant: "destructive" });
+      return;
+    }
+    if (!isValidNameField(newVoter.username)) {
+      toast({ title: "Invalid username", description: "Username cannot be numbers only — mix in at least one letter.", variant: "destructive" });
+      return;
+    }
+    if (newVoter.fullName.trim() && !isValidNameField(newVoter.fullName)) {
+      toast({ title: "Invalid full name", description: "Full name cannot be numbers only — mix in at least one letter.", variant: "destructive" });
       return;
     }
     createVoterMutation.mutate({

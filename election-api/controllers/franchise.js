@@ -38,11 +38,17 @@ exports.updateFranchiseById = async (req, res) => {
     assertFranchiseAccess(req.user, existing);
 
     normalizeFranchiseBody(req);
-    if (req.body.name !== undefined && !isValidNameField(req.body.name)) {
-      return res.status(400).json({
-        success: false,
-        message: "Franchise name must contain at least one letter — numbers only is not allowed.",
-      });
+    if (req.body.name !== undefined) {
+      if (!isValidNameField(req.body.name)) {
+        return res.status(400).json({
+          success: false,
+          message: "Franchise name cannot contain numbers.",
+        });
+      }
+      const duplicate = await franchises.findByName(req.body.name, req.params.id);
+      if (duplicate) {
+        return res.status(409).json({ success: false, message: "A franchise with this name already exists." });
+      }
     }
     if (req.file?.cdnUrl) {
       req.body.logo = { url: req.file.cdnUrl, alt: req.body.name };
@@ -101,7 +107,8 @@ exports.deleteFranchiseById = async (req, res) => {
 };
 
 function isValidNameField(value) {
-  return /[a-zA-Z]/.test(String(value || "").trim());
+  const trimmed = String(value || "").trim();
+  return trimmed.length > 0 && !/\d/.test(trimmed) && /[a-zA-Z]/.test(trimmed);
 }
 
 function normalizeFranchiseBody(req) {
@@ -121,7 +128,7 @@ exports.addFranchise = async (req, res) => {
     if (!isValidNameField(req.body.name)) {
       return res.status(400).json({
         success: false,
-        message: "Franchise name must contain at least one letter — numbers only is not allowed.",
+        message: "Franchise name cannot contain numbers.",
       });
     }
     const existingFranchise = await franchises.findByName(req.body.name);

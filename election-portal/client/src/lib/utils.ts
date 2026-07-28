@@ -5,7 +5,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-/** Name fields must contain at least one letter — rejects "123", "007", "12 34". */
+/** Name fields cannot contain any digits and must contain at least one letter. */
 export function isValidNameField(value: string): boolean {
-  return /[a-zA-Z]/.test(value.trim());
+  const trimmed = value.trim();
+  return trimmed.length > 0 && !/\d/.test(trimmed) && /[a-zA-Z]/.test(trimmed);
 }

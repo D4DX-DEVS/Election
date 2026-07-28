@@ -30,8 +30,8 @@ const formSchema = insertElectionSchema.extend({
     organization: z
       .string()
       .min(1, "Organization is required")
-      .refine((value) => /[a-zA-Z]/.test(value.trim()), {
-        message: "Name must contain at least one letter — numbers only is not allowed.",
+      .refine((value) => !/\d/.test(value.trim()) && /[a-zA-Z]/.test(value.trim()), {
+        message: "Name cannot contain numbers.",
       }),
     electionDate: z.string().min(1, "Election date is required"),
     numberToBeElected: z.coerce.number().min(1, "Must elect at least 1 person"),

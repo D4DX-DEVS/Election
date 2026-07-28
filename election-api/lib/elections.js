@@ -126,6 +126,10 @@ async function findLean(filter = {}) {
   return store.findLean(filter);
 }
 
+async function findByOrganization(organization, franchiseId, excludeId) {
+  return supabase.findByOrganization(organization, franchiseId, excludeId);
+}
+
 module.exports = {
   create,
   findById,
@@ -137,4 +141,5 @@ module.exports = {
   findByIdsWithFranchise,
   countByFranchise,
   findLean,
+  findByOrganization,
 };

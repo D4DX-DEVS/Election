@@ -343,7 +343,7 @@ export default function Franchises() {
     if (!isValidNameField(createFormData.name)) {
       toast({
         title: "Invalid franchise name",
-        description: "Name must contain at least one letter — numbers only is not allowed.",
+        description: "Name cannot contain numbers.",
         variant: "destructive",
       });
       return;
@@ -427,7 +427,7 @@ export default function Franchises() {
     if (!isValidNameField(editFormData.name)) {
       toast({
         title: "Invalid franchise name",
-        description: "Name must contain at least one letter — numbers only is not allowed.",
+        description: "Name cannot contain numbers.",
         variant: "destructive",
       });
       return;

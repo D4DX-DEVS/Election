@@ -27,6 +27,12 @@ import { useToast } from "@/hooks/use-toast";
 const formBoolean = z.preprocess((value) => toFormBoolean(value, false), z.boolean());
 
 const formSchema = insertElectionSchema.extend({
+    organization: z
+      .string()
+      .min(1, "Organization is required")
+      .refine((value) => !/\d/.test(value.trim()) && /[a-zA-Z]/.test(value.trim()), {
+        message: "Name cannot contain numbers.",
+      }),
     electionDate: z.string().min(1, "Election date is required"),
     numberToBeElected: z.coerce.number().min(1, "Must elect at least 1 person"),
     ballotSelectionRule: z.enum(["exact", "up_to"]).default("exact"),

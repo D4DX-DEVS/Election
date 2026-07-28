@@ -71,11 +71,11 @@ export async function fetchGroupVoters(
   const voterIds = voters.map((v) => v._id).filter(Boolean);
   const credRes = await apiRequest("POST", "/api/users/voters/credentials", { voterIds });
   const credJson = await credRes.json();
-  const passwordById = new Map(
-    (Array.isArray(credJson.data) ? credJson.data : []).map((c: { id: string; plainPassword?: string }) => [
-      String(c.id),
-      c.plainPassword,
-    ])
+  const credentials: { id: string; plainPassword?: string }[] = Array.isArray(credJson.data)
+    ? credJson.data
+    : [];
+  const passwordById = new Map<string, string | undefined>(
+    credentials.map((c) => [String(c.id), c.plainPassword])
   );
   return voters.map((v) => ({ ...v, plainPassword: passwordById.get(String(v._id)) }));
 }

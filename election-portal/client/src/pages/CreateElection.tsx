@@ -78,8 +78,8 @@ export default function CreateElection() {
     } catch (error) {
       console.error("Error creating election:", error);
       toast({
-        title: "Error",
-        description: "There was a problem creating the election. Please try again.",
+        title: "Could not create election",
+        description: error instanceof Error ? error.message : "Please try again.",
         variant: "destructive",
       });
     }

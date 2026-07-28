@@ -59,7 +59,7 @@ export function ResultsTable({
         <CardTitle className="text-lg font-medium text-gray-900">Election Results</CardTitle>
       </CardHeader>
       <CardContent className="p-6">
-        <div className="space-y-4 md:hidden">
+        <div className="space-y-4 lg:hidden">
           {sortedNominees.map((nominee, index) => {
             const rank = ranks[index];
             const tied = rankCounts[rank] > 1;
@@ -93,7 +93,7 @@ export function ResultsTable({
             );
           })}
         </div>
-        <div className="hidden overflow-x-auto md:block">
+        <div className="hidden overflow-x-auto lg:block">
           <Table>
             <TableHeader>
               <TableRow>

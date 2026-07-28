@@ -14,6 +14,21 @@ async function create(data) {
   return mapElection(created);
 }
 
+async function findByOrganization(organization, franchiseId, excludeId) {
+  if (!organization || !franchiseId) return null;
+  const supabase = getSupabase();
+  let query = supabase
+    .from("elections")
+    .select("id, organization, franchise_id")
+    .eq("franchise_id", franchiseId)
+    .ilike("organization", organization.trim())
+    .limit(1);
+  if (excludeId) query = query.neq("id", excludeId);
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data && data[0]) || null;
+}
+
 async function findById(id) {
   if (!isUuid(id)) return null;
   const supabase = getSupabase();
@@ -195,4 +210,5 @@ module.exports = {
   findByIdsWithFranchise,
   countByFranchise,
   findLean,
+  findByOrganization,
 };

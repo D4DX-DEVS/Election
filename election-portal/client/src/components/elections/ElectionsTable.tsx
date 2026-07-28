@@ -137,11 +137,11 @@ export function ElectionsTable({
 
   return (
     <Card className="border border-gray-200 md:shadow-sm shadow-none">
-      <CardHeader className="hidden md:flex px-6 py-4 border-b border-gray-200">
+      <CardHeader className="hidden lg:flex px-6 py-4 border-b border-gray-200">
         <CardTitle className="text-lg font-medium text-gray-900">Elections</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="md:hidden mx-0 overflow-hidden rounded-xl border border-gray-200 bg-white">
+        <div className="lg:hidden mx-0 overflow-hidden rounded-xl border border-gray-200 bg-white">
           {elections.map((election) => {
             const id = getElectionId(election);
             const editable = isElectionEditable(election.status);
@@ -189,7 +189,7 @@ export function ElectionsTable({
           })}
         </div>
 
-        <div className="hidden overflow-x-auto md:block">
+        <div className="hidden overflow-x-auto lg:block">
           <Table>
             <TableHeader>
               <TableRow>

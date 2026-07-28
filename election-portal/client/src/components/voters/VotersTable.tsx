@@ -189,10 +189,10 @@ export function VotersTable({
   const totalPages = Math.max(Math.ceil(pagination.total / pagination.pageSize), 1);
 
   return (
-    <Card className="border-0 shadow-none bg-transparent md:border md:bg-white md:shadow-sm">
+    <Card className="border-0 shadow-none bg-transparent lg:border lg:bg-white lg:shadow-sm">
       <CardContent className="p-0">
         {selectionMode && onToggleSelectAll && voters.length > 0 && (
-          <div className="flex items-center justify-between border-b px-4 py-2 md:hidden">
+          <div className="flex items-center justify-between border-b px-4 py-2 lg:hidden">
             <button
               type="button"
               onClick={onToggleSelectAll}
@@ -210,7 +210,7 @@ export function VotersTable({
             <span className="text-xs text-gray-500">{voters.length} shown</span>
           </div>
         )}
-        <div className="space-y-3 p-4 md:hidden">
+        <div className="space-y-3 p-4 lg:hidden">
           {voters.length > 0 ? (
             voters.map((voter) => {
               const voterId = voter._id?.toString() || voter.id?.toString() || "";
@@ -260,7 +260,7 @@ export function VotersTable({
           )}
         </div>
 
-        <div className="hidden overflow-x-auto md:block">
+        <div className="hidden overflow-x-auto lg:block">
           <Table>
             <TableHeader>
               <TableRow>

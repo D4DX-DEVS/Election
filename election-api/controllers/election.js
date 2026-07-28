@@ -11,11 +11,26 @@ const { normalizeElectionBody } = require("../lib/electionBody");
 const { resolveFranchiseIdForActor } = require("../lib/roles");
 const { requireFranchiseId } = require("../lib/tenantScope");
 
+function isValidNameField(value) {
+  const trimmed = String(value || "").trim();
+  return trimmed.length > 0 && !/\d/.test(trimmed) && /[a-zA-Z]/.test(trimmed);
+}
+
 exports.addElection = async (req, res) => {
   try {
+    if (!isValidNameField(req.body.organization)) {
+      return res.status(400).json({
+        success: false,
+        message: "Election name cannot contain numbers.",
+      });
+    }
     req.body.franchiseId = requireFranchiseId(
       resolveFranchiseIdForActor(req.user, req.body.franchiseId)
     );
+    const duplicate = await elections.findByOrganization(req.body.organization, req.body.franchiseId);
+    if (duplicate) {
+      return res.status(409).json({ success: false, message: "An election with this name already exists." });
+    }
     req.body.createdBy = req.user._id || req.user.id;
     normalizeElectionBody(req.body);
     applyElectionLifecycleRules(req.body);
@@ -60,6 +75,25 @@ exports.updateElectionById = async (req, res) => {
       });
     }
     if (await denyUnlessCanAccessElection(req, res, existing)) return;
+
+    if (req.body.organization !== undefined) {
+      if (!isValidNameField(req.body.organization)) {
+        return res.status(400).json({
+          success: false,
+          message: "Election name cannot contain numbers.",
+        });
+      }
+      const existingFranchiseId =
+        typeof existing.franchiseId === "object" ? existing.franchiseId?._id : existing.franchiseId;
+      const duplicate = await elections.findByOrganization(
+        req.body.organization,
+        existingFranchiseId,
+        req.params.id
+      );
+      if (duplicate) {
+        return res.status(409).json({ success: false, message: "An election with this name already exists." });
+      }
+    }
 
     // An election's organization is immutable after creation.
     delete req.body.franchiseId;

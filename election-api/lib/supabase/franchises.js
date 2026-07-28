@@ -23,11 +23,14 @@ async function findById(id) {
   return mapFranchise(data);
 }
 
-async function findByName(name) {
+async function findByName(name, excludeId) {
+  if (!name) return null;
   const supabase = getSupabase();
-  const { data, error } = await supabase.from("franchises").select("*").eq("name", name).maybeSingle();
+  let query = supabase.from("franchises").select("*").ilike("name", name.trim()).limit(1);
+  if (excludeId) query = query.neq("id", excludeId);
+  const { data, error } = await query;
   if (error) throw error;
-  return mapFranchise(data);
+  return mapFranchise((data && data[0]) || null);
 }
 
 async function updateById(id, data) {

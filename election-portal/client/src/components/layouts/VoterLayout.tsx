@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useQueryClient } from '@tanstack/react-query';
 import { LogOut, Vote, ChevronLeft, User, Settings } from 'lucide-react';
@@ -13,7 +13,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { clearAccountSession } from '@/lib/session';
+import { useToast } from '@/hooks/use-toast';
 
 interface VoterLayoutProps {
   children: React.ReactNode;
@@ -27,6 +29,8 @@ export default function VoterLayout({ children, title, showBack, onBack }: Voter
   const [, navigate] = useLocation();
   const [location] = useLocation();
   const queryClient = useQueryClient();
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -41,6 +45,7 @@ export default function VoterLayout({ children, title, showBack, onBack }: Voter
     clearAccountSession();
     queryClient.clear();
     navigate('/login');
+    toast({ title: 'Logged out', description: 'You have been signed out successfully.', variant: 'success' });
   };
 
   // Derive user initials for the avatar circle
@@ -140,7 +145,7 @@ export default function VoterLayout({ children, title, showBack, onBack }: Voter
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
+                <DropdownMenuItem onClick={() => setLogoutConfirmOpen(true)} className="text-red-600 focus:text-red-600">
                   <LogOut className="h-4 w-4 mr-2" />
                   Log out
                 </DropdownMenuItem>
@@ -149,6 +154,16 @@ export default function VoterLayout({ children, title, showBack, onBack }: Voter
           </div>
         </div>
       </header>
+
+      <ConfirmDialog
+        open={logoutConfirmOpen}
+        onOpenChange={setLogoutConfirmOpen}
+        onConfirm={handleLogout}
+        title="Log out?"
+        description="You'll need to sign in again to access your account."
+        confirmText="Logout"
+        variant="default"
+      />
 
       {/* ── Main Content ── */}
       <main className="flex flex-1 flex-col min-h-[calc(100dvh-4rem)] pb-[calc(5rem+env(safe-area-inset-bottom,0px))] lg:pb-8 bg-background dark:bg-gray-900">

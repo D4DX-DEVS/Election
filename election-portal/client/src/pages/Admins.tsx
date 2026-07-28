@@ -38,6 +38,7 @@ import {
   FormMessage 
 } from "@/components/ui/form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { 
   Select, 
@@ -158,6 +159,7 @@ export default function Admins() {
   // Only super admins may create franchise administrators
   const canCreateFranchiseAdmin = userRole === 'super_admin';
   const canDeleteAdmin = userRole === 'super_admin';
+  const canDeleteElectionAdmin = userRole === 'super_admin' || userRole === 'franchise_admin';
   const currentUserId = String(userData?.id || userData?._id || '');
   const [franchiseAdminsPage, setFranchiseAdminsPage] = useState(1);
   const [expandedAdminIds, setExpandedAdminIds] = useState<Set<string>>(new Set());
@@ -883,6 +885,169 @@ export default function Admins() {
           </Card>
         )}
 
+        {/* Election Administrators */}
+        {canViewElectionAdmins && (
+          <Card className="border-0 shadow-none bg-transparent lg:border lg:bg-white lg:shadow-sm">
+            <CardHeader className="hidden lg:block">
+              <div>
+                <CardTitle>Election Administrators</CardTitle>
+                <CardDescription>
+                  Manage administrators who can control individual elections
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 lg:p-6">
+              {electionAdminsListError && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>
+                    Failed to fetch administrators. Please try again.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {electionAdminsLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-20 w-full" />
+                  <Skeleton className="h-20 w-full" />
+                </div>
+              ) : electionAdminList.length > 0 ? (
+                <>
+                <div className="space-y-3 lg:space-y-4 lg:hidden">
+                  {electionAdminList.map((admin) => {
+                    const expanded = expandedAdminIds.has(admin._id);
+                    return (
+                    <div
+                      key={admin._id}
+                      className="rounded-lg border border-gray-200 bg-white p-5 space-y-4 cursor-pointer"
+                      onClick={() => toggleAdminExpanded(admin._id)}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h3 className="text-sm md:text-base font-medium text-gray-900 truncate">{admin.username}</h3>
+                          <p className="text-xs text-gray-500 truncate">{admin.fullName || '-'}</p>
+                        </div>
+                        <Badge
+                          variant={isUserActive(admin.status) ? 'outline' : 'secondary'}
+                          className={
+                            isUserActive(admin.status)
+                              ? 'bg-green-100 text-green-800 hover:bg-green-100'
+                              : 'bg-gray-100 text-gray-800 hover:bg-primary/10'
+                          }
+                        >
+                          {isUserActive(admin.status) ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                        <span className="inline-flex items-center font-medium text-gray-700 truncate">
+                          {resolveElectionNames(admin, electionList)}
+                        </span>
+                      </div>
+                      {expanded && (
+                      <div
+                        className="flex items-center gap-1 border-t border-gray-100 pt-2"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleOpenResetDialog(admin)}
+                      >
+                        Reset Password
+                      </Button>
+                      {canDeleteElectionAdmin && String(admin._id) !== currentUserId && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-auto"
+                          onClick={() => handleDeleteAdminClick(admin)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Delete
+                        </Button>
+                      )}
+                      </div>
+                      )}
+                    </div>
+                    );
+                  })}
+                </div>
+                <div className="hidden lg:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Username</TableHead>
+                      <TableHead>Full Name</TableHead>
+                      <TableHead>Elections</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {electionAdminList.map((admin) => (
+                        <TableRow key={admin._id}>
+                          <TableCell className="font-medium">{admin.username}</TableCell>
+                          <TableCell>{admin.fullName || '-'}</TableCell>
+                          <TableCell className="max-w-xs truncate">
+                            {resolveElectionNames(admin, electionList)}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={isUserActive(admin.status) ? 'outline' : 'secondary'}
+                              className={
+                                isUserActive(admin.status)
+                                  ? 'bg-green-100 text-green-800 hover:bg-green-100'
+                                  : 'bg-gray-100 text-gray-800 hover:bg-primary/10'
+                              }
+                            >
+                              {isUserActive(admin.status) ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="link"
+                              onClick={() => handleOpenResetDialog(admin)}
+                            >
+                              Reset Password
+                            </Button>
+                            {canDeleteElectionAdmin && String(admin._id) !== currentUserId && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                onClick={() => handleDeleteAdminClick(admin)}
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Delete
+                              </Button>
+                            )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+                </div>
+                {electionAdminsPagination && (electionAdminsPagination.totalPages ?? 1) > 1 && (
+                  <PaginationControls
+                    page={electionAdminsPagination.page}
+                    totalPages={electionAdminsPagination.totalPages ?? 1}
+                    total={electionAdminsPagination.total}
+                    pageSize={electionAdminsPagination.pageSize}
+                    onPageChange={setElectionAdminsPage}
+                  />
+                )}
+                </>
+              ) : (
+                <div className="py-6 text-center text-sm text-gray-500">No election administrators found</div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
       </div>
 
       <ConfirmDialog
@@ -930,7 +1095,7 @@ export default function Admins() {
           </DialogHeader>
 
           <div className="space-y-2">
-            <FormLabel htmlFor="reset-admin-password">New password</FormLabel>
+            <Label htmlFor="reset-admin-password">New password</Label>
             <Input
               id="reset-admin-password"
               type="password"

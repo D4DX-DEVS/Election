@@ -11,8 +11,18 @@ const { normalizeElectionBody } = require("../lib/electionBody");
 const { resolveFranchiseIdForActor } = require("../lib/roles");
 const { requireFranchiseId } = require("../lib/tenantScope");
 
+function isValidNameField(value) {
+  return /[a-zA-Z]/.test(String(value || "").trim());
+}
+
 exports.addElection = async (req, res) => {
   try {
+    if (!isValidNameField(req.body.organization)) {
+      return res.status(400).json({
+        success: false,
+        message: "Election name must contain at least one letter — numbers only is not allowed.",
+      });
+    }
     req.body.franchiseId = requireFranchiseId(
       resolveFranchiseIdForActor(req.user, req.body.franchiseId)
     );
@@ -60,6 +70,13 @@ exports.updateElectionById = async (req, res) => {
       });
     }
     if (await denyUnlessCanAccessElection(req, res, existing)) return;
+
+    if (req.body.organization !== undefined && !isValidNameField(req.body.organization)) {
+      return res.status(400).json({
+        success: false,
+        message: "Election name must contain at least one letter — numbers only is not allowed.",
+      });
+    }
 
     // An election's organization is immutable after creation.
     delete req.body.franchiseId;

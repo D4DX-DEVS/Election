@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { clearAccountSession } from '@/lib/session';
+import { useToast } from '@/hooks/use-toast';
 
 interface VoterLayoutProps {
   children: React.ReactNode;
@@ -29,6 +30,7 @@ export default function VoterLayout({ children, title, showBack, onBack }: Voter
   const [location] = useLocation();
   const queryClient = useQueryClient();
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -43,6 +45,7 @@ export default function VoterLayout({ children, title, showBack, onBack }: Voter
     clearAccountSession();
     queryClient.clear();
     navigate('/login');
+    toast({ title: 'Logged out', description: 'You have been signed out successfully.', variant: 'success' });
   };
 
   // Derive user initials for the avatar circle

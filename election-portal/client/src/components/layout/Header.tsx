@@ -16,6 +16,7 @@ import { HelpDialog } from "@/components/help/HelpDialog";
 import { NotificationBell } from "@/components/layout/NotificationBell";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { clearAccountSession } from "@/lib/session";
+import { useToast } from "@/hooks/use-toast";
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -32,11 +33,13 @@ export function Header({ toggleSidebar, user }: HeaderProps) {
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const handleLogout = () => {
     clearAccountSession();
     queryClient.clear();
     navigate("/login");
+    toast({ title: "Logged out", description: "You have been signed out successfully.", variant: "success" });
   };
 
   // Open the role-based help dialog

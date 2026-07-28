@@ -31,7 +31,7 @@ import { RowSelectCheckbox } from "@/components/ui/row-select-checkbox";
 import { useBulkDeleteMode } from "@/hooks/useBulkDeleteMode";
 import { deleteByIds } from "@/lib/bulkDelete";
 import { AlertCircle, Users, PlusCircle, Trash2, ArrowLeft, Settings2, Loader2, Link2, Shuffle, Eye } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, isValidNameField } from "@/lib/utils";
 import { getElectionLabel, getElectionSubtitle } from "@/lib/electionHelpers";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { PageContent, PageBottom } from "@/components/layout/PageContent";
@@ -1036,7 +1036,22 @@ export default function VoterGroups({
                 </div>
               </div>
             )}
-            <form onSubmit={(e) => { e.preventDefault(); if (groupName.trim()) createMutation.mutate(); }} className="space-y-3 pt-1">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!groupName.trim()) return;
+                if (!isValidNameField(groupName)) {
+                  toast({
+                    title: "Invalid group name",
+                    description: "Name cannot be numbers only — mix in at least one letter.",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+                createMutation.mutate();
+              }}
+              className="space-y-3 pt-1"
+            >
               <div className="space-y-1.5">
                 <Label htmlFor="gname">Group Name *</Label>
                 <Input id="gname" value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="e.g. Block A Voters" autoFocus />

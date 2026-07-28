@@ -23,7 +23,7 @@ import { PageContent } from "@/components/layout/PageContent";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { Pagination } from "@/lib/types";
 import { clearAccountSession } from "@/lib/session";
-import { isValidNameField } from "@/lib/utils";
+import { isLettersOnlyName } from "@/lib/utils";
 
 interface Franchise {
   _id: string;
@@ -340,7 +340,7 @@ export default function Franchises() {
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!isValidNameField(createFormData.name)) {
+    if (!isLettersOnlyName(createFormData.name)) {
       toast({
         title: "Invalid franchise name",
         description: "Name cannot contain numbers.",
@@ -424,7 +424,7 @@ export default function Franchises() {
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!isValidNameField(editFormData.name)) {
+    if (!isLettersOnlyName(editFormData.name)) {
       toast({
         title: "Invalid franchise name",
         description: "Name cannot contain numbers.",

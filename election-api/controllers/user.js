@@ -21,6 +21,11 @@ const generatePassword = (prefix) => {
   return prefixPart + suffix;
 };
 
+function isValidNameField(value) {
+  const trimmed = String(value || "").trim();
+  return trimmed.length > 0 && /[a-zA-Z]/.test(trimmed);
+}
+
 function sendError(res, err) {
   if (err.statusCode) {
     return res.status(err.statusCode).json({ success: false, message: err.message });
@@ -363,6 +368,13 @@ exports.createVoter = async (req, res) => {
   try {
     roles.assertCanAssignRole(req.user, "voter");
 
+    if (!isValidNameField(req.body.username)) {
+      return res.status(400).json({ success: false, message: "Username cannot be numbers only." });
+    }
+    if (req.body.fullName && !isValidNameField(req.body.fullName)) {
+      return res.status(400).json({ success: false, message: "Full name cannot be numbers only." });
+    }
+
     const username = await assertNoDuplicateUser({ username: req.body.username });
 
     const plainPassword =
@@ -599,6 +611,12 @@ exports.createFranchiseAdmin = async (req, res) => {
     }
 
     const { password, fullName, franchiseId } = req.body;
+    if (!isValidNameField(req.body.username)) {
+      return res.status(400).json({ success: false, message: "Username cannot be numbers only." });
+    }
+    if (fullName && !isValidNameField(fullName)) {
+      return res.status(400).json({ success: false, message: "Full name cannot be numbers only." });
+    }
     const username = await assertNoDuplicateUser({ username: req.body.username, email: req.body.email });
 
     if (!franchiseId) {
@@ -638,6 +656,12 @@ exports.createElectionAdmin = async (req, res) => {
     }
 
     const { password, fullName, electionAccess } = req.body;
+    if (!isValidNameField(req.body.username)) {
+      return res.status(400).json({ success: false, message: "Username cannot be numbers only." });
+    }
+    if (fullName && !isValidNameField(fullName)) {
+      return res.status(400).json({ success: false, message: "Full name cannot be numbers only." });
+    }
     const username = await assertNoDuplicateUser({ username: req.body.username, email: req.body.email });
     const franchiseId = requireFranchiseId(
       roles.resolveFranchiseIdForActor(req.user, req.body.franchiseId)
@@ -683,6 +707,14 @@ exports.resetPassword = async (req, res) => {
 
     const { newPassword } = req.body;
     if (!newPassword) return res.status(400).json({ success: false, message: "newPassword is required." });
+    const withPassword = await users.findById(req.params.id, { includePassword: true });
+    const isSamePassword = await bcrypt.compare(String(newPassword), withPassword.password);
+    if (isSamePassword) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be different from the current password.",
+      });
+    }
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await users.updateById(req.params.id, {
       password: hashedPassword,

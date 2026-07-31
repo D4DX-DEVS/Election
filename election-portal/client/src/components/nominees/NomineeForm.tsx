@@ -67,6 +67,11 @@ interface NomineeFormProps {
   isEdit?: boolean;
   /** When opened from an election workspace, lock the target election. */
   defaultElectionId?: string;
+  /**
+   * Full election list used only as import sources. `elections` is narrowed to
+   * the current election when embedded, which would leave nothing to import from.
+   */
+  sourceElections?: Election[];
   onSuccess?: (result?: { electionId: string; nominee?: Record<string, unknown> }) => void;
 }
 
@@ -76,6 +81,7 @@ export function NomineeForm({
   initialData,
   isEdit = false,
   defaultElectionId,
+  sourceElections,
 }: NomineeFormProps) {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<string>(isEdit ? 'single' : 'single');
@@ -137,6 +143,15 @@ export function NomineeForm({
 
   const resolveElectionId = (election: Election) =>
     election._id?.toString() || (election as { id?: string | number }).id?.toString() || '';
+
+  const targetElectionId = importPreviousForm.watch('targetElectionId');
+  const targetElection = (sourceElections || elections).find(
+    (e) => resolveElectionId(e) === String(targetElectionId)
+  );
+  // An election can't import from itself, so keep it out of the source list.
+  const importSourceElections = (sourceElections || elections).filter(
+    (e) => resolveElectionId(e) !== String(targetElectionId)
+  );
 
   // Pre-select election when adding from a specific election context.
   useEffect(() => {
@@ -953,15 +968,21 @@ export function NomineeForm({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {Array.isArray(elections) && elections.map((election) => {
-                                const electionId = election._id?.toString() || election.id?.toString();
-                                if (!electionId) return null;
-                                return (
-                                  <SelectItem key={electionId} value={electionId}>
-                                    {getElectionLabel(election)}
-                                  </SelectItem>
-                                );
-                              })}
+                              {importSourceElections.length === 0 ? (
+                                <div className="px-2 py-3 text-sm text-muted-foreground">
+                                  No other elections available to import from
+                                </div>
+                              ) : (
+                                importSourceElections.map((election) => {
+                                  const electionId = resolveElectionId(election);
+                                  if (!electionId) return null;
+                                  return (
+                                    <SelectItem key={electionId} value={electionId}>
+                                      {getElectionLabel(election)}
+                                    </SelectItem>
+                                  );
+                                })
+                              )}
                             </SelectContent>
                           </Select>
                           <div className="text-xs text-muted-foreground">
@@ -972,41 +993,51 @@ export function NomineeForm({
                       )}
                     />
 
-                    {/* Target election selection */}
-                    <FormField
-                      control={importPreviousForm.control}
-                      name="targetElectionId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Target Election</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value || undefined}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select target election" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {Array.isArray(elections) && elections.map((election) => {
-                                const electionId = election._id?.toString() || election.id?.toString();
-                                if (!electionId) return null;
-                                return (
-                                  <SelectItem key={electionId} value={electionId}>
-                                    {getElectionLabel(election)}
-                                  </SelectItem>
-                                );
-                              })}
-                            </SelectContent>
-                          </Select>
-                          <div className="text-xs text-muted-foreground">
-                            Select the election to add the nominees to
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {/* Target election — locked when opened from an election workspace */}
+                    {defaultElectionId ? (
+                      <div className="text-xs text-muted-foreground">
+                        Nominees will be added to{' '}
+                        <span className="font-medium text-foreground">
+                          {targetElection ? getElectionLabel(targetElection) : 'this election'}
+                        </span>
+                        .
+                      </div>
+                    ) : (
+                      <FormField
+                        control={importPreviousForm.control}
+                        name="targetElectionId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Target Election</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value || undefined}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select target election" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {(sourceElections || elections).map((election) => {
+                                  const electionId = resolveElectionId(election);
+                                  if (!electionId) return null;
+                                  return (
+                                    <SelectItem key={electionId} value={electionId}>
+                                      {getElectionLabel(election)}
+                                    </SelectItem>
+                                  );
+                                })}
+                              </SelectContent>
+                            </Select>
+                            <div className="text-xs text-muted-foreground">
+                              Select the election to add the nominees to
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                   </div>
 
                   <div className="flex justify-end space-x-2">

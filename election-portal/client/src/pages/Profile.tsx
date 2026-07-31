@@ -116,7 +116,7 @@ export default function Profile() {
   return (
     <AccountShell title="Profile">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
+        <h1 className="app-page-title">Profile</h1>
         <p className="text-sm text-gray-600">
           View and update your personal account information.
         </p>

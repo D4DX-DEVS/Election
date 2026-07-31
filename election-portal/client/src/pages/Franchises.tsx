@@ -567,7 +567,7 @@ export default function Franchises() {
       <PageContent>
             <div className="mb-5 sm:mb-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <h1 className="text-2xl font-bold text-gray-900">Franchises</h1>
+                <h1 className="app-page-title">Franchises</h1>
                 <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                   <DialogTrigger asChild>
                     <Button size="sm" className="w-full shrink-0 sm:w-auto">

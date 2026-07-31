@@ -219,6 +219,31 @@ export default function VotingBallot() {
     );
   }
 
+  // ── Not open for voting ──
+  // The election list only lets voters click into active elections, but a direct
+  // link (or an election that closed while the page was open) can still land here.
+  if (election && votingStep !== VotingStep.CONFIRMED && election.status !== 'active') {
+    const notStarted = election.status !== 'completed' && election.status !== 'archived';
+    return (
+      <VoterLayout title={getElectionLabel(election)} showBack onBack={() => navigate('/voting')}>
+        <div className="px-4 pt-4 max-w-lg mx-auto">
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>{notStarted ? 'Voting has not started' : 'Voting has closed'}</AlertTitle>
+            <AlertDescription>
+              {notStarted
+                ? 'This election is not open for voting yet. You will be able to cast your vote once it starts.'
+                : 'This election has ended, so votes can no longer be cast.'}
+            </AlertDescription>
+          </Alert>
+          <Button className="mt-4 w-full" variant="outline" onClick={() => navigate('/voting')}>
+            Back to my elections
+          </Button>
+        </div>
+      </VoterLayout>
+    );
+  }
+
   // ── Confirmed ──
   if (votingStep === VotingStep.CONFIRMED && election) {
     return (
@@ -374,6 +399,22 @@ export default function VotingBallot() {
 
             {/* Election meta */}
             <div className="rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 mb-4">
+              {election.franchise?.name && (
+                <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-100 dark:border-gray-700">
+                  <div className="h-7 w-7 shrink-0 overflow-hidden rounded-md border border-gray-200 bg-gray-50 flex items-center justify-center dark:border-gray-700 dark:bg-gray-900">
+                    {election.franchise.logo?.url ? (
+                      <img
+                        src={election.franchise.logo.url}
+                        alt={election.franchise.logo.alt || election.franchise.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <Shield className="h-3.5 w-3.5 text-primary/70" />
+                    )}
+                  </div>
+                  <p className="truncate text-xs font-medium text-gray-500">{election.franchise.name}</p>
+                </div>
+              )}
               <h1 className="font-bold text-lg text-gray-900 dark:text-white leading-snug">{getElectionLabel(election)}</h1>
               <div className="flex items-center gap-1.5 mt-2 text-xs text-gray-400">
                 <Calendar className="h-3.5 w-3.5" />

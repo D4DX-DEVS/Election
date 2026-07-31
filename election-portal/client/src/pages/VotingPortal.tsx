@@ -71,13 +71,25 @@ export default function VotingPortal() {
       return localStorage.getItem('userFullName') || '';
     })();
 
+  // Voters belong to a single franchise (tenant) — show its branding so they
+  // can visually confirm which organization's elections they're viewing.
+  const franchise = useMemo(() => {
+    const withFranchise = availableElections.find((e) => e?.franchiseId?.name);
+    return withFranchise?.franchiseId as { name?: string; logo?: { url?: string; alt?: string } } | undefined;
+  }, [availableElections]);
+
   const stats = useMemo(() => {
     const total = availableElections.length;
     const voted = availableElections.filter((e) => {
       const id = e._id || e.id;
       return id && votingStatus[String(id)] === 'voted';
     }).length;
-    const pending = Math.max(total - voted, 0);
+    // "Awaiting vote" only counts elections actually open for voting right now —
+    // not-started/completed elections aren't actionable, so they shouldn't inflate this.
+    const pending = availableElections.filter((e) => {
+      const id = e._id || e.id;
+      return e.status === 'active' && !(id && votingStatus[String(id)] === 'voted');
+    }).length;
     return { total, voted, pending };
   }, [availableElections, votingStatus]);
 
@@ -117,6 +129,26 @@ export default function VotingPortal() {
   return (
     <VoterLayout title="My Elections">
       <PageContent className="px-4 sm:px-6 py-4 max-w-3xl mx-auto w-full">
+        {franchise?.name && (
+          <div className="mb-4 flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-800">
+            <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center dark:border-gray-700 dark:bg-gray-900">
+              {franchise.logo?.url ? (
+                <img
+                  src={franchise.logo.url}
+                  alt={franchise.logo.alt || franchise.name}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <Vote className="h-5 w-5 text-primary/70" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">Voting for</p>
+              <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">{franchise.name}</p>
+            </div>
+          </div>
+        )}
+
         <div className="mb-4">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
             Hi, {userFullName || 'Voter'}

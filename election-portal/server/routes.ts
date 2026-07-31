@@ -80,6 +80,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Notifications → /api/v1/notifications
   app.use("/api/notifications", makeProxy("/api/v1/notifications"));
 
+  // System health → /api/v1/system
+  app.use("/api/system", makeProxy("/api/v1/system"));
+
   // Uploaded images (franchise logos, election banners) served by the backend
   app.use("/uploads", makeProxy("/uploads"));
 

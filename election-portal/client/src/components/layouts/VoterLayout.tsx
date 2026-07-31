@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation } from 'wouter';
+import { useLocation } from 'wouter';
 import { useQueryClient } from '@tanstack/react-query';
-import { LogOut, Vote, ChevronLeft, User, Settings } from 'lucide-react';
+import { LogOut, Vote, ChevronLeft, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NotificationBell } from '@/components/layout/NotificationBell';
 import { SiteFooter } from '@/components/layout/SiteFooter';
@@ -132,19 +132,6 @@ export default function VoterLayout({ children, title, showBack, onBack }: Voter
                   <p className="text-xs text-muted-foreground">Voter account</p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/profile" className="flex items-center cursor-pointer">
-                    <User className="h-4 w-4 mr-2" />
-                    Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/settings" className="flex items-center cursor-pointer">
-                    <Settings className="h-4 w-4 mr-2" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setLogoutConfirmOpen(true)} className="text-red-600 focus:text-red-600">
                   <LogOut className="h-4 w-4 mr-2" />
                   Log out
@@ -201,19 +188,6 @@ export default function VoterLayout({ children, title, showBack, onBack }: Voter
             >
               <User className="h-5 w-5" />
               <span>Profile</span>
-            </button>
-          </li>
-          <li className="flex-1">
-            <button
-              type="button"
-              onClick={() => navigate('/settings')}
-              className={cn(
-                'mx-auto w-[calc(100%-0.5rem)] flex flex-col items-center justify-center gap-1 rounded-xl py-2 text-[11px] font-semibold transition-colors active:bg-primary/5',
-                isOnSettings ? 'bg-primary/10 text-primary' : 'text-gray-500 dark:text-gray-400',
-              )}
-            >
-              <Settings className="h-5 w-5" />
-              <span>Settings</span>
             </button>
           </li>
         </ul>

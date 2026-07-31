@@ -9,6 +9,7 @@ const ElectionSchema = new mongoose.Schema(
     organization: String,
     title: String,
     electionDate: Date,
+    endDate: Date,
     numberToBeElected: Number,
     nomineeDisplayOrder: String,
     maxVoters: Number,
@@ -26,10 +27,15 @@ const ElectionSchema = new mongoose.Schema(
       default: false,
     },
     resultsPublishedAt: Date,
+    resultGenerationMode: {
+      type: String,
+      enum: ["auto", "manual"],
+      default: "manual",
+    },
     voterResultDisplay: {
       type: String,
       enum: ["none", "result_only", "percentage", "score", "full"],
-      default: "full",
+      default: "none",
     },
     adminVotingDetailsEnabled: {
       type: Boolean,
@@ -52,6 +58,10 @@ const ElectionSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["draft", "active", "completed", "archived"],
+    },
+    autoCompleteDisabled: {
+      type: Boolean,
+      default: false,
     },
     logo: {
       url: String,

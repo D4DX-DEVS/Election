@@ -6,6 +6,7 @@ const { logUserActivity, logAuditFromReq } = require("../utils/auditLog");
 const { denyUnlessCanAccessElection } = require("../lib/electionAccess");
 const { sameFranchise } = require("../lib/roles");
 const { resourceFranchiseId } = require("../lib/tenantScope");
+const { syncElectionLifecycle } = require("../lib/electionLifecycle");
 
 function computeElectedIds(sortedResults, election) {
   if (election.manualWinnerSelection) {
@@ -167,12 +168,27 @@ exports.getAvailableElections = async (req, res) => {
     if (!voter || !voter.electionAccess || voter.electionAccess.length === 0) {
       return res.status(200).json({ success: true, count: 0, data: [] });
     }
-    const assigned = await elections.findByIdsWithFranchise(voter.electionAccess, {
-      votingOpen: true,
-    });
-    const data = assigned.filter((election) =>
-      sameFranchise(voter.franchiseId, resourceFranchiseId(election))
+    // Show every non-archived assigned election (with its status) so voters can
+    // see what's upcoming/completed — only "active" ones are actually clickable
+    // on the frontend.
+    const assigned = await elections.findByIdsWithFranchise(voter.electionAccess);
+    const visible = assigned.filter(
+      (election) =>
+        sameFranchise(voter.franchiseId, resourceFranchiseId(election)) &&
+        election.status !== "archived"
     );
+
+    // Voters see the status directly, so refresh it the same way the admin list
+    // does — otherwise an election whose date has passed keeps showing "Active".
+    const data = await Promise.all(
+      visible.map(async (election) => {
+        const synced = await syncElectionLifecycle(election, elections.updateById);
+        // updateById returns a bare row without the joined franchise details,
+        // so keep the enriched original and take only the lifecycle fields.
+        return { ...election, status: synced.status, votingOpen: synced.votingOpen };
+      })
+    );
+
     res.status(200).json({ success: true, count: data.length, data });
   } catch (err) {
     console.error(err);
@@ -272,6 +288,20 @@ exports.castVote = async (req, res) => {
 
     const existing = await votes.findOne({ voterId: req.user._id, electionId });
     if (existing) return res.status(400).json({ success: false, message: "Already voted in this election." });
+
+    // maxVoters caps how many voters may actually vote — the assigned roster is
+    // allowed to be larger than the cap (0 means no limit). Checked after the
+    // duplicate check so a repeat voter still gets the accurate message.
+    const maxVoters = parseInt(election.maxVoters, 10) || 0;
+    if (maxVoters > 0) {
+      const ballotsCast = await votes.countDocuments({ electionId });
+      if (ballotsCast >= maxVoters) {
+        return res.status(409).json({
+          success: false,
+          message: `This election accepts only ${maxVoters} vote${maxVoters === 1 ? "" : "s"} and that limit has been reached.`,
+        });
+      }
+    }
 
     try {
       const vote = await votes.create({

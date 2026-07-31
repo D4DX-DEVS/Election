@@ -231,7 +231,9 @@ export default function Admins() {
   const franchiseAdminsPagination = franchiseAdminsRaw?.pagination;
 
   // Fetch election admins
-  const canViewElectionAdmins = userRole !== 'election_admin';
+  // Super admins manage franchise admins only — election admins are created and
+  // owned by franchise admins for their own elections, and stay invisible to super admin.
+  const canViewElectionAdmins = userRole === 'franchise_admin';
   const {
     data: electionAdminsRaw,
     isLoading: electionAdminsLoading,
@@ -430,15 +432,17 @@ export default function Admins() {
     setResetDialogOpen(true);
   };
   
+  const pageTitle = canCreateFranchiseAdmin ? "Administrators" : "Election Admins";
+
   useEffect(() => {
-    document.title = "Administrators | Vote+";
-  }, []);
-  
+    document.title = `${pageTitle} | Vote+`;
+  }, [pageTitle]);
+
   return (
     <MainLayout>
       <div className="mb-5 sm:mb-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <h1 className="text-xl font-bold text-gray-900">Administrators</h1>
+          <h1 className="app-page-title">{pageTitle}</h1>
 
           {/* Single unified create flow: asks for the administrator type, then shows matching fields */}
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
@@ -734,7 +738,9 @@ export default function Admins() {
           </DialogContent>
           </Dialog>
         </div>
-        <p className="text-sm text-gray-600 mt-1">Manage system administrators</p>
+        <p className="text-sm text-gray-600 mt-1">
+          {canCreateFranchiseAdmin ? "Manage system administrators" : "Manage election admins for your franchise"}
+        </p>
       </div>
 
       <div className="space-y-6">

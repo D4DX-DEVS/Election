@@ -95,6 +95,7 @@ const voterGroup = require("./routes/voterGroup.js");
 const auth = require("./routes/auth.js");
 const onboarding = require("./routes/onboarding.js");
 const notifications = require("./routes/notifications.js");
+const system = require("./routes/system.js");
 
 
 app.use("/api/v1/auth", auth);
@@ -109,6 +110,7 @@ app.use("/api/v1/vote", vote);
 app.use("/api/v1/voterGroup", voterGroup);
 app.use("/api/v1/onboarding", onboarding);
 app.use("/api/v1/notifications", notifications);
+app.use("/api/v1/system", system);
 
 // Multer / upload validation errors (before global handler)
 app.use((err, req, res, next) => {

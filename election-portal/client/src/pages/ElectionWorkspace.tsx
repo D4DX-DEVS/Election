@@ -15,13 +15,17 @@ import {
   Vote,
   BarChart3,
   CalendarDays,
+  AlertTriangle,
 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
 import Nominees from "@/pages/Nominees";
 import Voters from "@/pages/Voters";
 import Analytics from "@/pages/Analytics";
 import { ElectionResultActions } from "@/components/elections/ElectionResultActions";
+import { ElectionHomePanel } from "@/components/elections/ElectionHomePanel";
+import { VotingStatusPanel } from "@/components/elections/VotingStatusPanel";
 import { AdminVotingDetailsPanel } from "@/components/elections/AdminVotingDetailsPanel";
 import { ManualWinnerPicker } from "@/components/elections/ManualWinnerPicker";
 import { getElectionLabel, isElectionLocked } from "@/lib/electionHelpers";
@@ -42,10 +46,10 @@ function StatusBadge({ status }: { status?: string }) {
 
 function getTabFromSearch() {
   const tab = new URLSearchParams(window.location.search).get("tab");
-  if (tab === "voters" || tab === "results" || tab === "admin" || tab === "nominees") {
+  if (tab === "home" || tab === "voters" || tab === "results" || tab === "admin" || tab === "nominees" || tab === "status") {
     return tab;
   }
-  return "nominees";
+  return "home";
 }
 
 export default function ElectionWorkspace() {
@@ -116,14 +120,6 @@ export default function ElectionWorkspace() {
 
   const electionLocked = isElectionLocked(election?.status);
 
-  // Results & Analytics only exists once the election is completed/archived —
-  // bounce away if reached via a stale/direct link while it's still open.
-  useEffect(() => {
-    if (election && !electionLocked && tab === "results") {
-      handleTabChange("nominees");
-    }
-  }, [election, electionLocked, tab]);
-
   return (
     <MainLayout>
       {/* Back link */}
@@ -159,7 +155,7 @@ export default function ElectionWorkspace() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex min-w-0 items-center gap-2 flex-wrap">
-                    <h1 className="text-2xl font-bold text-gray-900 truncate">{getElectionLabel(election)}</h1>
+                    <h1 className="app-page-title truncate">{getElectionLabel(election)}</h1>
                     <StatusBadge status={election.status} />
                   </div>
                   {!electionLocked && (
@@ -200,18 +196,31 @@ export default function ElectionWorkspace() {
       {/* Tabs */}
       <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="mb-5 flex h-auto w-full justify-start gap-1 overflow-x-auto sm:mb-6">
+          <TabsTrigger value="home" className="shrink-0 gap-1.5">
+            <CalendarDays className="h-4 w-4" /> Home
+          </TabsTrigger>
           <TabsTrigger value="nominees" className="shrink-0 gap-1.5">
             <Users className="h-4 w-4" /> Nominees
           </TabsTrigger>
           <TabsTrigger value="voters" className="shrink-0 gap-1.5">
             <User className="h-4 w-4" /> Voters
           </TabsTrigger>
-          {electionLocked && (
-            <TabsTrigger value="results" className="shrink-0 gap-1.5">
-              <Vote className="h-4 w-4" /> Results &amp; Analytics
+          {!electionLocked && election?.status === "active" && (
+            <TabsTrigger value="status" className="shrink-0 gap-1.5">
+              <BarChart3 className="h-4 w-4" /> Live Status
             </TabsTrigger>
           )}
+          <TabsTrigger value="results" className="shrink-0 gap-1.5">
+            <Vote className="h-4 w-4" /> Results &amp; Analytics
+          </TabsTrigger>
         </TabsList>
+
+        {/* Home — election identity, franchise, dates, and creation-time settings */}
+        <TabsContent value="home" className="mt-0">
+          {id && election && (
+            <ElectionHomePanel electionId={id} election={election} editable={!electionLocked} />
+          )}
+        </TabsContent>
 
         {/* Nominees */}
         <TabsContent value="nominees" className="mt-0">
@@ -223,8 +232,23 @@ export default function ElectionWorkspace() {
           {id && <Voters embedded electionId={id} readOnly={electionLocked} />}
         </TabsContent>
 
-        {/* Results & Analytics — only once the election is completed/archived */}
+        {/* Live Status — while voting is actively open */}
+        <TabsContent value="status" className="mt-0">
+          {id && <VotingStatusPanel electionId={id} />}
+        </TabsContent>
+
+        {/* Results & Analytics — always visible; publish/print actions are completed-only */}
         <TabsContent value="results" className="mt-0">
+          {id && !electionLocked && (
+            <Alert className="mb-5">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Election still in progress</AlertTitle>
+              <AlertDescription>
+                Results below are live and provisional — they will keep changing until the election
+                is completed. Publishing to voters is available once it's done.
+              </AlertDescription>
+            </Alert>
+          )}
           {id && electionLocked && (
             <ElectionResultActions
               electionId={id}

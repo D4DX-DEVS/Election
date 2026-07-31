@@ -190,7 +190,7 @@ export default function Analytics({ embedded = false, electionId }: { embedded?:
     <Wrapper>
       {!embedded && (
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Election Analytics</h1>
+        <h1 className="app-page-title">Election Analytics</h1>
         <p className="text-sm text-gray-600">Detailed results and voting statistics</p>
       </div>
       )}

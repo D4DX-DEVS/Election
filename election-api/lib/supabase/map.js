@@ -110,6 +110,7 @@ function mapElection(row) {
     organization: row.organization,
     title: row.title,
     electionDate: row.election_date,
+    endDate: row.end_date,
     numberToBeElected: row.number_to_be_elected,
     ballotSelectionRule: row.ballot_selection_rule === "up_to" ? "up_to" : "exact",
     nomineeDisplayOrder: row.nominee_display_order,
@@ -123,6 +124,7 @@ function mapElection(row) {
     resultsPublished: !!row.results_published,
     resultsPublishedAt: row.results_published_at,
     voterResultDisplay: row.voter_result_display,
+    resultGenerationMode: row.result_generation_mode || "manual",
     adminVotingDetailsEnabled: !!row.admin_voting_details_enabled,
     manualWinnerSelection: !!row.manual_winner_selection,
     manualWinnerIds: Array.isArray(row.manual_winner_ids) ? row.manual_winner_ids : [],
@@ -130,6 +132,7 @@ function mapElection(row) {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     status: row.status,
+    autoCompleteDisabled: !!row.auto_complete_disabled,
     logo: row.logo_url
       ? { url: resolvePublicImageUrl(row.logo_url), alt: row.logo_alt }
       : undefined,
@@ -143,6 +146,7 @@ function electionToRow(data) {
   if (data.organization !== undefined) row.organization = data.organization;
   if (data.title !== undefined) row.title = data.title;
   if (data.electionDate !== undefined) row.election_date = data.electionDate;
+  if (data.endDate !== undefined) row.end_date = data.endDate || null;
   if (data.numberToBeElected !== undefined) row.number_to_be_elected = data.numberToBeElected;
   if (data.ballotSelectionRule !== undefined) {
     row.ballot_selection_rule = data.ballotSelectionRule === "up_to" ? "up_to" : "exact";
@@ -160,6 +164,7 @@ function electionToRow(data) {
   if (data.resultsPublished !== undefined) row.results_published = toBodyBoolean(data.resultsPublished);
   if (data.resultsPublishedAt !== undefined) row.results_published_at = data.resultsPublishedAt;
   if (data.voterResultDisplay !== undefined) row.voter_result_display = data.voterResultDisplay;
+  if (data.resultGenerationMode !== undefined) row.result_generation_mode = data.resultGenerationMode;
   if (data.adminVotingDetailsEnabled !== undefined) {
     row.admin_voting_details_enabled = toBodyBoolean(data.adminVotingDetailsEnabled);
   }
@@ -169,6 +174,9 @@ function electionToRow(data) {
   if (data.manualWinnerIds !== undefined) row.manual_winner_ids = data.manualWinnerIds;
   if (data.createdBy !== undefined) row.created_by = data.createdBy;
   if (data.status !== undefined) row.status = data.status;
+  if (data.autoCompleteDisabled !== undefined) {
+    row.auto_complete_disabled = toBodyBoolean(data.autoCompleteDisabled);
+  }
   if (data.electionGroupId !== undefined) row.election_group_id = data.electionGroupId;
   if (data.logo?.url !== undefined) row.logo_url = data.logo.url;
   if (data.logo?.alt !== undefined) row.logo_alt = data.logo.alt;

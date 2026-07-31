@@ -464,7 +464,7 @@ export default function Nominees({
     <Wrapper>
       {!embedded && (
         <div className="mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">Nominees</h1>
+          <h1 className="app-page-title">Nominees</h1>
           <p className="text-sm text-gray-600">Manage candidates for your elections</p>
         </div>
       )}
@@ -748,6 +748,7 @@ export default function Nominees({
           <DialogBody className="px-6 pb-6">
             <NomineeForm 
               defaultElectionId={embedded ? selectedElectionId : undefined}
+              sourceElections={elections}
               onSuccess={async (result) => {
                 setIsAddNomineeOpen(false);
                 await refreshNomineeLists(result?.electionId, result?.nominee);

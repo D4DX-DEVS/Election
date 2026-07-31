@@ -22,6 +22,7 @@ export interface ElectionWithDetails extends ApiEntityFormat {
   title?: string;
   organization: string;
   electionDate: string | Date;
+  endDate?: string | Date | null;
   numberToBeElected: number;
   ballotSelectionRule?: "exact" | "up_to";
   status: string;
@@ -37,6 +38,7 @@ export interface ElectionWithDetails extends ApiEntityFormat {
   resultsPublished?: boolean;
   resultsPublishedAt?: string | Date | null;
   voterResultDisplay?: "result_only" | "percentage" | "score" | "full";
+  resultGenerationMode?: "auto" | "manual";
   nomineeDisplayOrder?: string;
   createdBy?: string;
   createdAt?: string | Date;

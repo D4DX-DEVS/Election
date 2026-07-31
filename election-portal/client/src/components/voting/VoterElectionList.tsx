@@ -13,6 +13,7 @@ export type VoterElectionItem = {
   electionDate?: string;
   numberToBeElected?: number;
   logo?: { url?: string; alt?: string };
+  status?: string;
 };
 
 function getElectionId(election: VoterElectionItem) {
@@ -25,6 +26,29 @@ function formatElectionDate(dateString?: string) {
     return format(new Date(dateString), "MMM d, yyyy");
   } catch {
     return "—";
+  }
+}
+
+function statusLabel(status?: string) {
+  switch (status) {
+    case "active":
+      return "Active";
+    case "completed":
+      return "Completed";
+    case "draft":
+    default:
+      return "Not started";
+  }
+}
+
+function statusBadgeClass(status?: string) {
+  switch (status) {
+    case "active":
+      return "bg-green-100 text-green-800 hover:bg-green-100 border-green-200";
+    case "completed":
+      return "bg-blue-100 text-blue-800 hover:bg-blue-100 border-blue-200";
+    default:
+      return "bg-gray-100 text-gray-600 hover:bg-gray-100 border-gray-200";
   }
 }
 
@@ -49,6 +73,10 @@ export function VoterElectionList({
           {elections.map((election) => {
             const id = getElectionId(election);
             const voted = votingStatus[id] === "voted";
+            const isActive = election.status === "active";
+            // Voters may still open a completed election if they already voted,
+            // to review their past vote/result — otherwise only active is clickable.
+            const clickable = isActive || (voted && election.status === "completed");
             const label = getElectionLabel(election);
             const positions = election.numberToBeElected ?? 1;
             const meta = `${formatElectionDate(election.electionDate)} · Select ${positions} position${positions !== 1 ? "s" : ""}`;
@@ -57,10 +85,11 @@ export function VoterElectionList({
               <li key={id}>
                 <button
                   type="button"
-                  onClick={() => onElectionClick(id)}
+                  onClick={() => clickable && onElectionClick(id)}
+                  disabled={!clickable}
                   className={cn(
                     "w-full flex items-center gap-3 p-4 text-left transition-colors",
-                    "hover:bg-primary/5 active:bg-primary/10",
+                    clickable ? "hover:bg-primary/5 active:bg-primary/10 cursor-pointer" : "cursor-default opacity-70",
                     voted ? "bg-blue-50/40" : ""
                   )}
                 >
@@ -89,9 +118,9 @@ export function VoterElectionList({
                       ) : (
                         <Badge
                           variant="outline"
-                          className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200 text-[10px] px-1.5 py-0"
+                          className={cn("text-[10px] px-1.5 py-0", statusBadgeClass(election.status))}
                         >
-                          Open
+                          {statusLabel(election.status)}
                         </Badge>
                       )}
                     </div>
@@ -101,10 +130,12 @@ export function VoterElectionList({
                     </p>
                   </div>
 
-                  <div className="flex-shrink-0 flex items-center gap-1 text-xs font-medium text-primary">
-                    <span className="hidden sm:inline">{voted ? "View vote" : "Vote"}</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </div>
+                  {clickable && (
+                    <div className="flex-shrink-0 flex items-center gap-1 text-xs font-medium text-primary">
+                      <span className="hidden sm:inline">{voted ? "View vote" : "Vote"}</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </div>
+                  )}
                 </button>
               </li>
             );

@@ -73,6 +73,7 @@ function buildFilterQuery(supabase, filter = {}) {
     query = query.in("id", filter.ids);
   }
   if (filter.votingOpen !== undefined) query = query.eq("voting_open", filter.votingOpen);
+  if (filter.electionGroupId) query = query.eq("election_group_id", filter.electionGroupId);
 
   return query;
 }

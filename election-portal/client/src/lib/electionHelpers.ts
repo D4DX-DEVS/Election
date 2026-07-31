@@ -110,6 +110,7 @@ export function resolveElectionFormDefaults(initialValues?: Record<string, unkno
       selfRegOpen: false,
       votingOpen: false,
       adminVotingDetailsEnabled: false,
+      allowRevote: false,
       manualWinnerSelection: false,
       franchiseId: undefined as string | undefined,
     };
@@ -153,6 +154,7 @@ export function resolveElectionFormDefaults(initialValues?: Record<string, unkno
       "adminVotingDetailsEnabled",
       "admin_voting_details_enabled"
     ),
+    allowRevote: pickBoolean(src, "allowRevote", "allow_revote"),
     manualWinnerSelection: pickBoolean(
       src,
       "manualWinnerSelection",
@@ -225,6 +227,7 @@ export function buildElectionSubmitPayload(formData: Record<string, unknown>) {
     selfRegOpen: toFormBoolean(rest.selfRegOpen),
     votingOpen: toFormBoolean(rest.votingOpen),
     adminVotingDetailsEnabled: toFormBoolean(rest.adminVotingDetailsEnabled),
+    allowRevote: toFormBoolean(rest.allowRevote),
     manualWinnerSelection: toFormBoolean(rest.manualWinnerSelection),
   };
   const logo =

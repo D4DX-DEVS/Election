@@ -52,7 +52,15 @@ export default function VotingPortal() {
   }, [voterStatusData]);
 
   const handleElectionClick = (electionId: string) => {
-    if (votingStatus[electionId] === 'voted') {
+    const election = availableElections.find(
+      (e) => String(e._id || e.id) === String(electionId)
+    );
+    const voted = votingStatus[electionId] === 'voted';
+    // Voted in a still-active election that allows revoting → back to the
+    // ballot so they can change their vote. Otherwise voted → their results.
+    if (voted && election?.status === 'active' && election?.allowRevote) {
+      setLocation(`/election/${electionId}`);
+    } else if (voted) {
       setLocation(`/results/${electionId}`);
     } else {
       setLocation(`/election/${electionId}`);

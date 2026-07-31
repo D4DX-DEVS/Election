@@ -96,6 +96,8 @@ export default function VotingBallot() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/vote/voter-status'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/vote/my-vote/${electionId}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/vote/available-elections'] });
       setVotingStep(VotingStep.CONFIRMED);
     },
     onError: (error) => {
@@ -104,18 +106,23 @@ export default function VotingBallot() {
     },
   });
 
-  useEffect(() => {
-    if (
-      voterStatusData &&
+  const alreadyVoted = Boolean(
+    voterStatusData &&
       typeof voterStatusData === 'object' &&
       'data' in voterStatusData &&
       (voterStatusData as any).data &&
       electionId &&
       (voterStatusData as any).data[electionId] === 'voted'
-    ) {
+  );
+
+  useEffect(() => {
+    // Voters who already voted are bounced back — unless the election allows
+    // revoting, in which case they may open the ballot again to change it.
+    // Wait for the election to load so allowRevote is known before deciding.
+    if (alreadyVoted && election && !election.allowRevote) {
       navigate('/voting');
     }
-  }, [voterStatusData, electionId, navigate]);
+  }, [alreadyVoted, election, navigate]);
 
   useEffect(() => {
     let maleCount = 0;
@@ -313,7 +320,11 @@ export default function VotingBallot() {
             <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold text-sm text-amber-800 dark:text-amber-300">Review Carefully</p>
-              <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">Once submitted, your vote cannot be changed.</p>
+              <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
+                {election.allowRevote
+                  ? 'You can change your vote later while voting is open.'
+                  : 'Once submitted, your vote cannot be changed.'}
+              </p>
             </div>
           </div>
 
@@ -421,6 +432,19 @@ export default function VotingBallot() {
                 {formatDate(election.electionDate)}
               </div>
             </div>
+
+            {/* Revote notice */}
+            {alreadyVoted && election.allowRevote && (
+              <div className="rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 p-4 mb-4 flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-sm text-amber-800 dark:text-amber-300">You have already voted</p>
+                  <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
+                    Submitting again will replace your previous vote.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Instructions */}
             <div className="rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 mb-5">

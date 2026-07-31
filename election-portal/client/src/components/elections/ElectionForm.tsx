@@ -45,6 +45,7 @@ const formSchema = insertElectionSchema.extend({
     selfRegOpen: formBoolean.optional(),
     votingOpen: formBoolean.optional(),
     adminVotingDetailsEnabled: formBoolean.optional(),
+    allowRevote: formBoolean.optional(),
     manualWinnerSelection: formBoolean.optional(),
     file: z.any().optional(),
   })
@@ -419,6 +420,27 @@ export function ElectionForm({
                 </Label>
                 <p className="text-xs text-gray-500">
                   Let admins see who each voter selected. Never shown to voters or included in printed results.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Controller
+                name="allowRevote"
+                control={control}
+                render={({ field }) => (
+                  <Checkbox
+                    id="allowRevote"
+                    checked={field.value === true}
+                    onCheckedChange={(checked) => field.onChange(checked === true)}
+                  />
+                )}
+              />
+              <div>
+                <Label htmlFor="allowRevote" className="font-medium text-gray-700 cursor-pointer">
+                  Allow Revote
+                </Label>
+                <p className="text-xs text-gray-500">
+                  Let voters change their vote while voting is still open. The new vote replaces the old one.
                 </p>
               </div>
             </div>

@@ -42,6 +42,9 @@ async function canAccessElection(user, election) {
   }
 
   if (user.role === "voter") {
+    // Archived elections are admin-only — voters cannot reach them even with
+    // a direct link, regardless of assignment.
+    if (election.status === "archived") return false;
     if (!sameFranchise(user.franchiseId, resolveElectionFranchiseId(election))) {
       return false;
     }

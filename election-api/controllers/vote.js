@@ -6,7 +6,7 @@ const { logUserActivity, logAuditFromReq } = require("../utils/auditLog");
 const { denyUnlessCanAccessElection } = require("../lib/electionAccess");
 const { sameFranchise } = require("../lib/roles");
 const { resourceFranchiseId } = require("../lib/tenantScope");
-const { syncElectionLifecycle } = require("../lib/electionLifecycle");
+const { syncElectionLifecycle, isElectionDatePassed } = require("../lib/electionLifecycle");
 
 function computeElectedIds(sortedResults, election) {
   if (election.manualWinnerSelection) {
@@ -168,24 +168,43 @@ exports.getAvailableElections = async (req, res) => {
     if (!voter || !voter.electionAccess || voter.electionAccess.length === 0) {
       return res.status(200).json({ success: true, count: 0, data: [] });
     }
-    // Show every non-archived assigned election (with its status) so voters can
-    // see what's upcoming/completed — only "active" ones are actually clickable
-    // on the frontend.
+    // Voters see upcoming ("Not started"), active, and completed assigned
+    // elections. Hidden from voters entirely: archived elections and stale
+    // drafts (a draft whose date has already passed is admin work-in-progress).
     const assigned = await elections.findByIdsWithFranchise(voter.electionAccess);
-    const visible = assigned.filter(
-      (election) =>
-        sameFranchise(voter.franchiseId, resourceFranchiseId(election)) &&
-        election.status !== "archived"
+    const inFranchise = assigned.filter((election) =>
+      sameFranchise(voter.franchiseId, resourceFranchiseId(election))
     );
 
     // Voters see the status directly, so refresh it the same way the admin list
     // does — otherwise an election whose date has passed keeps showing "Active".
-    const data = await Promise.all(
-      visible.map(async (election) => {
-        const synced = await syncElectionLifecycle(election, elections.updateById);
+    const synced = await Promise.all(
+      inFranchise.map(async (election) => {
+        const fresh = await syncElectionLifecycle(election, elections.updateById);
         // updateById returns a bare row without the joined franchise details,
         // so keep the enriched original and take only the lifecycle fields.
-        return { ...election, status: synced.status, votingOpen: synced.votingOpen };
+        return { ...election, status: fresh.status, votingOpen: fresh.votingOpen };
+      })
+    );
+
+    const visible = synced.filter(
+      (election) =>
+        election.status !== "archived" &&
+        !(
+          election.status === "draft" &&
+          isElectionDatePassed(election.electionDate, election.endDate)
+        )
+    );
+
+    // Turnout counts so voters can see participation (e.g. "10/14 voted").
+    const data = await Promise.all(
+      visible.map(async (election) => {
+        const electionId = String(election._id || election.id);
+        const [voted, assignedIds] = await Promise.all([
+          votes.countDocuments({ electionId }),
+          users.getAssignedVoterIdsForElection(electionId),
+        ]);
+        return { ...election, voteStats: { voted, eligible: assignedIds.length } };
       })
     );
 
@@ -287,13 +306,17 @@ exports.castVote = async (req, res) => {
     }
 
     const existing = await votes.findOne({ voterId: req.user._id, electionId });
-    if (existing) return res.status(400).json({ success: false, message: "Already voted in this election." });
+    const isRevote = !!existing;
+    if (existing && !election.allowRevote) {
+      return res.status(400).json({ success: false, message: "Already voted in this election." });
+    }
 
     // maxVoters caps how many voters may actually vote — the assigned roster is
     // allowed to be larger than the cap (0 means no limit). Checked after the
-    // duplicate check so a repeat voter still gets the accurate message.
+    // duplicate check so a repeat voter still gets the accurate message. A
+    // revote replaces an existing ballot, so it never pushes past the cap.
     const maxVoters = parseInt(election.maxVoters, 10) || 0;
-    if (maxVoters > 0) {
+    if (maxVoters > 0 && !isRevote) {
       const ballotsCast = await votes.countDocuments({ electionId });
       if (ballotsCast >= maxVoters) {
         return res.status(409).json({
@@ -301,6 +324,10 @@ exports.castVote = async (req, res) => {
           message: `This election accepts only ${maxVoters} vote${maxVoters === 1 ? "" : "s"} and that limit has been reached.`,
         });
       }
+    }
+
+    if (isRevote) {
+      await votes.deleteById(existing._id || existing.id);
     }
 
     try {
@@ -311,7 +338,11 @@ exports.castVote = async (req, res) => {
         ipAddress: req.ip,
         status: "completed",
       });
-      res.status(201).json({ success: true, message: "Vote cast successfully.", data: vote });
+      res.status(201).json({
+        success: true,
+        message: isRevote ? "Vote updated successfully." : "Vote cast successfully.",
+        data: vote,
+      });
     } catch (createErr) {
       if (createErr && createErr.code === 23505) {
         return res.status(400).json({ success: false, message: "Already voted in this election." });

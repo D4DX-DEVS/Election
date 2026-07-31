@@ -126,6 +126,7 @@ function mapElection(row) {
     voterResultDisplay: row.voter_result_display,
     resultGenerationMode: row.result_generation_mode || "manual",
     adminVotingDetailsEnabled: !!row.admin_voting_details_enabled,
+    allowRevote: !!row.allow_revote,
     manualWinnerSelection: !!row.manual_winner_selection,
     manualWinnerIds: Array.isArray(row.manual_winner_ids) ? row.manual_winner_ids : [],
     createdBy: row.created_by,
@@ -168,6 +169,7 @@ function electionToRow(data) {
   if (data.adminVotingDetailsEnabled !== undefined) {
     row.admin_voting_details_enabled = toBodyBoolean(data.adminVotingDetailsEnabled);
   }
+  if (data.allowRevote !== undefined) row.allow_revote = toBodyBoolean(data.allowRevote);
   if (data.manualWinnerSelection !== undefined) {
     row.manual_winner_selection = toBodyBoolean(data.manualWinnerSelection);
   }

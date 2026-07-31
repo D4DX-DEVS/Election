@@ -5,6 +5,7 @@ const ELECTION_BOOLEAN_KEYS = [
   "resultsPublished",
   "genderBasedSelection",
   "adminVotingDetailsEnabled",
+  "allowRevote",
   "manualWinnerSelection",
 ];
 

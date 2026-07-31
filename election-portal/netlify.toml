@@ -108,6 +108,12 @@
   status = 200
   force  = true
 
+[[redirects]]
+  from   = "/api/system/*"
+  to     = "https://election-app-byccp.ondigitalocean.app/api/v1/system/:splat"
+  status = 200
+  force  = true
+
 # Franchise logos, election banners, and other uploaded media served by the API.
 [[redirects]]
   from   = "/uploads/*"

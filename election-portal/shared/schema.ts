@@ -70,6 +70,7 @@ export interface Election extends ApiEntity {
   resultsPublishedAt?: string | Date | null;
   voterResultDisplay?: string | null;
   adminVotingDetailsEnabled?: boolean | null;
+  allowRevote?: boolean | null;
   manualWinnerSelection?: boolean | null;
   manualWinnerIds?: EntityId[] | null;
   createdBy?: EntityId | null;
@@ -154,6 +155,7 @@ export const insertElectionSchema = z.object({
   votingOpen: z.boolean().optional(),
   resultsPublished: z.boolean().optional(),
   adminVotingDetailsEnabled: z.boolean().optional(),
+  allowRevote: z.boolean().optional(),
   manualWinnerSelection: z.boolean().optional(),
   voterResultDisplay: z.string().optional(),
   resultGenerationMode: z.enum(["auto", "manual"]).optional(),

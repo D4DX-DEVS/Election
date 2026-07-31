@@ -1,9 +1,10 @@
 import { format } from "date-fns";
-import { Calendar, ChevronRight, Vote } from "lucide-react";
+import { Calendar, ChevronRight, Users, Vote } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getElectionLabel } from "@/lib/electionHelpers";
 import { cn } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
 
 export type VoterElectionItem = {
   _id?: string;
@@ -14,6 +15,8 @@ export type VoterElectionItem = {
   numberToBeElected?: number;
   logo?: { url?: string; alt?: string };
   status?: string;
+  allowRevote?: boolean;
+  voteStats?: { voted?: number; eligible?: number };
 };
 
 function getElectionId(election: VoterElectionItem) {
@@ -74,19 +77,36 @@ export function VoterElectionList({
             const id = getElectionId(election);
             const voted = votingStatus[id] === "voted";
             const isActive = election.status === "active";
+            const notStarted = !isActive && election.status !== "completed";
             // Voters may still open a completed election if they already voted,
             // to review their past vote/result — otherwise only active is clickable.
             const clickable = isActive || (voted && election.status === "completed");
+            const canRevote = voted && isActive && !!election.allowRevote;
             const label = getElectionLabel(election);
             const positions = election.numberToBeElected ?? 1;
             const meta = `${formatElectionDate(election.electionDate)} · Select ${positions} position${positions !== 1 ? "s" : ""}`;
+            const voteStats = election.voteStats;
+            const showTurnout =
+              voted && voteStats && typeof voteStats.voted === "number" && (voteStats.eligible ?? 0) > 0;
+
+            const handleClick = () => {
+              if (clickable) {
+                onElectionClick(id);
+                return;
+              }
+              if (notStarted) {
+                toast({
+                  title: "Election not started",
+                  description: "This election is not open for voting yet. You'll be able to vote once it starts.",
+                });
+              }
+            };
 
             return (
               <li key={id}>
                 <button
                   type="button"
-                  onClick={() => clickable && onElectionClick(id)}
-                  disabled={!clickable}
+                  onClick={handleClick}
                   className={cn(
                     "w-full flex items-center gap-3 p-4 text-left transition-colors",
                     clickable ? "hover:bg-primary/5 active:bg-primary/10 cursor-pointer" : "cursor-default opacity-70",
@@ -128,11 +148,19 @@ export function VoterElectionList({
                       <Calendar className="h-3 w-3 flex-shrink-0" />
                       {meta}
                     </p>
+                    {showTurnout && (
+                      <p className="text-xs text-blue-700 mt-0.5 truncate flex items-center gap-1">
+                        <Users className="h-3 w-3 flex-shrink-0" />
+                        {voteStats!.voted}/{voteStats!.eligible} voted
+                      </p>
+                    )}
                   </div>
 
                   {clickable && (
                     <div className="flex-shrink-0 flex items-center gap-1 text-xs font-medium text-primary">
-                      <span className="hidden sm:inline">{voted ? "View vote" : "Vote"}</span>
+                      <span className="hidden sm:inline">
+                        {canRevote ? "Revote" : voted ? "View vote" : "Vote"}
+                      </span>
                       <ChevronRight className="h-4 w-4" />
                     </div>
                   )}

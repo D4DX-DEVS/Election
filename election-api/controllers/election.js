@@ -84,9 +84,11 @@ exports.updateElectionById = async (req, res) => {
     // Completing an election is final: it can never be reopened for voting.
     // Archiving it is the one permitted move, since that only retires the
     // record. "draft" is refused too — otherwise draft -> active would be a
-    // trivial way around the rule.
+    // trivial way around the rule. Unarchiving is allowed but only back to
+    // "completed" — restoring the record without reopening voting.
     const isRetiring = existing.status === "completed" && req.body.status === "archived";
-    if (LOCKED_ELECTION_STATUSES.has(existing.status) && !isRetiring) {
+    const isRestoring = existing.status === "archived" && req.body.status === "completed";
+    if (LOCKED_ELECTION_STATUSES.has(existing.status) && !isRetiring && !isRestoring) {
       const reopening =
         existing.status === "completed" &&
         (req.body.status === "active" || req.body.status === "draft");
@@ -98,6 +100,12 @@ exports.updateElectionById = async (req, res) => {
       });
     }
     if (await denyUnlessCanAccessElection(req, res, existing)) return;
+
+    // Retire/restore are status-only moves — a locked election must not be
+    // editable by piggybacking other fields onto the same request.
+    if (isRetiring || isRestoring) {
+      req.body = { status: req.body.status };
+    }
 
     if (req.body.organization !== undefined) {
       if (!isValidNameField(req.body.organization)) {

@@ -18,7 +18,9 @@ export function isElectionEditable(status?: ElectionStatus | null): boolean {
 export function allowedStatusChanges(
   status?: ElectionStatus | null
 ): Array<"draft" | "active" | "completed" | "archived"> {
-  if (status === "archived") return [];
+  // Archived is reversible, but only back to completed — restoring the record
+  // without reopening voting (completed elections are never reopened).
+  if (status === "archived") return ["completed"];
   if (status === "completed") return ["archived"];
   const all = ["draft", "active", "completed", "archived"] as const;
   return all.filter((s) => s !== status);

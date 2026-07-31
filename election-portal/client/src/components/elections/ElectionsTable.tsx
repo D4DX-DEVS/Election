@@ -24,6 +24,12 @@ const STATUS_ACTION_LABELS: Record<string, string> = {
   archived: "Set as Archived",
 };
 
+/** Restoring an archived election reads as "Unarchive", not "Set as Completed". */
+function statusActionLabel(current: string | undefined, next: string) {
+  if (current === "archived" && next === "completed") return "Unarchive";
+  return STATUS_ACTION_LABELS[next];
+}
+
 function getElectionId(election: ElectionWithDetails) {
   return election._id?.toString() || election.id?.toString() || "";
 }
@@ -92,7 +98,7 @@ function ElectionMobileActions({
         {statusOptions.length > 0 && <DropdownMenuSeparator />}
         {statusOptions.map((next) => (
           <DropdownMenuItem key={next} onClick={() => onStatusChange?.(id, next)}>
-            <Activity className="mr-2 h-4 w-4" /> {STATUS_ACTION_LABELS[next]}
+            <Activity className="mr-2 h-4 w-4" /> {statusActionLabel(status, next)}
           </DropdownMenuItem>
         ))}
         {canDelete && onDelete && (
@@ -293,7 +299,8 @@ export function ElectionsTable({
                             key={next}
                             onClick={() => onStatusChange?.(electionId, next)}
                           >
-                            <Activity className="mr-2 h-4 w-4" /> {STATUS_ACTION_LABELS[next]}
+                            <Activity className="mr-2 h-4 w-4" />{" "}
+                            {statusActionLabel(election.status ?? undefined, next)}
                           </DropdownMenuItem>
                         ))}
                         {deletable && onDelete && (

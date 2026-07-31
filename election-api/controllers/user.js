@@ -286,19 +286,14 @@ exports.getFranchiseAdmins = async (req, res) => {
 
 exports.getElectionAdmins = async (req, res) => {
   try {
-    if (req.user.role === "election_admin") {
+    if (req.user.role !== "franchise_admin") {
       return res.status(403).json({
         success: false,
-        message: "Election admins cannot list election admins.",
+        message: "Only franchise admins can list election admins.",
       });
     }
 
-    const filter = { role: "election_admin" };
-    if (req.user.role === "franchise_admin") {
-      filter.franchiseId = req.user.franchiseId;
-    } else if (req.query.franchiseId) {
-      filter.franchiseId = req.query.franchiseId;
-    }
+    const filter = { role: "election_admin", franchiseId: req.user.franchiseId };
 
     if (req.query.page !== undefined) {
       const page = Math.max(parseInt(req.query.page, 10) || 1, 1);

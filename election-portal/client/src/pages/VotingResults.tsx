@@ -15,6 +15,7 @@ import {
   Trophy,
   Users,
   FileCheck,
+  Shield,
 } from 'lucide-react';
 
 export default function VotingResults() {
@@ -139,6 +140,22 @@ export default function VotingResults() {
 
         {/* ── Election info card ── */}
         <div className="rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 mb-4">
+          {election?.franchise?.name && (
+            <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-100 dark:border-gray-700">
+              <div className="h-7 w-7 shrink-0 overflow-hidden rounded-md border border-gray-200 bg-gray-50 flex items-center justify-center dark:border-gray-700 dark:bg-gray-900">
+                {election.franchise.logo?.url ? (
+                  <img
+                    src={election.franchise.logo.url}
+                    alt={election.franchise.logo.alt || election.franchise.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <Shield className="h-3.5 w-3.5 text-primary/70" />
+                )}
+              </div>
+              <p className="truncate text-xs font-medium text-gray-500">{election.franchise.name}</p>
+            </div>
+          )}
           <h1 className="font-bold text-lg text-gray-900 dark:text-white leading-snug">{election ? getElectionLabel(election) : ''}</h1>
           {election?.electionDate && (
             <div className="flex items-center gap-1.5 mt-2 text-xs text-gray-400">

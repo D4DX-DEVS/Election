@@ -59,7 +59,7 @@ export default function ElectionResults() {
         <Card className="mb-6">
           <CardContent className="p-5">
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-2xl font-bold text-gray-900">{getElectionLabel(election)}</h1>
+              <h1 className="app-page-title">{getElectionLabel(election)}</h1>
               <Badge variant="outline" className={STATUS_STYLES[election.status] || "bg-gray-100 text-gray-800"}>
                 {election.status ? election.status.charAt(0).toUpperCase() + election.status.slice(1) : "Unknown"}
               </Badge>

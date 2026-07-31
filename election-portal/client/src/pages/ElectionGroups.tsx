@@ -360,7 +360,7 @@ export default function ElectionGroups() {
       <PageContent>
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Election Groups</h1>
+          <h1 className="app-page-title">Election Groups</h1>
           <p className="text-sm text-gray-600">Organize and manage election groups</p>
         </div>
         <div className="mt-4 sm:mt-0">

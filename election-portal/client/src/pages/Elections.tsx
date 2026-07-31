@@ -103,7 +103,7 @@ export default function Elections() {
       // archiving closes voting.
       const payload: Record<string, unknown> = { status: newStatus };
       if (newStatus === 'active') payload.votingOpen = true;
-      if (newStatus === 'completed' || newStatus === 'archived') payload.votingOpen = false;
+      if (newStatus === 'completed' || newStatus === 'archived' || newStatus === 'draft') payload.votingOpen = false;
 
       await apiRequest('PUT', `/api/elections/${id}`, payload);
 

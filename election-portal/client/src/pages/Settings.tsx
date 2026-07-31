@@ -70,7 +70,7 @@ export default function Settings() {
   return (
     <AccountShell title="Change Password">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h1 className="app-page-title flex items-center gap-2">
           <Lock className="h-5 w-5 text-primary" />
           Change Password
         </h1>

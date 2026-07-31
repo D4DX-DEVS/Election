@@ -50,7 +50,9 @@ function canManageUser(actor, target, { allowSelf = false } = {}) {
 
   if (!isHigherRole(actor.role, target.role)) return false;
 
-  if (actor.role === "super_admin") return true;
+  // Super admins manage franchises/franchise admins only — election admins are
+  // created by, and stay scoped to, their franchise admin.
+  if (actor.role === "super_admin") return target.role !== "election_admin";
 
   if (actor.role === "franchise_admin") {
     return sameFranchise(actor.franchiseId, target.franchiseId);
@@ -91,7 +93,7 @@ function resolveFranchiseIdForActor(actor, bodyFranchiseId) {
 }
 
 function filterUsersForActor(actor, list) {
-  if (actor.role === "super_admin") return list;
+  if (actor.role === "super_admin") return list.filter((u) => u.role !== "election_admin");
   if (actor.role === "franchise_admin") {
     return list.filter((u) => sameFranchise(actor.franchiseId, u.franchiseId));
   }

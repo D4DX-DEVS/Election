@@ -9,6 +9,9 @@ const {
 } = require("../lib/electionLifecycle");
 const { normalizeElectionBody } = require("../lib/electionBody");
 const { resolveFranchiseIdForActor } = require("../lib/roles");
+const franchises = require("../lib/supabase/franchises");
+const users = require("../lib/supabase/users");
+const votes = require("../lib/supabase/votes");
 const { requireFranchiseId } = require("../lib/tenantScope");
 
 function isValidNameField(value) {
@@ -53,6 +56,16 @@ exports.getElectionById = async (req, res) => {
     if (await denyUnlessCanAccessElection(req, res, election)) return;
     const synced = await syncElectionLifecycle(election, elections.updateById);
     const [enriched] = await enrichElectionsWithCounts([synced]);
+
+    // So voters can identify/confirm which organization's election they're in.
+    const franchiseId = typeof enriched.franchiseId === "object" ? enriched.franchiseId?._id : enriched.franchiseId;
+    if (franchiseId) {
+      const franchise = await franchises.findById(franchiseId);
+      if (franchise) {
+        enriched.franchise = { name: franchise.name, logo: franchise.logo };
+      }
+    }
+
     res.status(200).json({ success: true, data: enriched });
   } catch (err) {
     console.error(err);
@@ -68,10 +81,20 @@ exports.updateElectionById = async (req, res) => {
     if (!existing) {
       return res.status(404).json({ success: false, message: "Election not found." });
     }
-    if (LOCKED_ELECTION_STATUSES.has(existing.status)) {
+    // Completing an election is final: it can never be reopened for voting.
+    // Archiving it is the one permitted move, since that only retires the
+    // record. "draft" is refused too — otherwise draft -> active would be a
+    // trivial way around the rule.
+    const isRetiring = existing.status === "completed" && req.body.status === "archived";
+    if (LOCKED_ELECTION_STATUSES.has(existing.status) && !isRetiring) {
+      const reopening =
+        existing.status === "completed" &&
+        (req.body.status === "active" || req.body.status === "draft");
       return res.status(403).json({
         success: false,
-        message: "Completed or archived elections cannot be edited.",
+        message: reopening
+          ? "A completed election cannot be reopened for voting. Create a new election instead."
+          : "Completed or archived elections cannot be edited.",
       });
     }
     if (await denyUnlessCanAccessElection(req, res, existing)) return;
@@ -107,6 +130,55 @@ exports.updateElectionById = async (req, res) => {
     if (!election) return res.status(404).json({ success: false, message: "Election not found." });
     await logAuditFromReq(req, "Updated", election.title || election.organization, "Election", election._id || election.id);
     res.status(200).json({ success: true, data: election });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: err.toString() });
+  }
+};
+
+async function buildVotingStatusEntry(election) {
+  const id = election._id || election.id;
+  const [assignedIds, votedCount] = await Promise.all([
+    users.getAssignedVoterIdsForElection(id),
+    votes.countDocuments({ electionId: id }),
+  ]);
+  const totalVoters = assignedIds.length;
+  return {
+    electionId: id,
+    title: election.title,
+    organization: election.organization,
+    totalVoters,
+    votedCount,
+    remainingCount: Math.max(totalVoters - votedCount, 0),
+    turnoutPercent: totalVoters > 0 ? Math.round((votedCount / totalVoters) * 100) : 0,
+  };
+}
+
+// Live status while voting is in progress: votes cast, remaining voters, and —
+// for multi-post elections sharing an electionGroupId — a per-post breakdown.
+exports.getVotingStatus = async (req, res) => {
+  try {
+    const election = await elections.findById(req.params.id);
+    if (!election) return res.status(404).json({ success: false, message: "Election not found." });
+    if (await denyUnlessCanAccessElection(req, res, election)) return;
+
+    const current = await buildVotingStatusEntry(election);
+
+    let posts = [current];
+    if (election.electionGroupId) {
+      const groupElections = await elections.find({ electionGroupId: election.electionGroupId });
+      if (groupElections.length > 1) {
+        posts = await Promise.all(groupElections.map(buildVotingStatusEntry));
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      // "posts" is only populated when this election is part of a multi-post
+      // group — each post has its own voter roster, so per-post numbers
+      // (not a combined sum) are what's meaningful here.
+      data: { current, posts: posts.length > 1 ? posts : [] },
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: err.toString() });

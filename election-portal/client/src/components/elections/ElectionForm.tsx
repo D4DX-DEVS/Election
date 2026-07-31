@@ -29,13 +29,15 @@ const formBoolean = z.preprocess((value) => toFormBoolean(value, false), z.boole
 const formSchema = insertElectionSchema.extend({
     organization: z
       .string()
-      .min(1, "Organization is required")
+      .min(1, "Election title is required")
       .refine((value) => !/\d/.test(value.trim()) && /[a-zA-Z]/.test(value.trim()), {
         message: "Name cannot contain numbers.",
       }),
     electionDate: z.string().min(1, "Election date is required"),
+    endDate: z.string().optional(),
     numberToBeElected: z.coerce.number().min(1, "Must elect at least 1 person"),
     ballotSelectionRule: z.enum(["exact", "up_to"]).default("exact"),
+    resultGenerationMode: z.enum(["auto", "manual"]).default("manual"),
     maxVoters: z.coerce.number().int().min(0).optional(),
     maleMinimum: z.coerce.number().int().min(0).optional(),
     femaleMinimum: z.coerce.number().int().min(0).optional(),
@@ -45,6 +47,10 @@ const formSchema = insertElectionSchema.extend({
     adminVotingDetailsEnabled: formBoolean.optional(),
     manualWinnerSelection: formBoolean.optional(),
     file: z.any().optional(),
+  })
+  .refine((values) => !values.endDate || values.endDate >= values.electionDate, {
+    message: "End date cannot be before the election date.",
+    path: ["endDate"],
   });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -83,9 +89,12 @@ export function ElectionForm({
   }, [initialValues, reset]);
 
   const electionDateValue = watch("electionDate");
+  const endDateValue = watch("endDate");
   const votingOpenValue = watch("votingOpen");
+  const numberToBeElected = watch("numberToBeElected");
   const nomineeDisplayOrder = watch("nomineeDisplayOrder");
   const voterResultDisplay = watch("voterResultDisplay");
+  const resultGenerationMode = watch("resultGenerationMode");
   const ballotSelectionRule = watch("ballotSelectionRule");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,10 +135,10 @@ export function ElectionForm({
         >
           <div className="mb-5 grid grid-cols-1 gap-4 md:mb-6 md:grid-cols-2 md:gap-6">
             <div>
-              <Label htmlFor="organization">Organization Name</Label>
+              <Label htmlFor="organization">Election Title</Label>
               <Input
                 id="organization"
-                placeholder="e.g. Global Technologies Corp"
+                placeholder="e.g. 2026 Board Elections"
                 {...register("organization")}
                 className="mt-1"
               />
@@ -156,6 +165,22 @@ export function ElectionForm({
               )}
             </div>
             <div>
+              <Label htmlFor="endDate">End Date (optional)</Label>
+              <Input
+                id="endDate"
+                type="date"
+                value={endDateValue || ""}
+                onChange={(e) =>
+                  setValue("endDate", e.target.value, { shouldValidate: true, shouldDirty: true })
+                }
+                className="mt-1"
+              />
+              <p className="text-xs text-gray-500 mt-1">Set this to run voting across multiple days</p>
+              {formState.errors.endDate && (
+                <p className="text-sm text-red-500 mt-1">{formState.errors.endDate.message}</p>
+              )}
+            </div>
+            <div>
               <Label htmlFor="numberToBeElected">Number of Positions</Label>
               <Input
                 id="numberToBeElected"
@@ -166,7 +191,7 @@ export function ElectionForm({
                 className="mt-1"
               />
               <p className="text-xs text-gray-500 mt-1">
-                How many nominees each voter selects and how many can be elected
+                Number of positions to be elected
               </p>
               {formState.errors.numberToBeElected && (
                 <p className="text-sm text-red-500 mt-1">{formState.errors.numberToBeElected.message}</p>
@@ -193,8 +218,8 @@ export function ElectionForm({
               </Select>
               <p className="mt-1 text-xs text-gray-500">
                 {ballotSelectionRule === "up_to"
-                  ? "A voter may submit fewer selections, but never more."
-                  : "A voter must fill every available position before submitting."}
+                  ? `A voter may select up to ${numberToBeElected || 1} nominee${(numberToBeElected || 1) !== 1 ? "s" : ""}, but not more.`
+                  : `A voter must select exactly ${numberToBeElected || 1} nominee${(numberToBeElected || 1) !== 1 ? "s" : ""} to submit.`}
               </p>
             </div>
             <div>
@@ -219,7 +244,7 @@ export function ElectionForm({
             <div>
               <Label htmlFor="voterResultDisplay">Voter Result Display</Label>
               <Select
-                value={voterResultDisplay || "full"}
+                value={voterResultDisplay || "none"}
                 onValueChange={(value) => setValue("voterResultDisplay", value)}
               >
                 <SelectTrigger className="mt-1">
@@ -234,6 +259,24 @@ export function ElectionForm({
                 </SelectContent>
               </Select>
               <p className="text-xs text-gray-500 mt-1">Controls how much detail published results show to voters</p>
+            </div>
+            <div>
+              <Label htmlFor="resultGenerationMode">Result Generation</Label>
+              <Select
+                value={resultGenerationMode || "manual"}
+                onValueChange={(value) => setValue("resultGenerationMode", value as "auto" | "manual")}
+              >
+                <SelectTrigger id="resultGenerationMode" className="mt-1">
+                  <SelectValue placeholder="Select how results are generated" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="manual">Manual (admin publishes results)</SelectItem>
+                  <SelectItem value="auto">Automatic (publish as soon as election completes)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500 mt-1">
+                Manual requires the admin to click Publish after the election ends
+              </p>
             </div>
           </div>
 
@@ -255,41 +298,10 @@ export function ElectionForm({
                 <p className="text-sm text-red-500 mt-1">{formState.errors.maxVoters.message}</p>
               )}
             </div>
-            {watch("genderBasedSelection") === true && (
-              <>
-                <div>
-                  <Label htmlFor="maleMinimum">Male Minimum</Label>
-                  <Input
-                    id="maleMinimum"
-                    type="number"
-                    min="0"
-                    placeholder="e.g. 2"
-                    {...register("maleMinimum", { valueAsNumber: true })}
-                    className="mt-1"
-                  />
-                  {formState.errors.maleMinimum && (
-                    <p className="text-sm text-red-500 mt-1">{formState.errors.maleMinimum.message}</p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="femaleMinimum">Female Minimum</Label>
-                  <Input
-                    id="femaleMinimum"
-                    type="number"
-                    min="0"
-                    placeholder="e.g. 2"
-                    {...register("femaleMinimum", { valueAsNumber: true })}
-                    className="mt-1"
-                  />
-                  {formState.errors.femaleMinimum && (
-                    <p className="text-sm text-red-500 mt-1">{formState.errors.femaleMinimum.message}</p>
-                  )}
-                </div>
-              </>
-            )}
           </div>
 
-          <div className="mb-5 grid grid-cols-1 gap-4 md:mb-6 md:grid-cols-2 md:gap-6">
+          {/* Gender-based selection owns its minimums, so they stay grouped with the toggle */}
+          <div className="mb-5 md:mb-6">
             <div className="flex items-center space-x-2">
               <Controller
                 name="genderBasedSelection"
@@ -309,6 +321,44 @@ export function ElectionForm({
                 <p className="text-xs text-gray-500">Collect and enforce male/female requirements for this election</p>
               </div>
             </div>
+
+            {watch("genderBasedSelection") === true && (
+              <div className="mt-4 ml-6 grid grid-cols-1 gap-4 border-l-2 border-gray-100 pl-4 md:grid-cols-2 md:gap-6">
+                <div>
+                  <Label htmlFor="maleMinimum">Male Minimum</Label>
+                  <Input
+                    id="maleMinimum"
+                    type="number"
+                    min="0"
+                    placeholder="e.g. 2"
+                    {...register("maleMinimum", { valueAsNumber: true })}
+                    className="mt-1"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Minimum male nominees that must be elected</p>
+                  {formState.errors.maleMinimum && (
+                    <p className="text-sm text-red-500 mt-1">{formState.errors.maleMinimum.message}</p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="femaleMinimum">Female Minimum</Label>
+                  <Input
+                    id="femaleMinimum"
+                    type="number"
+                    min="0"
+                    placeholder="e.g. 2"
+                    {...register("femaleMinimum", { valueAsNumber: true })}
+                    className="mt-1"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Minimum female nominees that must be elected</p>
+                  {formState.errors.femaleMinimum && (
+                    <p className="text-sm text-red-500 mt-1">{formState.errors.femaleMinimum.message}</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="mb-5 grid grid-cols-1 gap-4 md:mb-6 md:grid-cols-2 md:gap-6">
             <div className="flex items-center space-x-2">
               <Controller
                 name="selfRegOpen"

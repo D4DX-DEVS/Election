@@ -200,10 +200,16 @@ export default function VoterGroups({
   });
 
   const elections = electionsData?.data || [];
+  // Assigning voters to a finished election does nothing useful, so only offer
+  // elections that can still be voted in. Existing assignments are untouched —
+  // selectedElectionIds comes from the group itself, not this list.
+  const openElections = elections.filter(
+    (el) => el.status !== "completed" && el.status !== "archived"
+  );
   const assignableElections =
     assignOnly && electionId
-      ? elections.filter((el) => String(el._id) === String(electionId))
-      : elections;
+      ? openElections.filter((el) => String(el._id) === String(electionId))
+      : openElections;
   const groupVoters = groupVotersData?.data || [];
   const groupVotersPagination = groupVotersData?.pagination;
   const groupVotersTotal = groupVotersPagination?.total ?? groupVoters.length;
@@ -658,7 +664,7 @@ export default function VoterGroups({
           </Button>
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="text-lg font-bold leading-tight text-gray-900 sm:text-xl truncate">
+              <h1 className="app-page-title truncate">
                 {selectedGroup.name || "Voter Group"}
               </h1>
               <p className="text-sm text-gray-500 mt-0.5">
@@ -971,7 +977,7 @@ export default function VoterGroups({
       <div className={cn("mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-end sm:justify-between", suppressTitle && "sm:justify-end")}>
         {!suppressTitle && (
         <div>
-          <h1 className={embedded ? "text-lg font-semibold text-gray-900 flex items-center gap-2" : "text-2xl font-bold text-gray-900 flex items-center gap-2"}>
+          <h1 className={embedded ? "text-lg font-semibold text-gray-900 flex items-center gap-2" : "app-page-title flex items-center gap-2"}>
             <Users className={embedded ? "h-5 w-5 text-primary" : "h-6 w-6 text-primary"} />
             Voter Groups
           </h1>

@@ -15,7 +15,14 @@ import { ElectionStatus, ElectionWithDetails } from "@/lib/types";
 import { DropdownMenuItem, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { RowSelectCheckbox } from "@/components/ui/row-select-checkbox";
 import { MoreHorizontal, Activity, Trash2, Pencil } from "lucide-react";
-import { getElectionLabel, isElectionEditable } from "@/lib/electionHelpers";
+import { getElectionLabel, isElectionEditable, allowedStatusChanges } from "@/lib/electionHelpers";
+
+const STATUS_ACTION_LABELS: Record<string, string> = {
+  draft: "Set as Draft",
+  active: "Set as Active",
+  completed: "Set as Completed",
+  archived: "Set as Archived",
+};
 
 function getElectionId(election: ElectionWithDetails) {
   return election._id?.toString() || election.id?.toString() || "";
@@ -42,6 +49,7 @@ function ElectionMobileActions({
 }) {
   const editable = isElectionEditable(status);
   const canDelete = editable;
+  const statusOptions = allowedStatusChanges(status as ElectionStatus);
 
   if (selectionMode && onToggleSelect) {
     return (
@@ -81,19 +89,12 @@ function ElectionMobileActions({
             View results
           </DropdownMenuItem>
         )}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => onStatusChange?.(id, "draft")}>
-          <Activity className="mr-2 h-4 w-4" /> Set as Draft
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onStatusChange?.(id, "active")}>
-          <Activity className="mr-2 h-4 w-4" /> Set as Active
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onStatusChange?.(id, "completed")}>
-          <Activity className="mr-2 h-4 w-4" /> Set as Completed
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onStatusChange?.(id, "archived")}>
-          <Activity className="mr-2 h-4 w-4" /> Set as Archived
-        </DropdownMenuItem>
+        {statusOptions.length > 0 && <DropdownMenuSeparator />}
+        {statusOptions.map((next) => (
+          <DropdownMenuItem key={next} onClick={() => onStatusChange?.(id, next)}>
+            <Activity className="mr-2 h-4 w-4" /> {STATUS_ACTION_LABELS[next]}
+          </DropdownMenuItem>
+        ))}
         {canDelete && onDelete && (
           <>
             <DropdownMenuSeparator />
@@ -287,18 +288,14 @@ export function ElectionsTable({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onStatusChange?.(electionId, 'draft')}>
-                          <Activity className="mr-2 h-4 w-4" /> Set as Draft
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onStatusChange?.(electionId, 'active')}>
-                          <Activity className="mr-2 h-4 w-4" /> Set as Active
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onStatusChange?.(electionId, 'completed')}>
-                          <Activity className="mr-2 h-4 w-4" /> Set as Completed
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onStatusChange?.(electionId, 'archived')}>
-                          <Activity className="mr-2 h-4 w-4" /> Set as Archived
-                        </DropdownMenuItem>
+                        {allowedStatusChanges(election.status).map((next) => (
+                          <DropdownMenuItem
+                            key={next}
+                            onClick={() => onStatusChange?.(electionId, next)}
+                          >
+                            <Activity className="mr-2 h-4 w-4" /> {STATUS_ACTION_LABELS[next]}
+                          </DropdownMenuItem>
+                        ))}
                         {deletable && onDelete && (
                           <DropdownMenuItem
                             className="text-red-600 focus:text-red-600"

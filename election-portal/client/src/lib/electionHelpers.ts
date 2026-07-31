@@ -9,6 +9,21 @@ export function isElectionEditable(status?: ElectionStatus | null): boolean {
   return !isElectionLocked(status);
 }
 
+/**
+ * Statuses an election may still be moved to. Completing an election is final —
+ * it can never be reopened for voting, only archived to retire the record.
+ * Archived elections are frozen entirely. Mirrors the backend guard in
+ * controllers/election.js, so the UI never offers an action that would 403.
+ */
+export function allowedStatusChanges(
+  status?: ElectionStatus | null
+): Array<"draft" | "active" | "completed" | "archived"> {
+  if (status === "archived") return [];
+  if (status === "completed") return ["archived"];
+  const all = ["draft", "active", "completed", "archived"] as const;
+  return all.filter((s) => s !== status);
+}
+
 /** Primary display label for an election (organization only; title is legacy). */
 export function getElectionLabel(election: {
   organization?: string | null;
@@ -82,10 +97,12 @@ export function resolveElectionFormDefaults(initialValues?: Record<string, unkno
     return {
       organization: "",
       electionDate: new Date().toISOString().split("T")[0],
+      endDate: "",
       numberToBeElected: 1,
       ballotSelectionRule: "exact" as const,
       nomineeDisplayOrder: "ALPHA",
-      voterResultDisplay: "full",
+      voterResultDisplay: "none",
+      resultGenerationMode: "manual" as const,
       maxVoters: 0,
       genderBasedSelection: false,
       maleMinimum: 0,
@@ -112,6 +129,7 @@ export function resolveElectionFormDefaults(initialValues?: Record<string, unkno
       toDateInputValue(
         pickField(src, "electionDate", "election_date", "date")
       ) || new Date().toISOString().split("T")[0],
+    endDate: toDateInputValue(pickField(src, "endDate", "end_date")) || "",
     numberToBeElected:
       Number(pickField(src, "numberToBeElected", "number_to_be_elected", "maxNominees", "max_nominees") ?? 1) || 1,
     ballotSelectionRule: (
@@ -121,6 +139,9 @@ export function resolveElectionFormDefaults(initialValues?: Record<string, unkno
     ) as "exact" | "up_to",
     nomineeDisplayOrder: String(pickField(src, "nomineeDisplayOrder", "nominee_display_order") || "ALPHA"),
     voterResultDisplay: String(pickField(src, "voterResultDisplay", "voter_result_display") || "full"),
+    resultGenerationMode: (
+      pickField(src, "resultGenerationMode", "result_generation_mode") === "auto" ? "auto" : "manual"
+    ) as "auto" | "manual",
     maxVoters: Number(pickField(src, "maxVoters", "max_voters") ?? 0) || 0,
     genderBasedSelection: pickBoolean(src, "genderBasedSelection", "gender_based_selection"),
     maleMinimum: Number(pickField(src, "maleMinimum", "male_minimum") ?? 0) || 0,

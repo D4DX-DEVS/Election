@@ -22,6 +22,7 @@ const Reports = lazy(() => import("@/pages/Reports"));
 const Settings = lazy(() => import("@/pages/Settings"));
 const Profile = lazy(() => import("@/pages/Profile"));
 const AuditLogs = lazy(() => import("@/pages/AuditLogs"));
+const SystemHealth = lazy(() => import("@/pages/SystemHealth"));
 const Login = lazy(() => import("@/pages/Login"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
 const Onboarding = lazy(() => import("@/pages/Onboarding"));
@@ -307,6 +308,7 @@ function Router() {
           <Route path="/election-groups" component={() => <RedirectTo path="/elections" />} />
           <Route path="/franchises" component={Franchises} />
           <Route path="/admins" component={Admins} />
+          <Route path="/system-health" component={SystemHealth} />
           <Route path="/voter-groups" component={() => <RedirectTo path="/voters" />} />
           <Route path="/reports" component={Reports} />
           <Route path="/profile" component={Profile} />

@@ -80,7 +80,7 @@ export default function AuditLogs() {
   return (
     <MainLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h1 className="app-page-title flex items-center gap-2">
           <History className="h-6 w-6 text-primary" />
           Audit Logs
         </h1>

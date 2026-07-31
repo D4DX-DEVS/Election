@@ -168,6 +168,61 @@ exports.bulkAddNominees = async (req, res) => {
   }
 };
 
+exports.importPreviousNominees = async (req, res) => {
+  try {
+    const { sourceElectionId, targetElectionId } = req.body || {};
+    if (!sourceElectionId || !targetElectionId) {
+      return res.status(400).json({ success: false, message: "sourceElectionId and targetElectionId are required." });
+    }
+
+    const [sourceElection, targetElection] = await Promise.all([
+      elections.findById(sourceElectionId),
+      elections.findById(targetElectionId),
+    ]);
+    if (!sourceElection) return res.status(404).json({ success: false, message: "Source election not found." });
+    if (!targetElection) return res.status(404).json({ success: false, message: "Target election not found." });
+    if (await denyUnlessCanAccessElection(req, res, sourceElection)) return;
+    if (await denyUnlessCanAccessElection(req, res, targetElection)) return;
+
+    const sourceNominees = await nominees.findByElection(sourceElectionId);
+    if (!sourceNominees.length) {
+      return res.status(400).json({ success: false, message: "The source election has no nominees to import." });
+    }
+
+    const existingTargetNominees = await nominees.findByElection(targetElectionId);
+    const existingNames = new Set(
+      existingTargetNominees.map((n) => String(n.name || "").trim().toLowerCase())
+    );
+    const docs = sourceNominees
+      .filter((n) => !existingNames.has(String(n.name || "").trim().toLowerCase()))
+      .map((n) => ({
+        name: n.name,
+        gender: n.gender,
+        bio: n.bio,
+        photo: n.photo,
+        status: "active",
+        electionId: targetElectionId,
+      }));
+
+    if (!docs.length) {
+      return res.status(409).json({
+        success: false,
+        message: "All nominees from the source election already exist in the target election.",
+      });
+    }
+
+    const created = await nominees.insertMany(docs);
+    await logUserActivity(req.user._id, req.ip, "Imported", `${created.length} nominees from previous election`, "Nominee");
+    res.status(201).json({ success: true, message: "Nominees imported.", count: created.length, data: created });
+  } catch (err) {
+    if (err.statusCode) {
+      return res.status(err.statusCode).json({ success: false, message: err.message });
+    }
+    console.error(err);
+    res.status(500).json({ success: false, message: err.toString() });
+  }
+};
+
 exports.getNomineesByElection = async (req, res) => {
   try {
     const election = await elections.findById(req.params.electionId);

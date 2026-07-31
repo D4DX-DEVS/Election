@@ -5,6 +5,7 @@ import {
   Vote,
   Users,
   UserPlus,
+  Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -55,6 +56,7 @@ export function BottomNav() {
       { href: "/", label: "Home", icon: <LayoutDashboard className="h-5 w-5" /> },
       { href: "/franchises", label: "Franchises", icon: <Building className="h-5 w-5" /> },
       { href: "/admins", label: "Admins", icon: <Users className="h-5 w-5" /> },
+      { href: "/system-health", label: "Health", icon: <Activity className="h-5 w-5" /> },
     );
   }
 

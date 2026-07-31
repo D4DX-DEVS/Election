@@ -11,6 +11,7 @@ import {
   UserCog,
   ChevronDown,
   FileText,
+  Activity,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -183,6 +184,7 @@ export function Sidebar({ isOpen, userRole = "" }: SidebarProps) {
             </p>
             <NavLink href="/franchises" icon={<Building />} label="Franchises" />
             <NavLink href="/admins" icon={<UserCog />} label="Admins" />
+            <NavLink href="/system-health" icon={<Activity />} label="System Health" />
           </div>
         )}
 
@@ -199,8 +201,8 @@ export function Sidebar({ isOpen, userRole = "" }: SidebarProps) {
               onToggle={() => setElectionsOpen((v) => !v)}
               active={isElectionSectionPath(location)}
             >
-              <NavLink href="/elections" icon={<Vote />} label="All Elections" nested />
-              <NavLink href="/reports" icon={<FileText />} label="Reports" nested />
+              <NavLink href="/elections" icon={<Vote />} label="Manage Elections" nested />
+              <NavLink href="/reports" icon={<FileText />} label="Turnout Reports" nested />
             </NavGroup>
 
             <NavLink

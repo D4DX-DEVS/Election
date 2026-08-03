@@ -1,3 +1,5 @@
+import { useEffect } from "react"
+import { useLocation } from "wouter"
 import { useToast } from "@/hooks/use-toast"
 import {
   Toast,
@@ -18,7 +20,15 @@ const variantIcon = {
 } as const
 
 export function Toaster() {
-  const { toasts } = useToast()
+  const { toasts, dismiss } = useToast()
+  const [location] = useLocation()
+
+  // A toast belongs to the screen that raised it — clear it on navigation so
+  // it can't follow the user across pages.
+  useEffect(() => {
+    dismiss()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location])
 
   return (
     <ToastProvider>

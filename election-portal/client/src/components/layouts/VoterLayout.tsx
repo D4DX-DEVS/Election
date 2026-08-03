@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { useQueryClient } from '@tanstack/react-query';
-import { LogOut, Vote, ChevronLeft, User } from 'lucide-react';
+import { LogOut, Vote, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NotificationBell } from '@/components/layout/NotificationBell';
 import { SiteFooter } from '@/components/layout/SiteFooter';
@@ -72,7 +72,6 @@ export default function VoterLayout({ children, title, showBack, onBack }: Voter
 
   const isOnBallot = location.startsWith('/election/');
   const isOnResults = location.startsWith('/results/');
-  const isOnProfile = location === '/profile';
   const isOnSettings = location === '/settings';
 
   return (
@@ -170,24 +169,11 @@ export default function VoterLayout({ children, title, showBack, onBack }: Voter
               onClick={() => navigate('/voting')}
               className={cn(
                 'mx-auto w-[calc(100%-0.5rem)] flex flex-col items-center justify-center gap-1 rounded-xl py-2 text-[11px] font-semibold transition-colors active:bg-primary/5',
-                !isOnBallot && !isOnResults && !isOnProfile && !isOnSettings ? 'bg-primary/10 text-primary' : 'text-gray-500 dark:text-gray-400',
+                !isOnBallot && !isOnResults && !isOnSettings ? 'bg-primary/10 text-primary' : 'text-gray-500 dark:text-gray-400',
               )}
             >
               <Vote className="h-5 w-5" />
               <span>Elections</span>
-            </button>
-          </li>
-          <li className="flex-1">
-            <button
-              type="button"
-              onClick={() => navigate('/profile')}
-              className={cn(
-                'mx-auto w-[calc(100%-0.5rem)] flex flex-col items-center justify-center gap-1 rounded-xl py-2 text-[11px] font-semibold transition-colors active:bg-primary/5',
-                isOnProfile ? 'bg-primary/10 text-primary' : 'text-gray-500 dark:text-gray-400',
-              )}
-            >
-              <User className="h-5 w-5" />
-              <span>Profile</span>
             </button>
           </li>
         </ul>

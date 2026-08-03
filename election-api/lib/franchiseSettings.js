@@ -15,6 +15,7 @@ function readFranchiseContactFields(source = {}) {
   return {
     websiteUrl: asTrimmedString(settings.websiteUrl || source.websiteUrl),
     contactNumber: asTrimmedString(settings.contactNumber || source.contactNumber),
+    contactEmail: asTrimmedString(settings.contactEmail || source.contactEmail),
   };
 }
 
@@ -39,6 +40,12 @@ function mergeFranchiseSettings(existing = {}, data = {}) {
     const contactNumber = asTrimmedString(data.contactNumber);
     if (contactNumber) base.contactNumber = contactNumber;
     else delete base.contactNumber;
+  }
+
+  if (data.contactEmail !== undefined) {
+    const contactEmail = asTrimmedString(data.contactEmail);
+    if (contactEmail) base.contactEmail = contactEmail;
+    else delete base.contactEmail;
   }
 
   return base;

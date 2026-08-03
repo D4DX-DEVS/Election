@@ -14,8 +14,9 @@ import { Link, useLocation } from "wouter";
 import { ElectionStatus, ElectionWithDetails } from "@/lib/types";
 import { DropdownMenuItem, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { RowSelectCheckbox } from "@/components/ui/row-select-checkbox";
-import { MoreHorizontal, Activity, Trash2, Pencil } from "lucide-react";
+import { MoreHorizontal, Activity, Trash2, Pencil, Vote } from "lucide-react";
 import { getElectionLabel, isElectionEditable, allowedStatusChanges } from "@/lib/electionHelpers";
+import { cn } from "@/lib/utils";
 
 const STATUS_ACTION_LABELS: Record<string, string> = {
   draft: "Set as Draft",
@@ -32,6 +33,36 @@ function statusActionLabel(current: string | undefined, next: string) {
 
 function getElectionId(election: ElectionWithDetails) {
   return election._id?.toString() || election.id?.toString() || "";
+}
+
+/** Election logo with a neutral fallback tile when none is uploaded. */
+function ElectionLogo({
+  election,
+  className = "h-9 w-9",
+}: {
+  election: ElectionWithDetails;
+  className?: string;
+}) {
+  const url = election.logo?.url;
+  const label = getElectionLabel(election);
+  return (
+    <div
+      className={cn(
+        "shrink-0 overflow-hidden rounded-md border border-gray-200 bg-gray-50 flex items-center justify-center",
+        className
+      )}
+    >
+      {url ? (
+        <img
+          src={url}
+          alt={election.logo?.alt || label}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <Vote className="h-1/2 w-1/2 text-gray-400" />
+      )}
+    </div>
+  );
 }
 
 function ElectionMobileActions({
@@ -172,6 +203,7 @@ export function ElectionsTable({
                     onClick={(e) => e.stopPropagation()}
                   />
                 )}
+                <ElectionLogo election={election} className="h-10 w-10" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="text-sm md:text-base font-medium text-gray-900 leading-tight truncate">
@@ -241,7 +273,10 @@ export function ElectionsTable({
                     </TableCell>
                   )}
                   <TableCell className="font-medium">
-                    {getElectionLabel(election)}
+                    <div className="flex items-center gap-3">
+                      <ElectionLogo election={election} />
+                      <span className="truncate">{getElectionLabel(election)}</span>
+                    </div>
                   </TableCell>
                   <TableCell>
                     {format(new Date(election.electionDate), 'yyyy-MM-dd')}

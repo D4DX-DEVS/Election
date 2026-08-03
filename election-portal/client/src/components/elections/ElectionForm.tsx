@@ -73,6 +73,14 @@ export function ElectionForm({
 }: ElectionFormProps) {
   const { toast } = useToast();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>("");
+
+  // Logo already saved on the election (edit mode).
+  const existingLogoUrl = useMemo(() => {
+    const src = initialValues as Record<string, any> | undefined;
+    return String(src?.logo?.url || src?.logoUrl || "");
+  }, [initialValues]);
+
   const formDefaults = useMemo(
     () => resolveElectionFormDefaults(initialValues as Record<string, unknown> | undefined),
     [initialValues]
@@ -100,9 +108,21 @@ export function ElectionForm({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0]);
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      setLogoPreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return URL.createObjectURL(file);
+      });
     }
   };
+
+  // Release the object URL when the form unmounts.
+  useEffect(() => {
+    return () => {
+      if (logoPreview) URL.revokeObjectURL(logoPreview);
+    };
+  }, [logoPreview]);
 
   return (
     <Card>
@@ -502,7 +522,17 @@ export function ElectionForm({
 
           <div className="mb-6">
             <Label htmlFor="logo">Election Logo (Optional)</Label>
-            <div className="mt-1 flex flex-wrap items-center gap-2">
+            <div className="mt-1 flex flex-wrap items-center gap-3">
+              {/* Preview: the newly picked file, else the logo already saved. */}
+              {(logoPreview || existingLogoUrl) && (
+                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                  <img
+                    src={logoPreview || existingLogoUrl}
+                    alt="Election logo"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              )}
               <Input
                 id="logo"
                 type="file"
@@ -515,10 +545,14 @@ export function ElectionForm({
                 className="cursor-pointer inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-primary/5 transition"
               >
                 <Upload className="mr-2 h-4 w-4" />
-                Choose File
+                {existingLogoUrl || logoPreview ? "Change File" : "Choose File"}
               </Label>
               <span className="min-w-0 break-all text-sm text-gray-500">
-                {selectedFile ? selectedFile.name : "No file chosen"}
+                {selectedFile
+                  ? selectedFile.name
+                  : existingLogoUrl
+                    ? "Current logo"
+                    : "No file chosen"}
               </span>
             </div>
           </div>

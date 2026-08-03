@@ -17,11 +17,7 @@ interface BottomNavItem {
 }
 
 function isElectionSectionPath(path: string) {
-  return (
-    path === "/elections" ||
-    path.startsWith("/elections/") ||
-    path === "/reports"
-  );
+  return path === "/elections" || path.startsWith("/elections/");
 }
 
 function isVoterGroupsSectionPath(path: string) {

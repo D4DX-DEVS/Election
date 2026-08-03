@@ -107,7 +107,13 @@ exports.updateElectionById = async (req, res) => {
       req.body = { status: req.body.status };
     }
 
-    if (req.body.organization !== undefined) {
+    // Only validate a name that is actually changing — elections created before
+    // the no-digits rule keep their name, so editing their other settings must
+    // not be blocked by it.
+    const organizationChanged =
+      req.body.organization !== undefined &&
+      String(req.body.organization).trim() !== String(existing.organization || "").trim();
+    if (organizationChanged) {
       if (!isValidNameField(req.body.organization)) {
         return res.status(400).json({
           success: false,
@@ -186,6 +192,65 @@ exports.getVotingStatus = async (req, res) => {
       // group — each post has its own voter roster, so per-post numbers
       // (not a combined sum) are what's meaningful here.
       data: { current, posts: posts.length > 1 ? posts : [] },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: err.toString() });
+  }
+};
+
+/**
+ * Per-voter roster for the Live Status tab: who has voted (and how many
+ * nominees they picked) vs who hasn't. Sorted by vote count desc, then username.
+ */
+exports.getVotingRoster = async (req, res) => {
+  try {
+    const election = await elections.findById(req.params.id);
+    if (!election) return res.status(404).json({ success: false, message: "Election not found." });
+    if (await denyUnlessCanAccessElection(req, res, election)) return;
+
+    const electionId = election._id || election.id;
+    const assignedIds = await users.getAssignedVoterIdsForElection(electionId);
+    const [assignedUsers, voteList] = await Promise.all([
+      users.findByIds(assignedIds, { includePassword: false }),
+      votes.findByElection(electionId, { populateNominees: false, populateVoters: false }),
+    ]);
+
+    const voteByVoter = new Map();
+    voteList.forEach((v) => voteByVoter.set(String(v.voterId), v));
+
+    const voted = [];
+    const notVoted = [];
+    assignedUsers.forEach((u) => {
+      const id = String(u._id || u.id);
+      const entry = { id, username: u.username || "", fullName: u.fullName || "" };
+      const vote = voteByVoter.get(id);
+      if (vote) {
+        voted.push({
+          ...entry,
+          voteCount: Array.isArray(vote.nominees) ? vote.nominees.length : 0,
+          votedAt: vote.timestamp || null,
+        });
+      } else {
+        notVoted.push(entry);
+      }
+    });
+
+    const byUsername = (a, b) => String(a.username).localeCompare(String(b.username));
+    voted.sort((a, b) => b.voteCount - a.voteCount || byUsername(a, b));
+    notVoted.sort(byUsername);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        voted,
+        notVoted,
+        totals: {
+          assigned: assignedUsers.length,
+          voted: voted.length,
+          notVoted: notVoted.length,
+        },
+      },
     });
   } catch (err) {
     console.error(err);

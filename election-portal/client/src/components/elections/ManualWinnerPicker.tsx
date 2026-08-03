@@ -15,9 +15,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Trophy } from "lucide-react";
+import { Trophy, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { cn } from "@/lib/utils";
 
 interface ResultNominee {
   _id?: string;
@@ -33,6 +34,8 @@ interface ManualWinnerPickerProps {
   numberToBeElected: number;
   nominees: ResultNominee[];
   manualWinnerIds?: string[];
+  /** Result generation is locked once the election is completed/archived. */
+  electionStatus?: string | null;
 }
 
 export function ManualWinnerPicker({
@@ -41,6 +44,7 @@ export function ManualWinnerPicker({
   numberToBeElected,
   nominees,
   manualWinnerIds = [],
+  electionStatus,
 }: ManualWinnerPickerProps) {
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -79,6 +83,30 @@ export function ManualWinnerPicker({
   if (!enabled) return null;
 
   const seats = Math.max(numberToBeElected, 1);
+  const isLocked = electionStatus === "completed" || electionStatus === "archived";
+
+  // Highest votes first, so the cut-off for the last winning seat is visible.
+  const ranked = [...nominees].sort((a, b) => (b.voteCount ?? 0) - (a.voteCount ?? 0));
+
+  // A tie only needs breaking when the tied group *straddles* the last winning
+  // seat — i.e. those clearly ahead plus the tied group overflow the seats. Two
+  // nominees tied for two seats both win, so that is not an ambiguity.
+  const cutoffVotes = ranked.length > seats ? ranked[seats - 1]?.voteCount ?? null : null;
+  const tiedCount =
+    cutoffVotes === null
+      ? 0
+      : ranked.filter((n) => (n.voteCount ?? 0) === cutoffVotes).length;
+  const clearlyAhead =
+    cutoffVotes === null
+      ? 0
+      : ranked.filter((n) => (n.voteCount ?? 0) > cutoffVotes).length;
+  const hasCutoffTie =
+    cutoffVotes !== null &&
+    cutoffVotes > 0 && // before any votes are cast there is nothing to compare
+    tiedCount > 1 &&
+    clearlyAhead + tiedCount > seats;
+  const isTiedAtCutoff = (n: ResultNominee) =>
+    hasCutoffTie && (n.voteCount ?? 0) === cutoffVotes;
 
   const toggleNominee = (id: string, checked: boolean) => {
     setSelected((prev) => {
@@ -117,30 +145,66 @@ export function ManualWinnerPicker({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {hasCutoffTie && (
+          <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3">
+            <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
+            <p className="text-xs text-amber-800">
+              {tiedCount} nominees are tied on {cutoffVotes} vote{cutoffVotes === 1 ? "" : "s"} for
+              the last winning position. Pick which of them takes the seat.
+            </p>
+          </div>
+        )}
+
         {nominees.length === 0 ? (
           <p className="text-sm text-gray-500">Add nominees before selecting winners.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {nominees.map((nominee) => {
+          <div className="divide-y divide-gray-100 rounded-md border border-gray-200 bg-white">
+            {ranked.map((nominee, index) => {
               const id = String(nominee._id || nominee.id);
               const checked = selected.includes(id);
+              const tied = isTiedAtCutoff(nominee);
               return (
                 <div
                   key={id}
-                  className="flex items-start gap-2 rounded-md border p-3 bg-white"
+                  role="button"
+                  tabIndex={isLocked ? -1 : 0}
+                  onClick={() => !isLocked && toggleNominee(id, !checked)}
+                  onKeyDown={(e) => {
+                    if (isLocked) return;
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      toggleNominee(id, !checked);
+                    }
+                  }}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 transition-colors",
+                    tied ? "bg-amber-50 hover:bg-amber-100/70" : "hover:bg-primary/5",
+                    isLocked ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+                  )}
                 >
                   <SelectCheckbox
                     checked={checked}
-                    onCheckedChange={(value) => toggleNominee(id, value)}
+                    onCheckedChange={(value) => !isLocked && toggleNominee(id, value)}
                     aria-label={`Select ${nominee.name} as winner`}
-                    className="mt-0.5"
+                    onClick={(e) => e.stopPropagation()}
                   />
-                  <div className="min-w-0">
-                    <p className="font-medium text-sm">{nominee.name}</p>
-                    {nominee.voteCount !== undefined && (
-                      <p className="text-xs text-gray-500">{nominee.voteCount} vote(s)</p>
-                    )}
-                  </div>
+                  <span className="w-6 shrink-0 text-xs font-medium text-gray-400 tabular-nums">
+                    {index + 1}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-900">
+                    {nominee.name}
+                  </span>
+                  {tied && (
+                    <Badge
+                      variant="outline"
+                      className="shrink-0 border-amber-300 bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0"
+                    >
+                      Tied
+                    </Badge>
+                  )}
+                  <span className="shrink-0 text-xs text-gray-500 tabular-nums">
+                    {nominee.voteCount ?? 0} vote{(nominee.voteCount ?? 0) === 1 ? "" : "s"}
+                  </span>
                 </div>
               );
             })}
@@ -155,9 +219,10 @@ export function ManualWinnerPicker({
                 saveMutation.mutate(selected);
               }
             }}
-            disabled={saveMutation.isPending || nominees.length === 0}
+            disabled={saveMutation.isPending || nominees.length === 0 || isLocked}
+            title={isLocked ? "This election is already completed." : undefined}
           >
-            {saveMutation.isPending ? "Saving…" : "Save Winners"}
+            {saveMutation.isPending ? "Generating…" : "Generate Result"}
           </Button>
         </div>
       </CardContent>

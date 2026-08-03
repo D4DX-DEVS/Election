@@ -38,7 +38,13 @@ exports.updateFranchiseById = async (req, res) => {
     assertFranchiseAccess(req.user, existing);
 
     normalizeFranchiseBody(req);
-    if (req.body.name !== undefined) {
+    // Only validate a name that is actually changing — franchises created
+    // before the no-digits rule keep their name, so editing their other
+    // details (phone, email, logo) must not be blocked by it.
+    const nameChanged =
+      req.body.name !== undefined &&
+      String(req.body.name).trim() !== String(existing.name || "").trim();
+    if (nameChanged) {
       if (!isValidNameField(req.body.name)) {
         return res.status(400).json({
           success: false,
@@ -118,6 +124,9 @@ function normalizeFranchiseBody(req) {
   }
   if (body.contact_number !== undefined && body.contactNumber === undefined) {
     body.contactNumber = body.contact_number;
+  }
+  if (body.contact_email !== undefined && body.contactEmail === undefined) {
+    body.contactEmail = body.contact_email;
   }
   return body;
 }

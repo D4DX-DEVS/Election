@@ -862,7 +862,67 @@ export default function VoterGroups({
                 }
                 deleting={deleteGroupVotersMutation.isPending}
               />
-              <div className="border rounded-lg overflow-hidden">
+              {/* Mobile: house-style cards */}
+              <div className="space-y-3 lg:hidden">
+                {groupVoters.map((v) => {
+                  const pwd = groupVoterPasswordById.get(String(v._id));
+                  return (
+                    <div
+                      key={v._id}
+                      className="rounded-lg border border-gray-200 bg-white p-5 space-y-3"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex min-w-0 items-start gap-3">
+                          {groupVoterSelection.showSelectors && (
+                            <RowSelectCheckbox
+                              checked={groupVoterSelection.isSelected(v._id)}
+                              onCheckedChange={() => groupVoterSelection.toggle(v._id)}
+                              aria-label={`Select ${getDisplayUsername(v)}`}
+                              className="mt-0.5"
+                            />
+                          )}
+                          <div className="min-w-0">
+                            <h3 className="text-sm md:text-base font-medium text-gray-900 truncate font-mono">
+                              {getDisplayUsername(v)}
+                            </h3>
+                            <p className="text-xs text-gray-500 truncate font-mono">
+                              {pwd || <span className="italic text-gray-400">unavailable</span>}
+                            </p>
+                          </div>
+                        </div>
+                        <Badge
+                          variant={v.status === "active" ? "default" : "secondary"}
+                          className="shrink-0"
+                        >
+                          {v.status || "active"}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-1 border-t border-gray-100 pt-2">
+                        <VoterSlipPrinter
+                          voter={{ ...v, plainPassword: pwd } as any}
+                          electionNames={elections
+                            .filter((e) => (v.electionAccess || []).includes(e._id))
+                            .map((e) => getElectionLabel(e))}
+                        />
+                        {!groupVoterSelection.deleteMode && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 ml-auto"
+                            onClick={() => setPendingDeleteGroupVoterIds([v._id])}
+                            title="Delete voter"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop: table */}
+              <div className="hidden border rounded-lg overflow-x-auto lg:block">
                 <table className="w-full text-sm">
                   <thead className="bg-white border-b">
                     <tr>

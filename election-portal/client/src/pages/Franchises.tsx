@@ -23,6 +23,7 @@ import { PageContent } from "@/components/layout/PageContent";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { Pagination } from "@/lib/types";
 import { clearAccountSession } from "@/lib/session";
+import { getStoredUser } from "@/lib/authUser";
 import { isLettersOnlyName } from "@/lib/utils";
 
 interface Franchise {
@@ -34,6 +35,7 @@ interface Franchise {
   };
   websiteUrl?: string;
   contactNumber?: string;
+  contactEmail?: string;
   settings?: Record<string, unknown>;
   status: 'active' | 'inactive';
   createdAt: string;
@@ -43,6 +45,7 @@ interface CreateFranchiseFormData {
   name: string;
   websiteUrl: string;
   contactNumber: string;
+  contactEmail: string;
 }
 
 interface EditFranchiseFormData {
@@ -50,6 +53,7 @@ interface EditFranchiseFormData {
   name: string;
   websiteUrl: string;
   contactNumber: string;
+  contactEmail: string;
   status?: string;
 }
 
@@ -64,22 +68,30 @@ function resolveFranchiseContact(franchise: Franchise) {
   const settings = (franchise.settings ?? {}) as {
     websiteUrl?: string;
     contactNumber?: string;
+    contactEmail?: string;
   };
   return {
     websiteUrl: franchise.websiteUrl || settings.websiteUrl || "",
     contactNumber: franchise.contactNumber || settings.contactNumber || "",
+    contactEmail: franchise.contactEmail || settings.contactEmail || "",
   };
 }
 
 export default function Franchises() {
+  // Franchise admins only manage their own franchise — the API scopes the list
+  // and the update; here we hide the create/delete/admin actions they can't use.
+  const currentUser = getStoredUser();
+  const isSuperAdmin = currentUser?.role === "super_admin";
+
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [createFormData, setCreateFormData] = useState<CreateFranchiseFormData>({
     name: "",
     websiteUrl: "",
-    contactNumber: ""
+    contactNumber: "",
+    contactEmail: ""
   });
   const [logoFile, setLogoFile] = useState<File | null>(null);
-  
+
   // Edit franchise state
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editFormData, setEditFormData] = useState<EditFranchiseFormData>({
@@ -87,6 +99,7 @@ export default function Franchises() {
     name: "",
     websiteUrl: "",
     contactNumber: "",
+    contactEmail: "",
     status: "active"
   });
   const [editLogoFile, setEditLogoFile] = useState<File | null>(null);
@@ -356,6 +369,7 @@ export default function Franchises() {
     formData.append('name', createFormData.name);
     formData.append('websiteUrl', createFormData.websiteUrl);
     formData.append('contactNumber', createFormData.contactNumber);
+    formData.append('contactEmail', createFormData.contactEmail);
     
     // Add logo file if it exists
     if (logoFile) {
@@ -378,7 +392,8 @@ export default function Franchises() {
     setCreateFormData({
       name: "",
       websiteUrl: "",
-      contactNumber: ""
+      contactNumber: "",
+      contactEmail: ""
     });
     setLogoFile(null);
   };
@@ -389,6 +404,7 @@ export default function Franchises() {
       name: "",
       websiteUrl: "",
       contactNumber: "",
+      contactEmail: "",
       status: "active"
     });
     setEditLogoFile(null);
@@ -443,6 +459,7 @@ export default function Franchises() {
     formData.append('name', editFormData.name);
     formData.append('websiteUrl', editFormData.websiteUrl);
     formData.append('contactNumber', editFormData.contactNumber);
+    formData.append('contactEmail', editFormData.contactEmail);
     formData.append('status', editFormData.status || 'active');
     
     // Add logo file if it exists
@@ -457,13 +474,14 @@ export default function Franchises() {
   const handleEditFranchise = (franchise: Franchise) => {
     const settings =
       franchise.settings && typeof franchise.settings === "object"
-        ? (franchise.settings as { websiteUrl?: string; contactNumber?: string })
+        ? (franchise.settings as { websiteUrl?: string; contactNumber?: string; contactEmail?: string })
         : {};
     setEditFormData({
       id: franchise._id,
       name: franchise.name,
       websiteUrl: franchise.websiteUrl || settings.websiteUrl || "",
       contactNumber: franchise.contactNumber || settings.contactNumber || "",
+      contactEmail: franchise.contactEmail || settings.contactEmail || "",
       status: franchise.status
     });
     setIsEditDialogOpen(true);
@@ -567,14 +585,16 @@ export default function Franchises() {
       <PageContent>
             <div className="mb-5 sm:mb-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <h1 className="app-page-title">Franchises</h1>
+                <h1 className="app-page-title">{isSuperAdmin ? "Franchises" : "My Franchise"}</h1>
                 <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button size="sm" className="w-full shrink-0 sm:w-auto">
-                      <Plus className="mr-1 h-3.5 w-3.5" />
-                      Add franchise
-                    </Button>
-                  </DialogTrigger>
+                  {isSuperAdmin && (
+                    <DialogTrigger asChild>
+                      <Button size="sm" className="w-full shrink-0 sm:w-auto">
+                        <Plus className="mr-1 h-3.5 w-3.5" />
+                        Add franchise
+                      </Button>
+                    </DialogTrigger>
+                  )}
                 <DialogContent className="sm:max-w-[525px]">
                   <DialogHeader>
                     <DialogTitle>Create New Franchise</DialogTitle>
@@ -625,6 +645,17 @@ export default function Franchises() {
                           value={createFormData.contactNumber}
                           onChange={handleCreateFormChange}
                           placeholder="+1 (555) 123-4567"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="contactEmail">Contact Email</Label>
+                        <Input
+                          id="contactEmail"
+                          name="contactEmail"
+                          type="email"
+                          value={createFormData.contactEmail}
+                          onChange={handleCreateFormChange}
+                          placeholder="contact@example.com"
                         />
                       </div>
                     </div>
@@ -703,6 +734,17 @@ export default function Franchises() {
                           value={editFormData.contactNumber}
                           onChange={handleEditFormChange}
                           placeholder="+1 (555) 123-4567"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="edit-contactEmail">Contact Email</Label>
+                        <Input
+                          id="edit-contactEmail"
+                          name="contactEmail"
+                          type="email"
+                          value={editFormData.contactEmail}
+                          onChange={handleEditFormChange}
+                          placeholder="contact@example.com"
                         />
                       </div>
                       <div className="grid gap-2">
@@ -1030,22 +1072,26 @@ export default function Franchises() {
                           <Button variant="ghost" size="sm" onClick={() => handleEditFranchise(franchise)}>
                             <Edit className="h-4 w-4 mr-1" /> Edit
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleManageAdmin(franchise)}
-                          >
-                            Admins
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-auto"
-                            onClick={() => handleDeleteFranchise(franchise._id)}
-                            disabled={deleteFranchisesMutation.isPending}
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" /> Delete
-                          </Button>
+                          {isSuperAdmin && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleManageAdmin(franchise)}
+                              >
+                                Admins
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-auto"
+                                onClick={() => handleDeleteFranchise(franchise._id)}
+                                disabled={deleteFranchisesMutation.isPending}
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" /> Delete
+                              </Button>
+                            </>
+                          )}
                         </div>
                         )}
                       </div>
@@ -1126,30 +1172,34 @@ export default function Franchises() {
                                 <Edit className="h-4 w-4 mr-1" />
                                 Edit
                               </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="mr-2"
-                                onClick={() => handleManageAdmin(franchise)}
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 mr-1">
-                                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                                  <circle cx="9" cy="7" r="4"></circle>
-                                  <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                                </svg>
-                                Admins
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-red-600 hover:text-red-700"
-                                onClick={() => handleDeleteFranchise(franchise._id)}
-                                disabled={deleteFranchisesMutation.isPending}
-                              >
-                                <Trash2 className="h-4 w-4 mr-1" />
-                                Delete
-                              </Button>
+                              {isSuperAdmin && (
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="mr-2"
+                                    onClick={() => handleManageAdmin(franchise)}
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 mr-1">
+                                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                      <circle cx="9" cy="7" r="4"></circle>
+                                      <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                    </svg>
+                                    Admins
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-red-600 hover:text-red-700"
+                                    onClick={() => handleDeleteFranchise(franchise._id)}
+                                    disabled={deleteFranchisesMutation.isPending}
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-1" />
+                                    Delete
+                                  </Button>
+                                </>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>

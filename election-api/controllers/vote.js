@@ -380,6 +380,40 @@ exports.updateVote = async (req, res) => {
   }
 };
 
+/**
+ * Clear one voter's ballot for an election so they can vote again.
+ * Admin-only and scoped to an election the actor may access — unlike the raw
+ * deleteVote below, which takes a bare vote id and has no election check.
+ */
+exports.resetVoterVote = async (req, res) => {
+  try {
+    const { electionId, voterId } = req.params;
+
+    const election = await elections.findById(electionId);
+    if (!election) return res.status(404).json({ success: false, message: "Election not found." });
+    if (await denyUnlessCanAccessElection(req, res, election)) return;
+
+    if (!election.votingOpen) {
+      return res.status(400).json({
+        success: false,
+        message: "Voting is closed for this election, so votes can no longer be changed.",
+      });
+    }
+
+    const existing = await votes.findOne({ voterId, electionId });
+    if (!existing) {
+      return res.status(404).json({ success: false, message: "This voter has not voted yet." });
+    }
+
+    await votes.deleteById(existing._id || existing.id);
+    await logAuditFromReq(req, "Reset vote for", voterId, "Vote", electionId);
+    res.status(200).json({ success: true, message: "Vote cleared. The voter can vote again." });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: err.toString() });
+  }
+};
+
 exports.deleteVote = async (req, res) => {
   try {
     const { id } = req.query;

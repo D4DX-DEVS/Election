@@ -240,10 +240,11 @@ export default function Analytics({ embedded = false, electionId }: { embedded?:
               numberToBeElected={selectedElection.numberToBeElected || 1}
               nominees={nomineesWithVotes}
               manualWinnerIds={selectedElection.manualWinnerIds || []}
+              electionStatus={selectedElection.status}
             />
           )}
           {!embedded && selectedElection?.adminVotingDetailsEnabled && (
-            <AdminVotingDetailsPanel electionId={selectedElectionId} enabled />
+            <AdminVotingDetailsPanel electionId={selectedElectionId} enabled votingOpen={!!selectedElection?.votingOpen} />
           )}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           <div className="lg:col-span-2">

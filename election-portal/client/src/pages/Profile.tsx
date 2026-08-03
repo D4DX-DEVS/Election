@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { AccountShell } from "@/components/account/AccountShell";
+import { FranchiseSettingsCard } from "@/components/account/FranchiseSettingsCard";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -68,10 +69,18 @@ export default function Profile() {
   }, [user]);
 
   const franchiseId = user?.franchiseId;
-  const { data: franchise } = useQuery<FranchiseSummary>({
+  const isFranchiseAdmin = user?.role === "franchise_admin";
+  // Franchise admins get the full "My Franchise" card below, so this lookup is
+  // only for the other roles' read-only summary line.
+  const { data: franchiseResp } = useQuery<{ data?: FranchiseSummary } | FranchiseSummary>({
     queryKey: franchiseId ? [`/api/franchises/${franchiseId}`] : ["profile-franchise-skip"],
-    enabled: !!franchiseId,
+    enabled: !!franchiseId && !isFranchiseAdmin,
   });
+  // The API wraps the record in { success, data } — read through the envelope
+  // so this shows the name instead of falling back to the raw id.
+  const franchiseName =
+    (franchiseResp as { data?: FranchiseSummary })?.data?.name ??
+    (franchiseResp as FranchiseSummary)?.name;
 
   const updateProfileMutation = useMutation({
     mutationFn: async () => {
@@ -159,6 +168,12 @@ export default function Profile() {
           </CardContent>
         </Card>
 
+        {/* Franchise admins manage their own organisation's details here — full
+            width so it doesn't leave a gap beside the two-column grid below. */}
+        {user?.role === "franchise_admin" && franchiseId && (
+          <FranchiseSettingsCard franchiseId={String(franchiseId)} />
+        )}
+
         <div className="grid gap-4 lg:grid-cols-2">
           <Card>
             <CardHeader className="p-4 pb-0 md:p-5 md:pb-0">
@@ -223,12 +238,13 @@ export default function Profile() {
                 </div>
               </div>
 
-              {franchiseId && (
+              {/* Franchise admins see their organisation in the card below. */}
+              {franchiseId && !isFranchiseAdmin && franchiseName && (
                 <div className="flex items-start gap-3">
                   <Building2 className="h-4 w-4 mt-0.5 text-muted-foreground" />
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-xs text-muted-foreground">Franchise</p>
-                    <p className="font-medium">{franchise?.name || franchiseId}</p>
+                    <p className="font-medium truncate">{franchiseName}</p>
                   </div>
                 </div>
               )}

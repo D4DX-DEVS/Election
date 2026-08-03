@@ -4,7 +4,6 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { UpdatePrompt } from "@/components/pwa/UpdatePrompt";
 import { canAccessPath } from "@/lib/roles";
 import { clearAccountSession } from "@/lib/session";
@@ -18,7 +17,6 @@ const ElectionResults = lazy(() => import("@/pages/ElectionResults"));
 const Voters = lazy(() => import("@/pages/Voters"));
 const Franchises = lazy(() => import("@/pages/Franchises"));
 const Admins = lazy(() => import("@/pages/Admins"));
-const Reports = lazy(() => import("@/pages/Reports"));
 const Settings = lazy(() => import("@/pages/Settings"));
 const Profile = lazy(() => import("@/pages/Profile"));
 const AuditLogs = lazy(() => import("@/pages/AuditLogs"));
@@ -218,7 +216,6 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
         location.startsWith('/results/') ||
         location === '/login' ||
         location === '/onboarding' ||
-        location === '/profile' ||
         location === '/settings';
       if (!voterAllowed) {
         setLocation('/voting');
@@ -228,6 +225,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
     // ── Guard: pages that only super_admin may access ──
     // franchise_admin and election_admin are redirected to their own home page.
+    // Franchise admins edit their own franchise from the Profile page instead.
     const superAdminOnlyPaths = ['/franchises', '/audit-logs'];
     if (
       user &&
@@ -310,7 +308,6 @@ function Router() {
           <Route path="/admins" component={Admins} />
           <Route path="/system-health" component={SystemHealth} />
           <Route path="/voter-groups" component={() => <RedirectTo path="/voters" />} />
-          <Route path="/reports" component={Reports} />
           <Route path="/profile" component={Profile} />
           <Route path="/settings" component={Settings} />
           <Route path="/audit-logs" component={AuditLogs} />
@@ -328,7 +325,6 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <Router />
-        <InstallPrompt />
         <UpdatePrompt />
       </TooltipProvider>
     </QueryClientProvider>

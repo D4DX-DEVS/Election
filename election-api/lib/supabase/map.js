@@ -71,6 +71,7 @@ function mapFranchise(row) {
     name: row.name,
     websiteUrl: contact.websiteUrl || undefined,
     contactNumber: contact.contactNumber || undefined,
+    contactEmail: contact.contactEmail || undefined,
     logo: row.logo_url
       ? { url: resolvePublicImageUrl(row.logo_url), alt: row.logo_alt }
       : undefined,
@@ -91,7 +92,8 @@ function franchiseToRow(data, existingSettings = {}) {
   const shouldMergeSettings =
     data.settings !== undefined ||
     data.websiteUrl !== undefined ||
-    data.contactNumber !== undefined;
+    data.contactNumber !== undefined ||
+    data.contactEmail !== undefined;
 
   if (shouldMergeSettings) {
     row.settings = mergeFranchiseSettings(existingSettings, data);

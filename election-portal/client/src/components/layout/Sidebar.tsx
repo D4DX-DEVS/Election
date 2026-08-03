@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { cloneElement, isValidElement, useEffect, useState } from "react";
+import { cloneElement, isValidElement } from "react";
 import type { ReactElement } from "react";
 import { cn } from "@/lib/utils";
 import { buildVoterGroupsListUrl } from "@/lib/voterGroupNav";
@@ -9,8 +9,6 @@ import {
   Vote,
   UserPlus,
   UserCog,
-  ChevronDown,
-  FileText,
   Activity,
 } from "lucide-react";
 
@@ -20,11 +18,7 @@ interface SidebarProps {
 }
 
 function isElectionSectionPath(path: string) {
-  return (
-    path === "/elections" ||
-    path.startsWith("/elections/") ||
-    path === "/reports"
-  );
+  return path === "/elections" || path.startsWith("/elections/");
 }
 
 function isVoterGroupsSectionPath(path: string) {
@@ -46,16 +40,11 @@ function isPathActive(location: string, href: string) {
 
 export function Sidebar({ isOpen, userRole = "" }: SidebarProps) {
   const [location] = useLocation();
-  const [electionsOpen, setElectionsOpen] = useState(isElectionSectionPath(location));
 
   const isSuperAdmin = userRole === "super_admin";
   const isFranchiseAdmin = userRole === "franchise_admin";
   const isElectionAdmin = userRole === "election_admin";
   const isVoter = userRole === "voter";
-
-  useEffect(() => {
-    if (isElectionSectionPath(location)) setElectionsOpen(true);
-  }, [location]);
 
   const NavLink = ({
     href,
@@ -96,52 +85,6 @@ export function Sidebar({ isOpen, userRole = "" }: SidebarProps) {
       </Link>
     );
   };
-
-  const NavGroup = ({
-    label,
-    icon,
-    open,
-    onToggle,
-    active,
-    children,
-  }: {
-    label: string;
-    icon: React.ReactNode;
-    open: boolean;
-    onToggle: () => void;
-    active: boolean;
-    children: React.ReactNode;
-  }) => (
-    <div>
-      <button
-        type="button"
-        onClick={onToggle}
-        className={cn(
-          "group relative flex w-full items-center gap-3 px-4 py-2.5 my-0.5 rounded-xl text-sm font-medium transition-colors text-left",
-          active
-            ? "bg-primary/10 text-primary font-semibold before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:rounded-full before:bg-primary"
-            : "text-slate-600 hover:bg-primary/5 hover:text-primary"
-        )}
-      >
-        {isValidElement(icon)
-          ? cloneElement(icon as ReactElement<{ className?: string }>, {
-              className: cn(
-                "h-5 w-5 shrink-0",
-                active ? "text-primary" : "text-slate-400 group-hover:text-primary"
-              ),
-            })
-          : icon}
-        <span className="flex-1">{label}</span>
-        <ChevronDown
-          className={cn(
-            "h-4 w-4 shrink-0 text-slate-400 transition-transform",
-            open && "rotate-180"
-          )}
-        />
-      </button>
-      {open ? <div className="pb-1">{children}</div> : null}
-    </div>
-  );
 
   if (isVoter) {
     return (
@@ -194,16 +137,12 @@ export function Sidebar({ isOpen, userRole = "" }: SidebarProps) {
               Manage
             </p>
 
-            <NavGroup
-              label="Elections"
+            <NavLink
+              href="/elections"
               icon={<Vote />}
-              open={electionsOpen}
-              onToggle={() => setElectionsOpen((v) => !v)}
-              active={isElectionSectionPath(location)}
-            >
-              <NavLink href="/elections" icon={<Vote />} label="Manage Elections" nested />
-              <NavLink href="/reports" icon={<FileText />} label="Turnout Reports" nested />
-            </NavGroup>
+              label="Elections"
+              isActive={(path) => isElectionSectionPath(path)}
+            />
 
             <NavLink
               href={buildVoterGroupsListUrl()}

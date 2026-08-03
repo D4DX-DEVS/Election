@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { addElection, getElections, getElectionById, updateElectionById, deleteElectionById, publishResults, setManualWinners, getVotingStatus } = require("../controllers/election");
+const { addElection, getElections, getElectionById, updateElectionById, deleteElectionById, publishResults, setManualWinners, getVotingStatus, getVotingRoster } = require("../controllers/election");
 const { protect, authorize } = require("../middleware/auth");
 const { upload } = require("../middleware/upload");
 const { uploadToCdn } = require("../middleware/uploadImage");
@@ -15,6 +15,7 @@ router
 router.patch("/:id/publish", protect, admin, publishResults);
 router.patch("/:id/manual-winners", protect, admin, setManualWinners);
 router.get("/:id/voting-status", protect, admin, getVotingStatus);
+router.get("/:id/voting-roster", protect, admin, getVotingRoster);
 
 // GET /:id stays voter-accessible — the ballot and results pages need it.
 router

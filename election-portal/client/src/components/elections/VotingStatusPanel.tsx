@@ -21,11 +21,86 @@ interface VotingStatusResponse {
   posts: VotingStatusEntry[];
 }
 
+interface RosterVoter {
+  id: string;
+  username: string;
+  fullName?: string;
+  voteCount?: number;
+  votedAt?: string | null;
+}
+
+interface RosterResponse {
+  voted: RosterVoter[];
+  notVoted: RosterVoter[];
+  totals: { assigned: number; voted: number; notVoted: number };
+}
+
+/** Voter roster column — voted (with pick counts) or still pending. */
+function RosterList({
+  title,
+  icon,
+  accent,
+  voters,
+  showCounts,
+  emptyText,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  accent: string;
+  voters: RosterVoter[];
+  showCounts?: boolean;
+  emptyText: string;
+}) {
+  return (
+    <Card>
+      <CardContent className="p-0">
+        <div className="flex items-center gap-2 border-b border-gray-200 px-4 py-3">
+          <span className={accent}>{icon}</span>
+          <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+          <span className="ml-auto text-xs font-medium text-gray-500">{voters.length}</span>
+        </div>
+        {voters.length === 0 ? (
+          <p className="px-4 py-6 text-center text-sm text-gray-500">{emptyText}</p>
+        ) : (
+          <ul className="max-h-80 divide-y divide-gray-100 overflow-y-auto">
+            {voters.map((voter) => (
+              <li key={voter.id} className="flex items-center gap-3 px-4 py-2.5">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-gray-900">
+                    {voter.fullName?.trim() || voter.username}
+                  </p>
+                  {voter.fullName?.trim() && voter.fullName.trim() !== voter.username && (
+                    <p className="truncate text-xs text-gray-500">{voter.username}</p>
+                  )}
+                </div>
+                {showCounts && (
+                  <span className="shrink-0 text-xs font-medium text-gray-600 tabular-nums">
+                    {voter.voteCount ?? 0} vote{(voter.voteCount ?? 0) === 1 ? "" : "s"}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export function VotingStatusPanel({ electionId }: { electionId: string }) {
   const { data, isLoading, isError } = useQuery<{ data?: VotingStatusResponse }>({
     queryKey: [`/api/elections/${electionId}/voting-status`],
     queryFn: async () => {
       const res = await apiRequest("GET", `/api/elections/${electionId}/voting-status`);
+      return res.json();
+    },
+    refetchInterval: 15000,
+  });
+
+  const { data: rosterData } = useQuery<{ data?: RosterResponse }>({
+    queryKey: [`/api/elections/${electionId}/voting-roster`],
+    queryFn: async () => {
+      const res = await apiRequest("GET", `/api/elections/${electionId}/voting-roster`);
       return res.json();
     },
     refetchInterval: 15000,
@@ -47,6 +122,7 @@ export function VotingStatusPanel({ electionId }: { electionId: string }) {
   }
 
   const { current, posts } = status;
+  const roster = rosterData?.data;
 
   return (
     <div className="mb-6">
@@ -73,6 +149,26 @@ export function VotingStatusPanel({ electionId }: { electionId: string }) {
           iconColor="text-indigo-600"
         />
       </div>
+
+      {roster && (
+        <div className="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
+          <RosterList
+            title="Voted"
+            icon={<CheckCircle2 className="h-4 w-4" />}
+            accent="text-green-600"
+            voters={roster.voted}
+            showCounts
+            emptyText="No one has voted yet."
+          />
+          <RosterList
+            title="Not voted"
+            icon={<Clock className="h-4 w-4" />}
+            accent="text-amber-600"
+            voters={roster.notVoted}
+            emptyText="Everyone has voted."
+          />
+        </div>
+      )}
 
       {posts.length > 1 && (
         <Card>

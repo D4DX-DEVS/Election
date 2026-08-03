@@ -16,6 +16,7 @@ import {
   BarChart3,
   CalendarDays,
   AlertTriangle,
+  Trophy,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { format } from "date-fns";
@@ -46,7 +47,7 @@ function StatusBadge({ status }: { status?: string }) {
 
 function getTabFromSearch() {
   const tab = new URLSearchParams(window.location.search).get("tab");
-  if (tab === "home" || tab === "voters" || tab === "results" || tab === "admin" || tab === "nominees" || tab === "status") {
+  if (tab === "home" || tab === "voters" || tab === "results" || tab === "admin" || tab === "nominees" || tab === "status" || tab === "generate") {
     return tab;
   }
   return "home";
@@ -210,6 +211,11 @@ export default function ElectionWorkspace() {
               <BarChart3 className="h-4 w-4" /> Live Status
             </TabsTrigger>
           )}
+          {election?.manualWinnerSelection && (
+            <TabsTrigger value="generate" className="shrink-0 gap-1.5">
+              <Trophy className="h-4 w-4" /> Generate Result
+            </TabsTrigger>
+          )}
           <TabsTrigger value="results" className="shrink-0 gap-1.5">
             <Vote className="h-4 w-4" /> Results &amp; Analytics
           </TabsTrigger>
@@ -237,6 +243,22 @@ export default function ElectionWorkspace() {
           {id && <VotingStatusPanel electionId={id} />}
         </TabsContent>
 
+        {/* Generate Result — manual-winner elections pick their winners here */}
+        {election?.manualWinnerSelection && (
+          <TabsContent value="generate" className="mt-0">
+            {id && (
+              <ManualWinnerPicker
+                electionId={id}
+                enabled={!!election.manualWinnerSelection}
+                numberToBeElected={election?.numberToBeElected || 1}
+                nominees={results?.nominees || []}
+                manualWinnerIds={election?.manualWinnerIds || results?.election?.manualWinnerIds || []}
+                electionStatus={election?.status}
+              />
+            )}
+          </TabsContent>
+        )}
+
         {/* Results & Analytics — always visible; publish/print actions are completed-only */}
         <TabsContent value="results" className="mt-0">
           {id && !electionLocked && (
@@ -262,17 +284,8 @@ export default function ElectionWorkspace() {
               genderBasedSelection={!!election?.genderBasedSelection}
             />
           )}
-          {id && !electionLocked && election?.manualWinnerSelection && (
-            <ManualWinnerPicker
-              electionId={id}
-              enabled={!!election.manualWinnerSelection}
-              numberToBeElected={election?.numberToBeElected || 1}
-              nominees={results?.nominees || []}
-              manualWinnerIds={election?.manualWinnerIds || results?.election?.manualWinnerIds || []}
-            />
-          )}
           {id && election?.adminVotingDetailsEnabled && (
-            <AdminVotingDetailsPanel electionId={id} enabled={!!election.adminVotingDetailsEnabled} />
+            <AdminVotingDetailsPanel electionId={id} enabled={!!election.adminVotingDetailsEnabled} votingOpen={!!election?.votingOpen} />
           )}
           {id && <Analytics embedded electionId={id} />}
         </TabsContent>

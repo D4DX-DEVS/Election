@@ -18,19 +18,20 @@ export function isHigherRole(actorRole?: string, targetRole?: string): boolean {
 
 export function canAccessPath(role: string | undefined, path: string): boolean {
   if (!role || role === "voter") {
+    // Voters have no profile page — only admins manage account details.
     return (
       path === "/voting" ||
       path.startsWith("/election/") ||
       path.startsWith("/results/") ||
       path === "/login" ||
       path === "/onboarding" ||
-      path === "/profile" ||
       path === "/settings"
     );
   }
 
   if (role === "super_admin") return true;
 
+  // Franchise admins edit their own franchise from the Profile page instead.
   const superAdminOnly = ["/franchises", "/audit-logs", "/system-health"];
   if (superAdminOnly.some((p) => path === p || path.startsWith(`${p}/`))) {
     return false;

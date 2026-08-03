@@ -6,7 +6,10 @@ import type {
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+/** How long a closed toast lingers in state before removal (lets it animate out). */
+const TOAST_REMOVE_DELAY = 400
+/** Auto-dismiss after this long unless the caller passes its own duration. */
+const DEFAULT_TOAST_DURATION = 4000
 
 type ToasterToast = ToastProps & {
   id: string
@@ -152,6 +155,7 @@ function toast({ ...props }: Toast) {
   dispatch({
     type: "ADD_TOAST",
     toast: {
+      duration: DEFAULT_TOAST_DURATION,
       ...props,
       id,
       open: true,
@@ -171,6 +175,7 @@ function toast({ ...props }: Toast) {
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState)
 
+  // Subscribe once — re-running on every state change churned the listener list.
   React.useEffect(() => {
     listeners.push(setState)
     return () => {
@@ -179,7 +184,7 @@ function useToast() {
         listeners.splice(index, 1)
       }
     }
-  }, [state])
+  }, [])
 
   return {
     ...state,

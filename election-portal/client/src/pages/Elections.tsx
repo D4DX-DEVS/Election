@@ -5,7 +5,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { ElectionFilters } from "@/components/elections/ElectionFilters";
 import { ElectionsTable } from "@/components/elections/ElectionsTable";
 import { Button } from "@/components/ui/button";
-import { PlusIcon, AlertCircle } from "lucide-react";
+import { PlusIcon, AlertCircle, Vote, Users, User, CheckCircle2 } from "lucide-react";
 import { ElectionFilter, ElectionWithDetails, Franchise, Pagination } from "@/lib/types";
 import { useCallback } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -14,16 +14,41 @@ import { PageContent, PageBottom, PageHeader } from "@/components/layout/PageCon
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { deleteByIds } from "@/lib/bulkDelete";
 import { useToast } from "@/hooks/use-toast";
-import { isElectionEditable } from "@/lib/electionHelpers";
+import { getElectionLabel, isElectionEditable } from "@/lib/electionHelpers";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getStoredUser } from "@/lib/authUser";
+
+/** Compact summary tile for the Elections toolbar — subtle border, small icon, no heavy shadow. */
+function SummaryStat({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value: number;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <p className="text-lg font-semibold leading-none text-gray-900">{value}</p>
+        <p className="mt-1 truncate text-xs text-gray-500">{label}</p>
+      </div>
+    </div>
+  );
+}
 
 export default function Elections() {
   const [filters, setFilters] = useState<ElectionFilter>({});
   const [page, setPage] = useState(1);
   const pageSize = 10;
   const [pendingDeleteIds, setPendingDeleteIds] = useState<string[] | null>(null);
+  const [search, setSearch] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const { toast } = useToast();
 
   // Get user data from localStorage for role-based filtering
@@ -71,7 +96,6 @@ export default function Elections() {
     data: electionsResponse,
     isLoading: electionsLoading,
     isError: electionsError,
-    refetch: refetchElections
   } = useQuery<{ data: ElectionWithDetails[]; pagination?: Pagination }>({
     queryKey: ['/api/elections', getQueryString(), page],
     queryFn: async () => {
@@ -213,12 +237,28 @@ export default function Elections() {
   const displayElections = getFilteredElections();
   const displayFranchises = franchises || [];
 
+  // Client-side search over the currently loaded page — matches the "Search
+  // election" toolbar field without touching server pagination/filtering.
+  const searchedElections = search.trim()
+    ? displayElections.filter((election) =>
+        getElectionLabel(election).toLowerCase().includes(search.trim().toLowerCase())
+      )
+    : displayElections;
+
+  // Best-effort summary tiles from the currently loaded page — there's no
+  // dedicated aggregate endpoint, so nominee/voter/active counts reflect the
+  // visible rows while the election total comes from server pagination.
+  const totalElections = electionsPagination?.total ?? displayElections.length;
+  const totalNominees = displayElections.reduce((sum, e) => sum + (e.nomineeCount ?? 0), 0);
+  const totalVoters = displayElections.reduce((sum, e) => sum + (e.voterCount ?? 0), 0);
+  const activeElections = displayElections.filter((e) => e.status === "active").length;
+
   return (
     <MainLayout>
       <PageContent>
       <PageHeader
         title="Elections"
-        description="Select an election to manage its nominees and voters"
+        description="Manage elections, nominees, and voters"
         actions={userRole !== "election_admin" ? (
           <Link href="/elections/create">
           <Button size="sm">
@@ -228,6 +268,15 @@ export default function Elections() {
           </Link>
         ) : undefined}
       />
+
+      {!electionsLoading && (
+        <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <SummaryStat label="Total elections" value={totalElections} icon={<Vote className="h-4 w-4" />} />
+          <SummaryStat label="Total nominees" value={totalNominees} icon={<Users className="h-4 w-4" />} />
+          <SummaryStat label="Total voters" value={totalVoters} icon={<User className="h-4 w-4" />} />
+          <SummaryStat label="Active elections" value={activeElections} icon={<CheckCircle2 className="h-4 w-4" />} />
+        </div>
+      )}
 
       {franchisesError && (
         <Alert variant="destructive" className="mb-4">
@@ -240,7 +289,7 @@ export default function Elections() {
       )}
 
       {/* Only super admins need cross-franchise filtering; franchise/election admins are already scoped */}
-      {userRole === 'super_admin' && !franchisesLoading && (
+      {userRole === 'super_admin' && !franchisesLoading && filtersOpen && (
         <ElectionFilters
           franchises={displayFranchises}
           onApplyFilters={handleApplyFilters}
@@ -262,9 +311,13 @@ export default function Elections() {
       ) : (
         <>
           <ElectionsTable
-            elections={displayElections}
+            elections={searchedElections}
             onDelete={handleDeleteElection}
             onStatusChange={handleStatusChange}
+            search={search}
+            onSearchChange={setSearch}
+            onToggleFilters={userRole === 'super_admin' ? () => setFiltersOpen((v) => !v) : undefined}
+            filtersOpen={filtersOpen}
           />
           <PageBottom>
           {electionsPagination && (

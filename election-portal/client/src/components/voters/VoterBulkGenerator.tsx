@@ -2,13 +2,6 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Loader2, Shuffle } from "lucide-react";
 import { BulkVoterGenerationOptions } from "@/lib/types";
 import { getElectionLabel } from "@/lib/electionHelpers";
@@ -66,11 +59,6 @@ export function VoterBulkGenerator({
         ? prev.filter((id) => id !== electionId)
         : [...prev, electionId]
     );
-  };
-
-  const getElectionTitle = (electionId: string) => {
-    const election = elections?.find((e) => e?._id?.toString() === electionId);
-    return election ? getElectionLabel(election) : "Select an election";
   };
 
   const handleSubmit = () => {

@@ -22,7 +22,7 @@
 --destructive: 355 78% 50%;
 --destructive-foreground: 0 0% 100%;
 --ring: 222 83% 53%;
---radius: 1rem;
+--radius: 0.75rem;
 --chart-1: 222 83% 53%;
 --chart-2: 355 78% 55%;
 --chart-3: 199 89% 48%;
@@ -81,6 +81,9 @@
   }
 
   html {
+    /* Scales every rem-based Tailwind size down uniformly (16px -> 15px root)
+       for a smaller, more standard body-text feel site-wide. */
+    font-size: 15px;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     /* Prevent font size inflation on orientation change (iOS) */
@@ -119,11 +122,11 @@
   }
 
   main h1 {
-    @apply text-xl font-bold leading-tight text-slate-950 sm:text-2xl;
+    @apply text-lg font-bold leading-tight text-slate-950 sm:text-xl;
   }
 
   main h2 {
-    @apply text-lg font-semibold leading-snug text-slate-900 sm:text-xl;
+    @apply text-base font-semibold leading-snug text-slate-900 sm:text-lg;
   }
 }
 
@@ -141,7 +144,7 @@
   }
 
   .app-page-title {
-    @apply text-xl font-bold leading-tight text-slate-950 sm:text-2xl;
+    @apply text-lg font-bold leading-tight text-slate-950 sm:text-xl;
   }
 
   .app-page-description {

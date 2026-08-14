@@ -8,15 +8,26 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { format } from "date-fns";
 import { Link, useLocation } from "wouter";
 import { ElectionStatus, ElectionWithDetails } from "@/lib/types";
 import { DropdownMenuItem, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { RowSelectCheckbox } from "@/components/ui/row-select-checkbox";
-import { MoreHorizontal, Activity, Trash2, Pencil, Vote } from "lucide-react";
+import { MoreHorizontal, Activity, Trash2, Pencil, Vote, Search, SlidersHorizontal } from "lucide-react";
 import { getElectionLabel, isElectionEditable, allowedStatusChanges } from "@/lib/electionHelpers";
 import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/empty-state";
+
+function EmptyElections() {
+  return (
+    <EmptyState
+      title="No elections found"
+      description="Try a different search term, or create a new election to get started."
+    />
+  );
+}
 
 const STATUS_ACTION_LABELS: Record<string, string> = {
   draft: "Set as Draft",
@@ -158,6 +169,12 @@ interface ElectionsTableProps {
   allSelected?: boolean;
   someSelected?: boolean;
   onToggleSelectAll?: () => void;
+  /** Toolbar search box — purely client-side filtering of the visible rows. */
+  search?: string;
+  onSearchChange?: (value: string) => void;
+  /** Toggles the (existing) advanced filters panel rendered by the parent page. */
+  onToggleFilters?: () => void;
+  filtersOpen?: boolean;
 }
 
 export function ElectionsTable({
@@ -170,16 +187,45 @@ export function ElectionsTable({
   allSelected = false,
   someSelected = false,
   onToggleSelectAll,
+  search,
+  onSearchChange,
+  onToggleFilters,
+  filtersOpen,
 }: ElectionsTableProps) {
   const [, navigate] = useLocation();
+  const showToolbar = onSearchChange || onToggleFilters;
 
   return (
-    <Card className="border border-gray-200 md:shadow-sm shadow-none">
-      <CardHeader className="hidden lg:flex px-6 py-4 border-b border-gray-200">
-        <CardTitle className="text-lg font-medium text-gray-900">Elections</CardTitle>
-      </CardHeader>
+    <Card className="border border-gray-200 shadow-none">
+      {showToolbar && (
+        <CardHeader className="flex-row items-center gap-3 px-4 py-3 border-b border-gray-200 sm:px-5">
+          {onSearchChange && (
+            <div className="relative min-w-0 flex-1 max-w-sm">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Input
+                value={search ?? ""}
+                onChange={(e) => onSearchChange(e.target.value)}
+                placeholder="Search elections"
+                className="h-9 pl-8 text-sm"
+              />
+            </div>
+          )}
+          {onToggleFilters && (
+            <Button
+              variant={filtersOpen ? "secondary" : "outline"}
+              size="sm"
+              className="h-9 shrink-0 gap-1.5"
+              onClick={onToggleFilters}
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+              Filter
+            </Button>
+          )}
+        </CardHeader>
+      )}
       <CardContent className="p-0">
-        <div className="lg:hidden mx-0 overflow-hidden rounded-xl border border-gray-200 bg-white">
+        {elections.length === 0 && <EmptyElections />}
+        <div className={cn("lg:hidden mx-0 overflow-hidden rounded-xl border border-gray-200 bg-white", elections.length === 0 && "hidden")}>
           {elections.map((election) => {
             const id = getElectionId(election);
             const editable = isElectionEditable(election.status);
@@ -228,7 +274,7 @@ export function ElectionsTable({
           })}
         </div>
 
-        <div className="hidden overflow-x-auto lg:block">
+        <div className={cn("hidden overflow-x-auto lg:block", elections.length === 0 && "lg:hidden")}>
           <Table>
             <TableHeader>
               <TableRow>
@@ -295,37 +341,37 @@ export function ElectionsTable({
                   </TableCell>
                   <TableCell className="text-right" onClick={(event) => event.stopPropagation()}>
                     {!selectionMode && (
-                      <>
+                      <div className="flex items-center justify-end gap-1">
                     {editable ? (
                       <Link href={`/elections/${electionId}/edit`}>
-                        <Button variant="ghost" size="sm" className="mr-1">
-                          <Pencil className="h-4 w-4 mr-1" />
-                          Edit
+                        <Button variant="ghost" size="icon" className="h-8 w-8" title="Edit" aria-label="Edit election">
+                          <Pencil className="h-4 w-4" />
                         </Button>
                       </Link>
                     ) : (
                       <Link href={`/elections/${electionId}/results`}>
-                        <Button variant="ghost" size="sm" className="mr-1">
-                          View results
+                        <Button variant="ghost" size="icon" className="h-8 w-8" title="View results" aria-label="View results">
+                          <Vote className="h-4 w-4" />
                         </Button>
                       </Link>
                     )}
                     {deletable && onDelete && (
-                      <Button 
+                      <Button
                         variant="ghost"
-                        size="sm"
-                        className="mr-1 text-red-600 hover:text-red-900 hover:bg-red-50"
+                        size="icon"
+                        className="h-8 w-8 text-red-600 hover:text-red-900 hover:bg-red-50"
                         onClick={() => onDelete(electionId)}
+                        title="Delete"
+                        aria-label="Delete election"
                       >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Delete
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
-                    
+
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="mr-1 h-4 w-4" /> More
+                        <Button variant="ghost" size="icon" className="h-8 w-8" title="More actions" aria-label="More actions">
+                          <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
@@ -348,7 +394,7 @@ export function ElectionsTable({
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
-                      </>
+                      </div>
                     )}
                   </TableCell>
                 </TableRow>

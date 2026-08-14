@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { clearAccountSession, storeAccountSession } from '@/lib/session';
+import { BallotIllustration } from '@/components/illustrations/BallotIllustration';
 
 interface LoginResponse {
   success: boolean;
@@ -107,35 +108,46 @@ export default function Login() {
   }, [navigate, queryClient]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
-      <div className="flex-1 flex flex-col justify-center px-5 max-w-sm mx-auto w-full pt-safe">
-        {/* Brand strip */}
-        <div className="pb-8 flex flex-col items-center px-1">
-          <img
-            src="/logo.png"
-            alt="Vote+"
-            className="h-16 w-auto object-contain mb-4 drop-shadow-sm"
-          />
-          <p className="text-sm text-gray-500 dark:text-gray-400 text-center max-w-xs">
-            Comprehensive Election Management System
-          </p>
+    <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-950 p-4 sm:p-6">
+      <div className="w-full max-w-4xl grid md:grid-cols-2 bg-white dark:bg-slate-900 rounded-3xl shadow-xl shadow-slate-900/5 border border-slate-200/70 dark:border-slate-800 overflow-hidden">
+        {/* Visual panel */}
+        <div className="relative hidden md:flex flex-col items-center justify-center bg-gradient-to-br from-primary via-blue-600 to-red-500 p-10 overflow-hidden">
+          <div className="absolute -top-16 -left-16 w-56 h-56 rounded-full bg-white/10 blur-2xl" />
+          <div className="absolute -bottom-20 -right-10 w-64 h-64 rounded-full bg-white/10 blur-2xl" />
+          <div className="relative z-10 flex flex-col items-center text-center gap-5">
+            <BallotIllustration className="h-36 w-36" />
+            <div className="bg-white/95 rounded-2xl px-5 py-3 shadow-lg">
+              <img src="/logo.png" alt="Vote+" className="h-10 w-auto object-contain" />
+            </div>
+            <p className="text-white/90 text-sm max-w-[220px] leading-relaxed">
+              Comprehensive Election Management System
+            </p>
+          </div>
         </div>
 
-        {/* Login card */}
-        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl shadow-blue-900/8 border border-gray-100 dark:border-gray-700 p-6">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Sign in</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+        {/* Form panel */}
+        <div className="flex flex-col justify-center px-6 py-10 sm:px-10 sm:py-12">
+          {/* Brand strip (shown only when visual panel is hidden, e.g. mobile) */}
+          <div className="pb-6 flex flex-col items-center md:hidden">
+            <img src="/logo.png" alt="Vote+" className="h-14 w-auto object-contain mb-3" />
+            <p className="text-sm text-slate-500 dark:text-slate-400 text-center max-w-xs">
+              Comprehensive Election Management System
+            </p>
+          </div>
+
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Sign in</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-8">
             Enter the credentials provided by your administrator.
           </p>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-5">
             {/* Username */}
             <div className="space-y-1.5">
-              <Label htmlFor="username" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <Label htmlFor="username" className="text-sm font-medium text-slate-700 dark:text-slate-300">
                 Username
               </Label>
               <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
                 <Input
                   id="username"
                   type="text"
@@ -144,7 +156,7 @@ export default function Login() {
                   onChange={(e) => setUsername(e.target.value)}
                   required
                   disabled={loginMutation.isPending}
-                  className="pl-10 h-12 rounded-xl text-base bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 focus-visible:ring-primary"
+                  className="pl-10 h-12 rounded-xl text-base bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
                   autoComplete="username"
                   autoCapitalize="none"
                   autoCorrect="off"
@@ -154,11 +166,11 @@ export default function Login() {
 
             {/* Password */}
             <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <Label htmlFor="password" className="text-sm font-medium text-slate-700 dark:text-slate-300">
                 Password
               </Label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
@@ -167,7 +179,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={loginMutation.isPending}
-                  className="pl-10 pr-12 h-12 rounded-xl text-base bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 focus-visible:ring-primary"
+                  className="pl-10 pr-12 h-12 rounded-xl text-base bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
                   autoComplete="current-password"
                 />
                 <button
@@ -175,7 +187,7 @@ export default function Login() {
                   onClick={() => setShowPassword((prev) => !prev)}
                   disabled={loginMutation.isPending}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center w-7 h-7 text-gray-400 hover:text-gray-600 focus:outline-none disabled:opacity-50"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center w-7 h-7 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none disabled:opacity-50 transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -185,7 +197,7 @@ export default function Login() {
             {/* Submit */}
             <Button
               type="submit"
-              className="w-full h-12 rounded-xl text-base font-bold mt-2 shadow-md shadow-primary/25"
+              className="w-full h-12 rounded-xl text-base font-semibold mt-2 shadow-md shadow-primary/25 transition-transform active:scale-[0.98] hover:shadow-lg hover:shadow-primary/30"
               disabled={loginMutation.isPending}
             >
               {loginMutation.isPending ? 'Signing in…' : 'Sign In'}
@@ -197,20 +209,20 @@ export default function Login() {
               </Link>
             </p>
           </form>
-        </div>
 
-        {/* Footer */}
-        <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-8 mb-4">
-          Powered by{' '}
-          <a
-            href="https://d4dx.co"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold text-primary hover:underline"
-          >
-            D4DX.CO
-          </a>
-        </p>
+          {/* Footer */}
+          <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-10">
+            Powered by{' '}
+            <a
+              href="https://d4dx.co"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-primary hover:underline"
+            >
+              D4DX.CO
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   );

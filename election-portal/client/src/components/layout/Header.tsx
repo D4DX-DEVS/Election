@@ -1,4 +1,4 @@
-import { Menu, LogOut, UserCog, User, HelpCircle } from "lucide-react";
+import { Menu, LogOut, User, HelpCircle, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
@@ -17,9 +17,11 @@ import { NotificationBell } from "@/components/layout/NotificationBell";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { clearAccountSession } from "@/lib/session";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface HeaderProps {
   toggleSidebar: () => void;
+  sidebarCollapsed: boolean;
   user: {
     name: string;
     role: string;
@@ -28,7 +30,7 @@ interface HeaderProps {
   };
 }
 
-export function Header({ toggleSidebar, user }: HeaderProps) {
+export function Header({ toggleSidebar, sidebarCollapsed, user }: HeaderProps) {
   const [helpOpen, setHelpOpen] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [, navigate] = useLocation();
@@ -58,27 +60,29 @@ export function Header({ toggleSidebar, user }: HeaderProps) {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md border-b border-slate-200/80 z-30 pt-safe">
-      <div className="flex items-center justify-between h-16 px-4 sm:px-6">
-        <div className="flex items-center">
-          {/* Super admins and franchise admins use the bottom nav on mobile — no sidebar drawer to open */}
-          {user.role !== "super_admin" && user.role !== "franchise_admin" && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden mr-2"
-              onClick={toggleSidebar}
-              aria-label="Open navigation menu"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          )}
+    <header
+      className={cn(
+        "fixed top-0 right-0 left-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 pt-safe transition-[padding] duration-300",
+        user.role !== "voter" && (sidebarCollapsed ? "lg:pl-[72px]" : "lg:pl-60")
+      )}
+    >
+      <div className="flex items-center justify-between h-14 px-4 sm:px-6">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={toggleSidebar}
+            aria-label="Open navigation menu"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
 
-          <div className="flex items-center">
+          <div className="flex items-center lg:hidden">
             <img
               src="/logo.png"
               alt="Vote+"
-              className="h-9 w-auto object-contain"
+              className="h-8 w-auto object-contain"
             />
           </div>
         </div>
@@ -94,14 +98,18 @@ export function Header({ toggleSidebar, user }: HeaderProps) {
           {/* User menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full p-0 border border-border bg-muted/50 shadow-sm hover:bg-muted hover:shadow active:scale-95 transition-all">
-                <Avatar className="h-9 w-9">
+              <button
+                type="button"
+                className="flex h-11 items-center gap-2 rounded-full py-1 pl-1 pr-2.5 transition-colors hover:bg-slate-100 active:scale-[0.98]"
+              >
+                <Avatar className="h-8 w-8 ring-2 ring-white shadow-sm">
                   <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="bg-transparent text-black font-semibold">
+                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                     {getInitials(user.name)}
                   </AvatarFallback>
                 </Avatar>
-              </Button>
+                <ChevronDown className="hidden h-4 w-4 text-slate-400 sm:block" />
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>

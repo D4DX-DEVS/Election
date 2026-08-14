@@ -13,7 +13,6 @@ import {
   ArrowLeft,
   Info,
   Trophy,
-  Users,
   FileCheck,
   Shield,
 } from 'lucide-react';

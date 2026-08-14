@@ -7,7 +7,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -16,15 +15,14 @@ import { DeleteModeButton } from "@/components/ui/delete-mode-button";
 import { RowSelectCheckbox } from "@/components/ui/row-select-checkbox";
 import { useBulkDeleteMode } from "@/hooks/useBulkDeleteMode";
 import { deleteByIds } from "@/lib/bulkDelete";
-import { Plus, Edit, Trash2, Globe, Phone, Image } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { Plus, Edit, Trash2, Globe, Phone, Image, Search, Building2, UsersRound } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageContent } from "@/components/layout/PageContent";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { Pagination } from "@/lib/types";
-import { clearAccountSession } from "@/lib/session";
 import { getStoredUser } from "@/lib/authUser";
-import { isLettersOnlyName } from "@/lib/utils";
+import { cn, isLettersOnlyName } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface Franchise {
   _id: string;
@@ -134,10 +132,10 @@ export default function Franchises() {
   const [pendingDeleteAdminIds, setPendingDeleteAdminIds] = useState<string[] | null>(null);
 
   const { toast } = useToast();
-  const [location, navigate] = useLocation();
 
   const [page, setPage] = useState(1);
   const pageSize = 10;
+  const [searchInput, setSearchInput] = useState("");
 
   // Fetch franchises using react-query (server-side pagination)
   const { data: franchisesResponse, isLoading, error } = useQuery<{ data: Franchise[]; pagination?: Pagination }>({
@@ -150,6 +148,9 @@ export default function Franchises() {
   });
   const franchises = franchisesResponse?.data ?? [];
   const franchisesPagination = franchisesResponse?.pagination;
+  const visibleFranchises = searchInput.trim()
+    ? franchises.filter((f) => f.name.toLowerCase().includes(searchInput.trim().toLowerCase()))
+    : franchises;
 
   // Create franchise mutation
   const createFranchiseMutation = useMutation({
@@ -573,19 +574,24 @@ export default function Franchises() {
     return new Date(dateString).toLocaleDateString("en-GB");
   };
 
-  // Handle logout
-  const handleLogout = () => {
-    clearAccountSession();
-    queryClient.clear();
-    navigate("/login");
-  };
-
   return (
     <MainLayout>
       <PageContent>
             <div className="mb-5 sm:mb-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <h1 className="app-page-title">{isSuperAdmin ? "Franchises" : "My Franchise"}</h1>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                    <Building2 className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h1 className="app-page-title">{isSuperAdmin ? "Franchises" : "My Franchise"}</h1>
+                    <p className="text-sm text-slate-500">
+                      {isSuperAdmin
+                        ? "Manage your franchises and their settings"
+                        : "View and manage your franchise settings"}
+                    </p>
+                  </div>
+                </div>
                 <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                   {isSuperAdmin && (
                     <DialogTrigger asChild>
@@ -678,9 +684,6 @@ export default function Franchises() {
                 </DialogContent>
                 </Dialog>
               </div>
-              <p className="text-sm text-gray-600 mt-1">
-                Manage your franchises and their settings
-              </p>
 
               {/* Edit Franchise Dialog */}
               <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -986,13 +989,39 @@ export default function Franchises() {
               </Dialog>
             </div>
 
-            <Card className="border-0 shadow-none bg-transparent lg:border lg:bg-white lg:shadow-sm">
-              <CardHeader className="hidden lg:block lg:px-6 lg:py-4 lg:border-b lg:border-gray-200">
-                <CardTitle className="text-lg font-medium text-gray-900">All Franchises</CardTitle>
-                <CardDescription>
-                  View and manage all franchises in your election system
-                </CardDescription>
+            <Card className="border-0 shadow-none bg-transparent lg:border lg:bg-white lg:shadow-card">
+              <CardHeader className="lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:px-6 lg:py-4 lg:border-b lg:border-slate-100 hidden lg:flex">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <UsersRound className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base font-semibold text-slate-900">All Franchises</CardTitle>
+                    <CardDescription>
+                      View and manage all franchises in your election system
+                    </CardDescription>
+                  </div>
+                </div>
+                <div className="relative w-full max-w-xs">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    placeholder="Search franchise..."
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    className="h-10 pl-9"
+                  />
+                </div>
               </CardHeader>
+              {/* Mobile search bar */}
+              <div className="relative mb-3 lg:hidden">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Input
+                  placeholder="Search franchise..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="h-10 bg-white pl-9"
+                />
+              </div>
               <CardContent className="p-0">
                 {isLoading ? (
                   <div className="p-6 space-y-4">
@@ -1004,16 +1033,21 @@ export default function Franchises() {
                   <div className="p-6 text-center text-red-500">
                     Failed to load franchises. Please try again.
                   </div>
+                ) : franchises && Array.isArray(franchises) && franchises.length > 0 && visibleFranchises.length === 0 ? (
+                  <div className="p-10 text-center">
+                    <Search className="mx-auto mb-3 h-8 w-8 text-slate-300" />
+                    <p className="text-slate-500">No franchises match "{searchInput}".</p>
+                  </div>
                 ) : franchises && Array.isArray(franchises) && franchises.length > 0 ? (
                   <>
                   <div className="space-y-3 lg:space-y-4 lg:hidden">
-                    {franchises.map((franchise: Franchise) => {
+                    {visibleFranchises.map((franchise: Franchise) => {
                       const contact = resolveFranchiseContact(franchise);
                       const expanded = expandedFranchiseIds.has(franchise._id);
                       return (
                       <div
                         key={franchise._id}
-                        className="rounded-lg border border-gray-200 bg-white p-5 space-y-4 cursor-pointer"
+                        className="cursor-pointer space-y-4 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-card transition-shadow active:shadow-none"
                         onClick={() => toggleFranchiseExpanded(franchise._id)}
                       >
                         <div className="flex items-start justify-between gap-3">
@@ -1022,28 +1056,34 @@ export default function Franchises() {
                               <img
                                 src={franchise.logo.url}
                                 alt={franchise.logo.alt || franchise.name}
-                                className="h-10 w-10 rounded-sm object-cover shrink-0"
+                                className="h-11 w-11 shrink-0 rounded-xl object-cover ring-1 ring-slate-200"
                               />
                             ) : (
-                              <div className="h-10 w-10 rounded-sm bg-gray-200 flex items-center justify-center shrink-0">
-                                <Image className="h-5 w-5 text-gray-500" />
+                              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                                <Image className="h-5 w-5" />
                               </div>
                             )}
                             <div className="min-w-0">
-                              <h3 className="text-sm md:text-base font-medium text-gray-900 truncate">{franchise.name}</h3>
-                              <p className="text-xs text-gray-500">Created {formatDate(franchise.createdAt)}</p>
+                              <h3 className="truncate text-sm font-semibold text-slate-900 md:text-base">{franchise.name}</h3>
+                              <p className="text-xs text-slate-500">Created {formatDate(franchise.createdAt)}</p>
                             </div>
                           </div>
-                          <Badge
-                            variant={franchise.status === 'active' ? 'outline' : 'secondary'}
-                            className={
+                          <span
+                            className={cn(
+                              "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold",
                               franchise.status === 'active'
-                                ? 'bg-green-100 text-green-800 hover:bg-green-100'
-                                : 'bg-gray-100 text-gray-800 hover:bg-primary/10'
-                            }
+                                ? "bg-emerald-50 text-emerald-700"
+                                : "bg-slate-100 text-slate-600"
+                            )}
                           >
+                            <span
+                              className={cn(
+                                "h-1.5 w-1.5 rounded-full",
+                                franchise.status === 'active' ? "bg-emerald-500" : "bg-slate-400"
+                              )}
+                            />
                             {franchise.status === 'active' ? 'Active' : 'Inactive'}
-                          </Badge>
+                          </span>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
@@ -1052,21 +1092,21 @@ export default function Franchises() {
                               href={contact.websiteUrl.startsWith("http") ? contact.websiteUrl : `https://${contact.websiteUrl}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center font-medium text-blue-600 hover:underline"
+                              className="inline-flex items-center gap-1.5 font-medium text-primary hover:underline"
                             >
-                              <Globe className="h-4 w-4 mr-1" /> Website
+                              <Globe className="h-3.5 w-3.5" /> Website
                             </a>
                           )}
                           {contact.contactNumber && (
-                            <span className="inline-flex items-center font-medium text-gray-700">
-                              <Phone className="h-4 w-4 mr-1" /> {contact.contactNumber}
+                            <span className="inline-flex items-center gap-1.5 font-medium text-slate-600">
+                              <Phone className="h-3.5 w-3.5 text-slate-400" /> {contact.contactNumber}
                             </span>
                           )}
                         </div>
 
                         {expanded && (
                         <div
-                          className="flex items-center gap-1 border-t border-gray-100 pt-2"
+                          className="flex items-center gap-1 border-t border-slate-100 pt-3"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <Button variant="ghost" size="sm" onClick={() => handleEditFranchise(franchise)}>
@@ -1079,12 +1119,12 @@ export default function Franchises() {
                                 size="sm"
                                 onClick={() => handleManageAdmin(franchise)}
                               >
-                                Admins
+                                <UsersRound className="h-4 w-4 mr-1" /> Admins
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-auto"
+                                className="ml-auto text-red-600 hover:bg-red-50 hover:text-red-700"
                                 onClick={() => handleDeleteFranchise(franchise._id)}
                                 disabled={deleteFranchisesMutation.isPending}
                               >
@@ -1101,102 +1141,114 @@ export default function Franchises() {
                   <div className="hidden lg:block">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Website</TableHead>
-                        <TableHead>Contact</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Created</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                      <TableRow className="hover:bg-transparent">
+                        <TableHead className="h-11 bg-slate-50/80 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Franchise</TableHead>
+                        <TableHead className="h-11 bg-slate-50/80 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Website</TableHead>
+                        <TableHead className="h-11 bg-slate-50/80 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Contact</TableHead>
+                        <TableHead className="h-11 bg-slate-50/80 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Status</TableHead>
+                        <TableHead className="h-11 bg-slate-50/80 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Created on</TableHead>
+                        <TableHead className="h-11 bg-slate-50/80 text-right text-[11px] font-semibold uppercase tracking-wider text-slate-500">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {franchises.map((franchise: Franchise) => {
+                      {visibleFranchises.map((franchise: Franchise) => {
                         const contact = resolveFranchiseContact(franchise);
                         return (
                         <TableRow key={franchise._id}>
                           <TableCell className="font-medium">
-                            <div className="flex items-center">
+                            <div className="flex items-center gap-3">
                               {franchise.logo?.url ? (
                                 <img
                                   src={franchise.logo.url}
                                   alt={franchise.logo.alt || franchise.name}
-                                  className="w-8 h-8 mr-3 rounded-sm object-cover"
+                                  className="h-9 w-9 rounded-xl object-cover ring-1 ring-slate-200"
                                 />
                               ) : (
-                                <div className="w-8 h-8 mr-3 rounded-sm bg-gray-200 flex items-center justify-center">
-                                  <Image className="h-4 w-4 text-gray-500" />
+                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                                  <Image className="h-4 w-4" />
                                 </div>
                               )}
-                              {franchise.name}
+                              <span className="text-slate-800">{franchise.name}</span>
                             </div>
                           </TableCell>
                           <TableCell>
                             {contact.websiteUrl ? (
-                              <a 
+                              <a
                                 href={contact.websiteUrl.startsWith("http") ? contact.websiteUrl : `https://${contact.websiteUrl}`}
-                                target="_blank" 
+                                target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center text-blue-600 hover:underline"
+                                className="inline-flex items-center gap-1.5 font-medium text-primary hover:underline"
                               >
-                                <Globe className="h-4 w-4 mr-1" />
+                                <Globe className="h-3.5 w-3.5" />
                                 Website
                               </a>
                             ) : (
-                              <span className="text-gray-400">Not available</span>
+                              <span className="text-slate-400">Not available</span>
                             )}
                           </TableCell>
                           <TableCell>
                             {contact.contactNumber ? (
-                              <div className="flex items-center">
-                                <Phone className="h-4 w-4 mr-1" />
+                              <div className="inline-flex items-center gap-1.5 text-slate-600">
+                                <Phone className="h-3.5 w-3.5 text-slate-400" />
                                 {contact.contactNumber}
                               </div>
                             ) : (
-                              <span className="text-gray-400">Not available</span>
+                              <span className="text-slate-400">Not available</span>
                             )}
                           </TableCell>
                           <TableCell>
-                            <Badge variant={franchise.status === 'active' ? 'default' : 'secondary'}>
+                            <span
+                              className={cn(
+                                "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold",
+                                franchise.status === 'active'
+                                  ? "bg-emerald-50 text-emerald-700"
+                                  : "bg-slate-100 text-slate-600"
+                              )}
+                            >
+                              <span
+                                className={cn(
+                                  "h-1.5 w-1.5 rounded-full",
+                                  franchise.status === 'active' ? "bg-emerald-500" : "bg-slate-400"
+                                )}
+                              />
                               {franchise.status === 'active' ? 'Active' : 'Inactive'}
-                            </Badge>
+                            </span>
                           </TableCell>
-                          <TableCell>{formatDate(franchise.createdAt)}</TableCell>
+                          <TableCell className="text-slate-500">{formatDate(franchise.createdAt)}</TableCell>
                           <TableCell className="text-right">
-                            <div className="flex justify-end space-x-2">
+                            <div className="flex justify-end gap-1.5">
                               <Button
                                 variant="ghost"
-                                size="sm"
+                                size="icon"
+                                className="h-9 w-9 rounded-lg text-slate-500 hover:bg-primary/10 hover:text-primary"
+                                title="Edit franchise"
+                                aria-label="Edit franchise"
                                 onClick={() => handleEditFranchise(franchise)}
                               >
-                                <Edit className="h-4 w-4 mr-1" />
-                                Edit
+                                <Edit className="h-4 w-4" />
                               </Button>
                               {isSuperAdmin && (
                                 <>
                                   <Button
                                     variant="ghost"
-                                    size="sm"
-                                    className="mr-2"
+                                    size="icon"
+                                    className="h-9 w-9 rounded-lg text-slate-500 hover:bg-primary/10 hover:text-primary"
+                                    title="Manage administrators"
+                                    aria-label="Manage administrators"
                                     onClick={() => handleManageAdmin(franchise)}
                                   >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 mr-1">
-                                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                                      <circle cx="9" cy="7" r="4"></circle>
-                                      <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                                    </svg>
-                                    Admins
+                                    <UsersRound className="h-4 w-4" />
                                   </Button>
                                   <Button
                                     variant="ghost"
-                                    size="sm"
-                                    className="text-red-600 hover:text-red-700"
+                                    size="icon"
+                                    className="h-9 w-9 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-700"
+                                    title="Delete franchise"
+                                    aria-label="Delete franchise"
                                     onClick={() => handleDeleteFranchise(franchise._id)}
                                     disabled={deleteFranchisesMutation.isPending}
                                   >
-                                    <Trash2 className="h-4 w-4 mr-1" />
-                                    Delete
+                                    <Trash2 className="h-4 w-4" />
                                   </Button>
                                 </>
                               )}
@@ -1210,13 +1262,14 @@ export default function Franchises() {
                   </div>
                   </>
                 ) : (
-                  <div className="p-6 text-center">
-                    <p className="text-gray-500">No franchises found. Create one to get started.</p>
-                  </div>
+                  <EmptyState
+                    title="No franchises found"
+                    description="Create one to get started."
+                  />
                 )}
               </CardContent>
               {franchisesPagination && (franchisesPagination.totalPages ?? 1) > 1 ? (
-                <CardFooter className="border-t border-gray-200 p-4">
+                <CardFooter className="border-t border-slate-100 p-4 sm:px-6">
                   <PaginationControls
                     page={franchisesPagination.page}
                     totalPages={franchisesPagination.totalPages ?? 1}

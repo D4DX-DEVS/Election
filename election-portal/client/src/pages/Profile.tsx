@@ -61,6 +61,14 @@ export default function Profile() {
     }
   }, [isError, error, navigate]);
 
+  // Profile management is an admin-tier feature — plain voters have no
+  // account settings to manage here, so send them back to their ballot list.
+  useEffect(() => {
+    if (user?.role === "voter") {
+      navigate("/voting");
+    }
+  }, [user, navigate]);
+
   useEffect(() => {
     if (user) {
       setFullName(user.fullName || "");
@@ -121,6 +129,12 @@ export default function Profile() {
   };
 
   const displayName = user?.fullName || user?.username || "User";
+
+  // Voters are redirected away (effect above) — render nothing in the
+  // meantime instead of flashing admin-only account fields.
+  if (user?.role === "voter") {
+    return null;
+  }
 
   return (
     <AccountShell title="Profile">

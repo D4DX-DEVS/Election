@@ -260,7 +260,6 @@ export default function Admins() {
   const {
     data: electionsRaw,
     isLoading: electionsLoading,
-    isError: electionsError
   } = useQuery<AdminElectionOption[] | ListResponse<AdminElectionOption>>({
     queryKey: ['/api/elections'],
     enabled: true // Always fetch elections, we'll filter them in the component

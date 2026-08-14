@@ -1,7 +1,5 @@
-import { useState, useEffect, Fragment } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { MainLayout } from "@/components/layout/MainLayout";
-import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,46 +11,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { ResultsTable } from "@/components/analytics/ResultsTable";
 import { VotingStats } from "@/components/analytics/VotingStats";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { getElectionLabel } from "@/lib/electionHelpers";
 import { generateElectionResultPdf } from "@/lib/resultPdf";
-import { AdminVotingDetailsPanel } from "@/components/elections/AdminVotingDetailsPanel";
-import { ManualWinnerPicker } from "@/components/elections/ManualWinnerPicker";
 import { Download, Printer } from "lucide-react";
 
-export default function Analytics({ embedded = false, electionId }: { embedded?: boolean; electionId?: string } = {}) {
-  const [selectedElectionId, setSelectedElectionId] = useState<string>(electionId || "");
+/** Always rendered embedded inside ElectionWorkspace's Results & Analytics tab for one election at a time. */
+export default function Analytics({ electionId }: { electionId: string }) {
+  const selectedElectionId = electionId;
   const [resultAction, setResultAction] = useState<"print" | "export" | null>(null);
   const [preparedBy, setPreparedBy] = useState("");
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (electionId) {
-      setSelectedElectionId(electionId);
-    }
-  }, [electionId]);
-
-  // Fetch elections for the selector (real data)
-  const { data: electionsResponse } = useQuery({
-    queryKey: ['/api/elections'],
-    queryFn: async () => {
-      const res = await apiRequest('GET', '/api/elections');
-      return res.json();
-    },
-  });
-  const elections = Array.isArray(electionsResponse?.data) ? electionsResponse.data : [];
-
-  // Fetch real election results (vote tally per nominee)
+  // Fetch real election results (vote tally per nominee) — poll while voting
+  // is open so tallies stay live as other voters cast/revote or an admin
+  // edits a ballot, without requiring a manual page refresh.
   const { data: resultsResponse, isLoading: resultsLoading } = useQuery({
     queryKey: ['/api/vote/results', selectedElectionId],
     queryFn: async () => {
@@ -60,11 +36,12 @@ export default function Analytics({ embedded = false, electionId }: { embedded?:
       return res.json();
     },
     enabled: !!selectedElectionId,
+    refetchInterval: (query) => (query.state.data as any)?.data?.election?.votingOpen ? 15000 : false,
   });
 
   const results = resultsResponse?.data || null;
   const nomineesWithVotes = results?.nominees || [];
-  const selectedElection = results?.election || elections.find((e: any) => e._id === selectedElectionId);
+  const selectedElection = results?.election;
   const analytics = results
     ? {
         totalVoters: results.eligibleVoters || 0,
@@ -75,21 +52,6 @@ export default function Analytics({ embedded = false, electionId }: { embedded?:
     : null;
   const analyticsLoading = resultsLoading;
   const nomineesLoading = resultsLoading;
-
-  const handleLoadResults = () => {
-    if (selectedElectionId) {
-      toast({
-        title: "Results loaded",
-        description: `Loaded results for the selected election`,
-      });
-    } else {
-      toast({
-        title: "No election selected",
-        description: "Please select an election to load results",
-        variant: "destructive",
-      });
-    }
-  };
 
   const openResultAction = (action: "print" | "export") => {
     if (!results || !selectedElection) {
@@ -180,72 +142,9 @@ export default function Analytics({ embedded = false, electionId }: { embedded?:
     sendReminderMutation.mutate();
   };
 
-  useEffect(() => {
-    if (!embedded) document.title = "Analytics | Vote+";
-  }, [embedded]);
-
-  const Wrapper = embedded ? Fragment : MainLayout;
-
   return (
-    <Wrapper>
-      {!embedded && (
-      <div className="mb-6">
-        <h1 className="app-page-title">Election Analytics</h1>
-        <p className="text-sm text-gray-600">Detailed results and voting statistics</p>
-      </div>
-      )}
-
-      {!embedded && (
-      <Card className="mb-6">
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="md:col-span-3">
-              <Label htmlFor="election-select">Select Election</Label>
-              <Select 
-                value={selectedElectionId} 
-                onValueChange={setSelectedElectionId}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select an election" />
-                </SelectTrigger>
-                <SelectContent>
-                  {elections?.map((election: any) => (
-                    <SelectItem key={election._id} value={election._id}>
-                      {getElectionLabel(election)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-end">
-              <Button 
-                className="w-full" 
-                onClick={handleLoadResults}
-                disabled={!selectedElectionId}
-              >
-                Load Results
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      )}
-
+    <>
       {selectedElectionId && analytics && !analyticsLoading && (
-        <>
-          {!embedded && selectedElection?.manualWinnerSelection && (
-            <ManualWinnerPicker
-              electionId={selectedElectionId}
-              enabled
-              numberToBeElected={selectedElection.numberToBeElected || 1}
-              nominees={nomineesWithVotes}
-              manualWinnerIds={selectedElection.manualWinnerIds || []}
-              electionStatus={selectedElection.status}
-            />
-          )}
-          {!embedded && selectedElection?.adminVotingDetailsEnabled && (
-            <AdminVotingDetailsPanel electionId={selectedElectionId} enabled votingOpen={!!selectedElection?.votingOpen} />
-          )}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           <div className="lg:col-span-2">
             {nomineesWithVotes && selectedElection && !nomineesLoading && (
@@ -267,19 +166,11 @@ export default function Analytics({ embedded = false, electionId }: { embedded?:
             />
           </div>
         </div>
-        </>
       )}
 
-      {selectedElectionId && (!analytics || analyticsLoading) && (
+      {(!analytics || analyticsLoading) && (
         <div className="text-center py-8">
           <p>Loading analytics data...</p>
-        </div>
-      )}
-
-      {!selectedElectionId && (
-        <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-          <h3 className="text-lg font-medium text-gray-700 mb-2">No Election Selected</h3>
-          <p className="text-gray-500 mb-4">Please select an election to view analytics</p>
         </div>
       )}
 
@@ -331,6 +222,6 @@ export default function Analytics({ embedded = false, electionId }: { embedded?:
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Wrapper>
+    </>
   );
 }

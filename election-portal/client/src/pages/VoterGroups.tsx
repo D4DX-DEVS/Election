@@ -36,6 +36,7 @@ import { getElectionLabel, getElectionSubtitle } from "@/lib/electionHelpers";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { PageContent, PageBottom } from "@/components/layout/PageContent";
 import { Pagination, type Election as AppElection } from "@/lib/types";
+import { EmptyState } from "@/components/ui/empty-state";
 import { VoterSlipPrinter } from "@/components/voters/VoterSlipPrinter";
 import { BulkVoterSlipPrinter } from "@/components/voters/BulkVoterSlipPrinter";
 import { ExportMenu } from "@/components/ui/export-menu";
@@ -1164,7 +1165,14 @@ export default function VoterGroups({
       {isLoading ? (
         <div className="space-y-3">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-20 w-full rounded-lg" />)}</div>
       ) : groups.length === 0 ? (
-        <Card><CardContent className="py-12 text-center text-gray-500">{viewOnly ? "No voter groups are assigned to this election yet." : "No voter groups yet. Create one to get started."}</CardContent></Card>
+        <Card className="border border-gray-200 shadow-none">
+          <CardContent className="p-0">
+            <EmptyState
+              title="No voter groups found"
+              description={viewOnly ? "No voter groups are assigned to this election yet." : "Create one to get started."}
+            />
+          </CardContent>
+        </Card>
       ) : (
         <>
           <DeleteModeBar

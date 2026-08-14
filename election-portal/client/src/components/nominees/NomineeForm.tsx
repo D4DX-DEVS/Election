@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Upload, FileSpreadsheet, List, UploadCloud } from 'lucide-react';
+import { Upload } from 'lucide-react';
 
 import { selectedEntityIdSchema } from '@shared/entityId';
 

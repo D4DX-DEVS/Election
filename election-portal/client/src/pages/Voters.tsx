@@ -9,7 +9,7 @@ import VoterGroups from "@/pages/VoterGroups";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { SelectCheckbox } from "@/components/ui/row-select-checkbox";
-import { PlusIcon, Upload, AlertCircle, UsersRound, Download, MoreHorizontal, Search, FileSpreadsheet, Users, Printer } from "lucide-react";
+import { PlusIcon, Upload, AlertCircle, UsersRound, Download, MoreHorizontal, Search, FileSpreadsheet, Printer } from "lucide-react";
 import {
   downloadVoterImportTemplate,
   exportVotersToExcel,
@@ -52,7 +52,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn, isValidNameField } from "@/lib/utils";
+import { isValidNameField } from "@/lib/utils";
 
 type EntityRecord = { _id?: string; id?: string };
 type VoterRecord = User & EntityRecord & { electionAccess?: string[] };
@@ -127,7 +127,6 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
     isLoading: votersLoading, 
     isFetching: votersFetching,
     isError: votersError,
-    refetch: refetchVoters
   } = useQuery<VotersResponse>({
     queryKey: ['/api/users/voters', selectedElectionId, page, pageSize, searchQuery],
     queryFn: async () => {

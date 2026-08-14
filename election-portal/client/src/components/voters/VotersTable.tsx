@@ -17,6 +17,7 @@ import { Loader2, MoreHorizontal, Pencil, Printer, Trash2 } from "lucide-react";
 import { VoterSlipPrinter } from "./VoterSlipPrinter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -256,7 +257,7 @@ export function VotersTable({
               );
             })
           ) : (
-            <div className="py-10 text-center text-sm text-gray-500">No voters found</div>
+            <EmptyState title="No voters found" description="Add a voter or adjust your search to see results here." />
           )}
         </div>
 
@@ -323,8 +324,8 @@ export function VotersTable({
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={selectionMode ? 4 : 3} className="h-24 text-center text-gray-500">
-                    No voters found
+                  <TableCell colSpan={selectionMode ? 4 : 3} className="p-0">
+                    <EmptyState title="No voters found" description="Add a voter or adjust your search to see results here." />
                   </TableCell>
                 </TableRow>
               )}

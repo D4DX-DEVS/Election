@@ -93,7 +93,7 @@ Elections: ${electionNames.join(', ') || 'None assigned'}
         title: "Copied!",
         description: "Voter credentials copied to clipboard",
       });
-    }).catch(err => {
+    }).catch(() => {
       toast({
         title: "Failed to copy",
         description: "Could not copy to clipboard",

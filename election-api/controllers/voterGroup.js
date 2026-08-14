@@ -268,54 +268,6 @@ exports.getVoterGroups = async (req, res) => {
   }
 };
 
-exports.updateVoterGroup = async (req, res) => {
-  try {
-    const { id } = req.body;
-    const existing = await voterGroups.findById(id);
-    if (!existing) {
-      return res.status(404).json({ success: false, message: "Voter Group not found." });
-    }
-    assertGroupAccess(req.user, existing);
-    const franchiseId = requireFranchiseId(resolveGroupFranchiseId(existing));
-    if (req.body.franchiseId && !sameFranchise(req.body.franchiseId, franchiseId)) {
-      const err = new Error("A voter group's organization cannot be changed.");
-      err.statusCode = 400;
-      throw err;
-    }
-    delete req.body.franchiseId;
-    await validateGroupRelations(req.user, franchiseId, req.body);
-    const voterGroup = await voterGroups.updateById(id, req.body);
-    if (!voterGroup) {
-      return res.status(404).json({ success: false, message: "Voter Group not found." });
-    }
-    await logAuditFromReq(req, "Updated", voterGroup.name, "Voter Group", voterGroup._id || voterGroup.id);
-    res.status(200).json({ success: true, data: voterGroup });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: err.toString() });
-  }
-};
-
-exports.deleteVoterGroup = async (req, res) => {
-  try {
-    const { id } = req.query;
-    const existing = await voterGroups.findById(id);
-    if (!existing) {
-      return res.status(404).json({ success: false, message: "Voter Group not found." });
-    }
-    assertGroupAccess(req.user, existing);
-    const voterGroup = await voterGroups.deleteById(id);
-    if (!voterGroup) {
-      return res.status(404).json({ success: false, message: "Voter Group not found." });
-    }
-    await logAuditFromReq(req, "Deleted", voterGroup.name, "Voter Group", voterGroup._id || voterGroup.id);
-    res.status(200).json({ success: true, message: "Voter Group deleted." });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: err.toString() });
-  }
-};
-
 exports.assignElections = async (req, res) => {
   try {
     const existing = await voterGroups.findById(req.params.id);
@@ -417,48 +369,6 @@ exports.addVoterToGroup = async (req, res) => {
     res.status(201).json({
       success: true,
       data: { id: voter._id, username: voter.username, plainPassword },
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: err.toString() });
-  }
-};
-
-exports.addExistingUsersToGroup = async (req, res) => {
-  try {
-    const group = await voterGroups.findById(req.params.id);
-    if (!group) return res.status(404).json({ success: false, message: "Voter Group not found." });
-    assertGroupAccess(req.user, group);
-
-    const { userIds } = req.body;
-    if (!Array.isArray(userIds) || userIds.length === 0) {
-      return res.status(400).json({ success: false, message: "userIds array is required." });
-    }
-
-    const existingIds = new Set((group.voters || []).map((v) => String(typeof v === "object" ? v._id || v.id : v)));
-    const newIds = userIds.filter((id) => !existingIds.has(String(id)));
-
-    if (newIds.length > 0) {
-      const scopedIds = await assertUserIdsScoped({
-        actor: req.user,
-        franchiseId: resolveGroupFranchiseId(group),
-        userIds: newIds,
-        findUserById: (id) => users.findById(id, { includePassword: false }),
-      });
-      await voterGroups.addVotersToGroup(req.params.id, scopedIds);
-    }
-
-    await logAuditFromReq(
-      req,
-      "Added existing users to",
-      `${group.name} (${newIds.length} added)`,
-      "Voter Group",
-      group._id || group.id
-    );
-
-    res.status(200).json({
-      success: true,
-      data: { added: newIds.length, skipped: userIds.length - newIds.length },
     });
   } catch (err) {
     console.error(err);

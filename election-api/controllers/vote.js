@@ -2,7 +2,7 @@ const votes = require("../lib/supabase/votes");
 const elections = require("../lib/elections");
 const nominees = require("../lib/supabase/nominees");
 const users = require("../lib/supabase/users");
-const { logUserActivity, logAuditFromReq } = require("../utils/auditLog");
+const { logAuditFromReq } = require("../utils/auditLog");
 const { denyUnlessCanAccessElection } = require("../lib/electionAccess");
 const { sameFranchise } = require("../lib/roles");
 const { resourceFranchiseId } = require("../lib/tenantScope");
@@ -145,17 +145,6 @@ exports.getElectionResults = async (req, res) => {
         nominees: visibleResults,
       },
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: err.toString() });
-  }
-};
-
-exports.addVote = async (req, res) => {
-  try {
-    const vote = await votes.create(req.body);
-    await logUserActivity(req.user._id, req.ip, "Voted", vote.electionId, "Vote");
-    res.status(201).json({ success: true, message: "Vote recorded.", vote });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: err.toString() });
@@ -355,35 +344,9 @@ exports.castVote = async (req, res) => {
   }
 };
 
-exports.getVotes = async (req, res) => {
-  try {
-    const data = await votes.findAll();
-    res.status(200).json({ success: true, count: data.length, data });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: err.toString() });
-  }
-};
-
-exports.updateVote = async (req, res) => {
-  try {
-    const { id } = req.body;
-    const vote = await votes.updateById(id, req.body);
-    if (!vote) {
-      return res.status(404).json({ success: false, message: "Vote not found." });
-    }
-    await logAuditFromReq(req, "Updated", vote.electionId || "vote", "Vote", vote._id || vote.id);
-    res.status(200).json({ success: true, data: vote });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: err.toString() });
-  }
-};
-
 /**
  * Clear one voter's ballot for an election so they can vote again.
- * Admin-only and scoped to an election the actor may access — unlike the raw
- * deleteVote below, which takes a bare vote id and has no election check.
+ * Admin-only and scoped to an election the actor may access.
  */
 exports.resetVoterVote = async (req, res) => {
   try {
@@ -414,15 +377,115 @@ exports.resetVoterVote = async (req, res) => {
   }
 };
 
-exports.deleteVote = async (req, res) => {
+/**
+ * Admin override: directly set (create or replace) a specific voter's ballot.
+ * Same validation as castVote, but targets an arbitrary voterId and is gated
+ * on election access + voting still being open, like resetVoterVote above.
+ */
+exports.adminSetVoterVote = async (req, res) => {
   try {
-    const { id } = req.query;
-    const vote = await votes.deleteById(id);
-    if (!vote) {
-      return res.status(404).json({ success: false, message: "Vote not found." });
+    const { electionId, voterId } = req.params;
+    const { nomineeIds } = req.body;
+
+    if (!nomineeIds || !Array.isArray(nomineeIds) || nomineeIds.length === 0) {
+      return res.status(400).json({ success: false, message: "nomineeIds array is required." });
     }
-    await logAuditFromReq(req, "Deleted", vote.electionId || "vote", "Vote", vote._id || vote.id);
-    res.status(200).json({ success: true, message: "Vote deleted." });
+
+    const election = await elections.findById(electionId);
+    if (!election) return res.status(404).json({ success: false, message: "Election not found." });
+    if (await denyUnlessCanAccessElection(req, res, election)) return;
+
+    if (!election.votingOpen) {
+      return res.status(400).json({
+        success: false,
+        message: "Voting is closed for this election, so votes can no longer be changed.",
+      });
+    }
+
+    const targetVoter = await users.findById(voterId);
+    if (!targetVoter || targetVoter.role !== "voter") {
+      return res.status(404).json({ success: false, message: "Voter not found." });
+    }
+
+    const hasAccess = await users.userHasElectionAccess(voterId, electionId);
+    if (!hasAccess) {
+      return res.status(403).json({ success: false, message: "Voter does not have access to this election." });
+    }
+
+    const uniqueNomineeIds = [...new Set(nomineeIds.map((id) => String(id)))];
+    const selectionLimit = Math.max(parseInt(election.numberToBeElected, 10) || 1, 1);
+    const ballotSelectionRule =
+      election.ballotSelectionRule === "up_to" ? "up_to" : "exact";
+    if (ballotSelectionRule === "exact" && uniqueNomineeIds.length !== selectionLimit) {
+      return res.status(400).json({
+        success: false,
+        message: `Select exactly ${selectionLimit} nominee(s).`,
+      });
+    }
+    if (uniqueNomineeIds.length > selectionLimit) {
+      return res.status(400).json({
+        success: false,
+        message: `Select up to ${selectionLimit} nominee(s).`,
+      });
+    }
+
+    const selectedNominees = await nominees.findByIdsAndElection(uniqueNomineeIds, electionId);
+    if (selectedNominees.length !== uniqueNomineeIds.length) {
+      return res.status(400).json({ success: false, message: "One or more selected nominees are invalid for this election." });
+    }
+
+    if (election.genderBasedSelection) {
+      const maleCount = selectedNominees.filter((n) => n.gender !== "female").length;
+      const femaleCount = selectedNominees.filter((n) => n.gender === "female").length;
+      if ((election.maleMinimum || 0) > 0 && maleCount < election.maleMinimum) {
+        return res.status(400).json({ success: false, message: `Select at least ${election.maleMinimum} male nominee(s).` });
+      }
+      if ((election.femaleMinimum || 0) > 0 && femaleCount < election.femaleMinimum) {
+        return res.status(400).json({ success: false, message: `Select at least ${election.femaleMinimum} female nominee(s).` });
+      }
+    }
+
+    const existing = await votes.findOne({ voterId, electionId });
+    const isNewVote = !existing;
+
+    // maxVoters caps how many voters may actually vote — only relevant when
+    // this admin edit would add a brand-new ballot, not replace an existing one.
+    const maxVoters = parseInt(election.maxVoters, 10) || 0;
+    if (maxVoters > 0 && isNewVote) {
+      const ballotsCast = await votes.countDocuments({ electionId });
+      if (ballotsCast >= maxVoters) {
+        return res.status(409).json({
+          success: false,
+          message: `This election accepts only ${maxVoters} vote${maxVoters === 1 ? "" : "s"} and that limit has been reached.`,
+        });
+      }
+    }
+
+    if (existing) {
+      await votes.deleteById(existing._id || existing.id);
+    }
+
+    const vote = await votes.create({
+      electionId,
+      voterId,
+      nominees: uniqueNomineeIds,
+      ipAddress: req.ip,
+      status: "completed",
+    });
+
+    await logAuditFromReq(
+      req,
+      isNewVote ? "Cast vote for" : "Edited vote for",
+      targetVoter.username || voterId,
+      "Vote",
+      electionId
+    );
+
+    res.status(200).json({
+      success: true,
+      message: isNewVote ? "Vote recorded for voter." : "Vote updated for voter.",
+      data: vote,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: err.toString() });

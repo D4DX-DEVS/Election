@@ -50,6 +50,7 @@ import { getElectionLabel, isElectionLocked } from "@/lib/electionHelpers";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { NomineeForm } from "@/components/nominees/NomineeForm";
 import { NomineeAvatar } from "@/components/nominees/NomineeAvatar";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export default function Nominees({
   embedded = false,
@@ -564,9 +565,10 @@ export default function Nominees({
               </AlertDescription>
             </Alert>
           ) : totalNominees === 0 ? (
-            <div className="text-center py-6">
-              <p className="text-gray-500">No nominees found. Add some nominees to get started.</p>
-            </div>
+            <EmptyState
+              title="No nominees found"
+              description="Add some nominees to get started."
+            />
           ) : (
             <div>
               {!isReadOnly && (

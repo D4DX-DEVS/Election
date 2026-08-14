@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import { useLocation } from "wouter"
+import { useLocation, useSearch } from "wouter"
 import { useToast } from "@/hooks/use-toast"
 import {
   Toast,
@@ -22,13 +22,16 @@ const variantIcon = {
 export function Toaster() {
   const { toasts, dismiss } = useToast()
   const [location] = useLocation()
+  const search = useSearch()
 
   // A toast belongs to the screen that raised it — clear it on navigation so
-  // it can't follow the user across pages.
+  // it can't follow the user across pages. wouter's `location` only tracks the
+  // pathname, so switching tabs (query-string-only navigation, e.g. `?tab=`)
+  // wouldn't otherwise clear a stuck toast — watch `search` too.
   useEffect(() => {
     dismiss()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location])
+  }, [location, search])
 
   return (
     <ToastProvider>

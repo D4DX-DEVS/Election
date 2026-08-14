@@ -540,62 +540,6 @@ exports.generateVoters = async (req, res) => {
   }
 };
 
-exports.assignVotersToElection = async (req, res) => {
-  try {
-    const { voterIds, electionId } = req.body;
-    if (!electionId) {
-      return res.status(400).json({ success: false, message: "electionId is required." });
-    }
-    if (!Array.isArray(voterIds) || voterIds.length === 0) {
-      return res.status(400).json({ success: false, message: "voterIds must be a non-empty array." });
-    }
-    if (!users.isEntityId(electionId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid electionId.",
-      });
-    }
-    const validVoterIds = voterIds.filter((id) => users.isEntityId(id));
-    if (validVoterIds.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "No valid voter IDs supplied.",
-      });
-    }
-
-    const election = await elections.findById(electionId);
-    if (!election) {
-      return res.status(404).json({ success: false, message: "Election not found." });
-    }
-    const franchiseId = requireFranchiseId(resourceFranchiseId(election));
-    await validateElectionAssignments(req.user, franchiseId, [electionId]);
-    await assertUserIdsScoped({
-      actor: req.user,
-      franchiseId,
-      userIds: validVoterIds,
-      findUserById: loadTargetUser,
-    });
-
-    const result = await users.assignVotersToElection(validVoterIds, electionId);
-
-    await logUserActivity(
-      req.user._id,
-      req.ip,
-      "Assigned",
-      `${result.modifiedCount} voters → election ${electionId}`,
-      "Election"
-    );
-
-    res.status(200).json({
-      success: true,
-      message: `${result.modifiedCount} voter(s) assigned to election.`,
-      modified: result.modifiedCount,
-    });
-  } catch (err) {
-    sendError(res, err);
-  }
-};
-
 exports.createFranchiseAdmin = async (req, res) => {
   try {
     if (req.user.role !== "super_admin") {

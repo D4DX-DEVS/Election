@@ -35,36 +35,37 @@ export function PaginationControls({
   return (
     <div
       className={cn(
-        "shrink-0 w-full flex flex-col items-center justify-center gap-3 pt-4 pb-1 text-center",
+        "shrink-0 w-full flex flex-col items-center justify-between gap-3 pt-1 pb-1 text-center sm:flex-row sm:text-left",
         className,
       )}
     >
-      <p className="text-sm text-gray-500">
-        Showing <span className="font-medium text-gray-700">{from}</span>–
-        <span className="font-medium text-gray-700">{to}</span> of{" "}
-        <span className="font-medium text-gray-700">{total}</span>
+      <p className="text-sm text-slate-500">
+        <span className="font-semibold text-slate-700">{from}–{to}</span> of{" "}
+        <span className="font-semibold text-slate-700">{total}</span>
       </p>
-      <div className="flex flex-wrap items-center justify-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onPageChange(page - 1)}
-          disabled={page <= 1}
-        >
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Previous
-        </Button>
-        <span className="text-sm text-gray-600 min-w-[6rem]">
-          Page {page} of {totalPages}
+      <div className="flex items-center justify-center gap-2">
+        <span className="mr-1 hidden text-sm text-slate-500 sm:inline">
+          Page <span className="font-semibold text-slate-700">{page}</span> of {totalPages}
         </span>
         <Button
           variant="outline"
-          size="sm"
+          size="icon"
+          className="h-9 w-9 rounded-lg"
+          onClick={() => onPageChange(page - 1)}
+          disabled={page <= 1}
+          aria-label="Previous page"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-9 w-9 rounded-lg"
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages}
+          aria-label="Next page"
         >
-          Next
-          <ChevronRight className="h-4 w-4 ml-1" />
+          <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
     </div>

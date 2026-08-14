@@ -16,7 +16,6 @@ import {
   ThumbsUp,
   ChevronRight,
   Users,
-  UserCircle2,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/hooks/use-toast';
@@ -57,6 +56,32 @@ export default function VotingBallot() {
     queryKey: ['/api/vote/voter-status'],
     enabled: !!electionId,
   });
+
+  const alreadyVotedFlag = Boolean(
+    voterStatusData &&
+      typeof voterStatusData === 'object' &&
+      'data' in voterStatusData &&
+      (voterStatusData as any).data &&
+      electionId &&
+      (voterStatusData as any).data[electionId] === 'voted'
+  );
+
+  const { data: myVoteData } = useQuery({
+    queryKey: [`/api/vote/my-vote/${electionId}`],
+    enabled: !!electionId && alreadyVotedFlag,
+  });
+
+  const [prefilled, setPrefilled] = useState(false);
+  useEffect(() => {
+    if (!prefilled && myVoteData) {
+      const vote: any = (myVoteData as any)?.data || myVoteData;
+      const previousIds: string[] = Array.isArray(vote?.nominees) ? vote.nominees.map((id: any) => String(id)) : [];
+      if (previousIds.length > 0) {
+        setSelectedNominees(previousIds);
+      }
+      setPrefilled(true);
+    }
+  }, [myVoteData, prefilled]);
 
   const election: any = Array.isArray(electionData)
     ? electionData.length > 0 ? electionData[0] : null
@@ -106,14 +131,7 @@ export default function VotingBallot() {
     },
   });
 
-  const alreadyVoted = Boolean(
-    voterStatusData &&
-      typeof voterStatusData === 'object' &&
-      'data' in voterStatusData &&
-      (voterStatusData as any).data &&
-      electionId &&
-      (voterStatusData as any).data[electionId] === 'voted'
-  );
+  const alreadyVoted = alreadyVotedFlag;
 
   useEffect(() => {
     // Voters who already voted are bounced back — unless the election allows
@@ -138,7 +156,7 @@ export default function VotingBallot() {
     setSelectedFemaleCount(femaleCount);
   }, [selectedNominees, nominees]);
 
-  const handleNomineeSelection = (nomineeId: string, gender: string) => {
+  const handleNomineeSelection = (nomineeId: string) => {
     if (selectedNominees.includes(nomineeId)) {
       setSelectedNominees(selectedNominees.filter((id) => id !== nomineeId));
     } else {
@@ -440,7 +458,7 @@ export default function VotingBallot() {
                 <div>
                   <p className="font-semibold text-sm text-amber-800 dark:text-amber-300">You have already voted</p>
                   <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
-                    Submitting again will replace your previous vote.
+                    Your previous selections are shown below. Edit them and submit again to replace your vote.
                   </p>
                 </div>
               </div>
@@ -498,7 +516,7 @@ export default function VotingBallot() {
                   key={nominee._id}
                   type="button"
                   className="w-full text-left"
-                  onClick={() => handleNomineeSelection(nominee._id, nominee.gender)}
+                  onClick={() => handleNomineeSelection(nominee._id)}
                   aria-pressed={selected}
                   aria-label={`${selected ? 'Deselect' : 'Select'} ${nominee.name}`}
                 >

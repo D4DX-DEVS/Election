@@ -91,7 +91,9 @@ export default function ElectionWorkspace() {
   });
   const voterCount = votersResp?.pagination?.total ?? (Array.isArray(votersResp?.data) ? votersResp.data.length : 0);
 
-  // Results (turnout / ballots)
+  // Results (turnout / ballots) — poll while voting is open so tallies shown
+  // here (and to the embedded Analytics/ManualWinnerPicker/turnout stat) stay
+  // live as other voters cast or admins edit votes, without a manual refresh.
   const { data: resultsResp } = useQuery({
     queryKey: ["/api/vote/results", id],
     queryFn: async () => {
@@ -99,6 +101,7 @@ export default function ElectionWorkspace() {
       return res.json();
     },
     enabled: !!id,
+    refetchInterval: election?.votingOpen ? 15000 : false,
   });
   const results = resultsResp?.data || null;
   const turnout = results?.turnout ?? null;
@@ -285,9 +288,18 @@ export default function ElectionWorkspace() {
             />
           )}
           {id && election?.adminVotingDetailsEnabled && (
-            <AdminVotingDetailsPanel electionId={id} enabled={!!election.adminVotingDetailsEnabled} votingOpen={!!election?.votingOpen} />
+            <AdminVotingDetailsPanel
+              electionId={id}
+              enabled={!!election.adminVotingDetailsEnabled}
+              votingOpen={!!election?.votingOpen}
+              numberToBeElected={election?.numberToBeElected || 1}
+              ballotSelectionRule={election?.ballotSelectionRule === "up_to" ? "up_to" : "exact"}
+              genderBasedSelection={!!election?.genderBasedSelection}
+              maleMinimum={election?.maleMinimum || 0}
+              femaleMinimum={election?.femaleMinimum || 0}
+            />
           )}
-          {id && <Analytics embedded electionId={id} />}
+          {id && <Analytics electionId={id} />}
         </TabsContent>
       </Tabs>
     </MainLayout>

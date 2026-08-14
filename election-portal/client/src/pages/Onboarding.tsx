@@ -204,7 +204,7 @@ export default function Onboarding() {
         navigate("/");
       }
     },
-    onError: (error) => {
+    onError: () => {
       toast({
         title: "Error",
         description: "Failed to complete onboarding process",
@@ -239,111 +239,107 @@ export default function Onboarding() {
     completeOnboardingMutation.mutate();
   };
 
+  const roleLabel =
+    userRole === "super_admin" ? "Super Administrator" :
+    userRole === "franchise_admin" ? "Franchise Administrator" :
+    userRole === "election_admin" ? "Election Administrator" :
+    "User";
+
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <div className="h-10 w-10 rounded-md bg-primary flex items-center justify-center text-white">
-                <span className="font-bold text-lg">EM</span>
-              </div>
-              <h1 className="ml-3 text-2xl font-bold text-gray-900">
-                Vote+ Onboarding
-              </h1>
-            </div>
-            <Button variant="outline" onClick={skipOnboarding}>
-              Skip Tutorial
-            </Button>
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Compact header — mirrors the dashboard's brand mark + wordmark */}
+      <header className="h-12 shrink-0 border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
+        <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <div className="flex min-w-0 items-center">
+            <img src="/logo.png" alt="Vote+" className="h-7 w-auto object-contain" />
           </div>
+          <Button variant="outline" size="sm" onClick={skipOnboarding}>
+            Skip Tutorial
+          </Button>
         </div>
       </header>
 
-      <main className="flex-grow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              Setting up your {
-                userRole === "super_admin" ? "Super Administrator" :
-                userRole === "franchise_admin" ? "Franchise Administrator" :
-                userRole === "election_admin" ? "Election Administrator" :
-                "User"
-              } Account
-            </h2>
-            <Progress value={progress} className="h-2 w-full" />
-            <div className="flex justify-between text-sm text-gray-500 mt-1">
-              <span>Getting Started</span>
+      <main className="flex-1">
+        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
+          <div className="mb-3">
+            <h1 className="app-page-title">Setting up your {roleLabel} account</h1>
+            <div className="mt-2 flex items-center gap-3">
+              <Progress value={progress} className="h-1.5 flex-1" />
+              <span className="shrink-0 text-xs font-medium text-gray-500">{Math.round(progress)}%</span>
+            </div>
+            <div className="mt-1 flex justify-between text-[11px] text-gray-400">
+              <span>Getting started</span>
               <span>Complete</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="col-span-1">
-              <div className="bg-white shadow rounded-lg overflow-hidden">
-                <div className="px-4 py-5 sm:p-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-[200px_1fr] md:gap-4">
+            <div className="min-w-0">
+              <Card className="border border-gray-200 shadow-none">
+                <CardContent className="p-2.5">
+                  <h2 className="mb-2 px-1 text-[11px] font-bold uppercase tracking-widest text-slate-400">
                     Your Progress
-                  </h3>
-                  <nav className="space-y-2">
+                  </h2>
+                  <nav className="space-y-0.5">
                     {steps.map((step, index) => (
                       <button
                         key={step.id}
-                        className={`w-full flex items-center p-3 rounded-md text-left ${
+                        type="button"
+                        className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
                           index === currentStepIndex
-                            ? "bg-primary/10 text-primary font-medium"
-                            : "text-gray-700 hover:bg-primary/5"
+                            ? "bg-primary text-primary-foreground shadow-sm shadow-primary/30"
+                            : "text-slate-600 hover:bg-primary/5"
                         }`}
                         onClick={() => {
                           setCurrentStepIndex(index);
                           setActiveTab(step.id);
                         }}
                       >
-                        <span className="mr-3 flex-shrink-0">
+                        <span className="flex-shrink-0">
                           {completedStepIds.has(step.id) ? (
-                            <CheckCircle2 
-                              className="h-5 w-5 text-green-500" 
-                            />
+                            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                           ) : (
-                            <div 
-                              className={`h-5 w-5 rounded-full border ${
-                                index === currentStepIndex 
-                                  ? "border-primary" 
-                                  : "border-gray-300"
-                              } flex items-center justify-center text-xs`}
+                            <div
+                              className={`flex h-4 w-4 items-center justify-center rounded-full border text-[10px] ${
+                                index === currentStepIndex
+                                  ? "border-primary-foreground/70 text-primary-foreground"
+                                  : "border-gray-300 text-gray-500"
+                              }`}
                             >
                               {index + 1}
                             </div>
                           )}
                         </span>
-                        <span className="truncate">{step.title}</span>
+                        <span className="truncate font-medium">{step.title}</span>
                       </button>
                     ))}
                   </nav>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </div>
 
-            <div className="col-span-1 md:col-span-3">
-              <Card className="shadow-lg">
-                <CardHeader>
+            <div className="min-w-0">
+              <Card className="border border-gray-200 shadow-none">
+                <CardHeader className="p-3.5 pb-2.5 sm:p-4 sm:pb-2.5">
                   <CardTitle>{currentStep.title}</CardTitle>
                   <CardDescription>{currentStep.description}</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-3.5 pt-0 sm:p-4 sm:pt-0">
                   {currentStep.component}
                 </CardContent>
-                <CardFooter className="flex justify-between">
+                <CardFooter className="flex justify-between border-t border-gray-100 p-3.5 sm:p-4">
                   <Button
                     variant="outline"
+                    size="sm"
                     onClick={goToPreviousStep}
                     disabled={currentStepIndex === 0}
                   >
                     Back
                   </Button>
-                  <Button onClick={goToNextStep}>
-                    {currentStepIndex === steps.length - 1 ? "Finish" : "Next"}
+                  <Button size="sm" onClick={goToNextStep}>
+                    {currentStepIndex === steps.length - 1 ? "Finish" : "Continue"}
                     {currentStepIndex !== steps.length - 1 && (
-                      <ChevronRight className="ml-2 h-4 w-4" />
+                      <ChevronRight className="ml-1.5 h-3.5 w-3.5" />
                     )}
                   </Button>
                 </CardFooter>
@@ -364,82 +360,82 @@ function WelcomeStep() {
   const userRole = user?.role || "viewer";
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-lg bg-primary/5 p-6 border border-primary/10">
-        <h3 className="text-xl font-medium text-gray-900 mb-2">
+    <div className="space-y-2.5">
+      <div className="rounded-lg border border-primary/10 bg-primary/5 p-3.5">
+        <h3 className="mb-1 text-base font-semibold text-gray-900">
           Welcome, {userName}!
         </h3>
-        <p className="text-gray-600 mb-4">
+        <p className="text-sm text-gray-600 mb-1.5">
           We're excited to have you on board as a{" "}
-          {userRole === "super_admin" 
-            ? "Super Administrator" 
-            : userRole === "franchise_admin" 
-              ? "Franchise Administrator" 
+          {userRole === "super_admin"
+            ? "Super Administrator"
+            : userRole === "franchise_admin"
+              ? "Franchise Administrator"
               : "Election Administrator"}.
           Let's get you started with Vote+.
         </p>
-        <p className="text-gray-600">
+        <p className="text-sm text-gray-600">
           This quick onboarding process will help you understand the system
           and set up your first{" "}
-          {userRole === "super_admin" 
-            ? "franchise organization" 
-            : userRole === "franchise_admin" 
-              ? "election" 
+          {userRole === "super_admin"
+            ? "franchise organization"
+            : userRole === "franchise_admin"
+              ? "election"
               : "nominee list"}.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-        <div className="bg-white p-4 rounded-lg border">
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
-              <BookOpen className="h-6 w-6 text-primary" />
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+        <div className="rounded-lg border border-gray-200 bg-white p-2.5">
+          <div className="flex items-start gap-2.5">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <BookOpen className="h-4 w-4" />
             </div>
-            <div className="ml-3">
-              <h4 className="text-md font-medium">Learn the Basics</h4>
-              <p className="text-sm text-gray-500">
+            <div className="min-w-0">
+              <h4 className="text-sm font-semibold text-gray-900">Learn the Basics</h4>
+              <p className="text-xs text-gray-500">
                 Understand the core features and capabilities of the system
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg border">
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
-              <Settings className="h-6 w-6 text-primary" />
+        <div className="rounded-lg border border-gray-200 bg-white p-2.5">
+          <div className="flex items-start gap-2.5">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <Settings className="h-4 w-4" />
             </div>
-            <div className="ml-3">
-              <h4 className="text-md font-medium">Configure Your Account</h4>
-              <p className="text-sm text-gray-500">
+            <div className="min-w-0">
+              <h4 className="text-sm font-semibold text-gray-900">Configure Your Account</h4>
+              <p className="text-xs text-gray-500">
                 Set up your profile and preferences for a personalized experience
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg border">
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
-              <Users className="h-6 w-6 text-primary" />
+        <div className="rounded-lg border border-gray-200 bg-white p-2.5">
+          <div className="flex items-start gap-2.5">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <Users className="h-4 w-4" />
             </div>
-            <div className="ml-3">
-              <h4 className="text-md font-medium">Manage Users</h4>
-              <p className="text-sm text-gray-500">
+            <div className="min-w-0">
+              <h4 className="text-sm font-semibold text-gray-900">Manage Users</h4>
+              <p className="text-xs text-gray-500">
                 Create and organize administrators, nominees, and voters
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg border">
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
-              <FileText className="h-6 w-6 text-primary" />
+        <div className="rounded-lg border border-gray-200 bg-white p-2.5">
+          <div className="flex items-start gap-2.5">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <FileText className="h-4 w-4" />
             </div>
-            <div className="ml-3">
-              <h4 className="text-md font-medium">Election Management</h4>
-              <p className="text-sm text-gray-500">
+            <div className="min-w-0">
+              <h4 className="text-sm font-semibold text-gray-900">Election Management</h4>
+              <p className="text-xs text-gray-500">
                 Create, configure, and monitor election processes
               </p>
             </div>
@@ -456,8 +452,8 @@ function SystemTourStep() {
   const userRole = user?.role || "viewer";
 
   return (
-    <div className="space-y-6">
-      <p className="text-gray-600">
+    <div className="space-y-3">
+      <p className="text-sm text-gray-600">
         Let's explore the key features of the Vote+ system that are relevant to your role as a{" "}
         {userRole === "super_admin" 
           ? "Super Administrator" 
@@ -467,30 +463,30 @@ function SystemTourStep() {
       </p>
 
       <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4">
+        <TabsList className="grid w-full grid-cols-3 mb-3">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="elections">Elections</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="dashboard" className="space-y-4">
+        <TabsContent value="dashboard" className="space-y-0">
           <div className="rounded-lg border overflow-hidden">
-            <div className="bg-white p-4 border-b">
-              <h4 className="font-medium">Dashboard Overview</h4>
+            <div className="bg-white p-3 border-b">
+              <h4 className="text-sm font-semibold text-gray-900">Dashboard Overview</h4>
             </div>
-            <div className="p-4">
-              <p className="text-sm text-gray-600 mb-4">
+            <div className="p-3">
+              <p className="text-sm text-gray-600 mb-1.5">
                 Your dashboard provides a quick overview of:
               </p>
-              <ul className="list-disc list-inside text-sm text-gray-600 space-y-2">
+              <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
                 <li>Active elections and their status</li>
                 <li>Recent voting activity and participation rates</li>
                 <li>Upcoming election deadlines and important dates</li>
                 <li>System notifications and alerts</li>
               </ul>
 
-              <div className="mt-4 p-4 bg-white rounded-lg">
-                <p className="text-sm font-medium">Pro Tip</p>
+              <div className="mt-2 p-2 bg-primary/5 rounded-lg">
+                <p className="text-xs font-semibold text-gray-900">Pro Tip</p>
                 <p className="text-sm text-gray-600">
                   The dashboard is customized based on your role and permissions, showing only relevant information.
                 </p>
@@ -499,16 +495,16 @@ function SystemTourStep() {
           </div>
         </TabsContent>
 
-        <TabsContent value="elections" className="space-y-4">
+        <TabsContent value="elections" className="space-y-0">
           <div className="rounded-lg border overflow-hidden">
-            <div className="bg-white p-4 border-b">
-              <h4 className="font-medium">Managing Elections</h4>
+            <div className="bg-white p-3 border-b">
+              <h4 className="text-sm font-semibold text-gray-900">Managing Elections</h4>
             </div>
-            <div className="p-4">
-              <p className="text-sm text-gray-600 mb-4">
+            <div className="p-3">
+              <p className="text-sm text-gray-600 mb-1.5">
                 The Vote+ system allows you to:
               </p>
-              <ul className="list-disc list-inside text-sm text-gray-600 space-y-2">
+              <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
                 <li>Create and configure new elections with customizable parameters</li>
                 <li>Add nominees and manage their profiles</li>
                 <li>Control voting periods and access</li>
@@ -516,8 +512,8 @@ function SystemTourStep() {
                 <li>Archive completed elections for future reference</li>
               </ul>
 
-              <div className="mt-4 p-4 bg-white rounded-lg">
-                <p className="text-sm font-medium">Pro Tip</p>
+              <div className="mt-2 p-2 bg-primary/5 rounded-lg">
+                <p className="text-xs font-semibold text-gray-900">Pro Tip</p>
                 <p className="text-sm text-gray-600">
                   Elections can be grouped for better organization, especially when managing multiple concurrent events.
                 </p>
@@ -526,13 +522,13 @@ function SystemTourStep() {
           </div>
         </TabsContent>
 
-        <TabsContent value="users" className="space-y-4">
+        <TabsContent value="users" className="space-y-0">
           <div className="rounded-lg border overflow-hidden">
-            <div className="bg-white p-4 border-b">
-              <h4 className="font-medium">User Management</h4>
+            <div className="bg-white p-3 border-b">
+              <h4 className="text-sm font-semibold text-gray-900">User Management</h4>
             </div>
-            <div className="p-4">
-              <p className="text-sm text-gray-600 mb-4">
+            <div className="p-3">
+              <p className="text-sm text-gray-600 mb-2.5">
                 As a{" "}
                 {userRole === "super_admin" 
                   ? "Super Administrator" 
@@ -541,7 +537,7 @@ function SystemTourStep() {
                     : "Election Administrator"}, 
                 you can manage:
               </p>
-              <ul className="list-disc list-inside text-sm text-gray-600 space-y-2">
+              <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
                 {userRole === "super_admin" && (
                   <>
                     <li>Franchise organizations and their settings</li>
@@ -564,8 +560,8 @@ function SystemTourStep() {
                 <li>User activity logs and audit trails</li>
               </ul>
 
-              <div className="mt-4 p-4 bg-white rounded-lg">
-                <p className="text-sm font-medium">Pro Tip</p>
+              <div className="mt-2 p-2 bg-primary/5 rounded-lg">
+                <p className="text-xs font-semibold text-gray-900">Pro Tip</p>
                 <p className="text-sm text-gray-600">
                   Creating voter groups allows for bulk generation of voter accounts with sequential credentials.
                 </p>
@@ -581,23 +577,23 @@ function SystemTourStep() {
 function FranchiseSetupStep() {
   return (
     <div className="space-y-4">
-      <p className="text-gray-600 mb-6">
+      <p className="text-sm text-gray-600 mb-3">
         As a Super Administrator, you can create franchise organizations that represent different entities using the system. Each franchise can have its own administrators, elections, and voters.
       </p>
 
-      <div className="rounded-lg border p-4 bg-yellow-50 mb-6">
-        <h4 className="font-medium flex items-center text-yellow-800">
-          <CheckCircle2 className="h-5 w-5 mr-2 text-yellow-500" />
+      <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 mb-3">
+        <h4 className="flex items-center text-sm font-semibold text-amber-800">
+          <CheckCircle2 className="h-4 w-4 mr-1.5 text-amber-500" />
           Setting Up Your First Franchise
         </h4>
-        <p className="mt-2 text-sm text-yellow-700">
+        <p className="mt-1.5 text-xs text-amber-700">
           To create a franchise, navigate to the Franchises page from the main sidebar. You'll be able to add the organization's name, logo, and default settings for elections.
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4">
-        <div className="rounded-lg border p-4">
-          <h4 className="font-medium mb-2">Key Franchise Settings</h4>
+        <div className="rounded-lg border border-gray-200 p-3">
+          <h4 className="text-sm font-semibold text-gray-900 mb-1.5">Key Franchise Settings</h4>
           <ul className="list-disc list-inside text-sm text-gray-600 space-y-2">
             <li>Organization name and branding</li>
             <li>Default nominee display order (alphabetical, random, etc.)</li>
@@ -607,8 +603,8 @@ function FranchiseSetupStep() {
           </ul>
         </div>
 
-        <div className="rounded-lg border p-4">
-          <h4 className="font-medium mb-2">Best Practices</h4>
+        <div className="rounded-lg border border-gray-200 p-3">
+          <h4 className="text-sm font-semibold text-gray-900 mb-1.5">Best Practices</h4>
           <ul className="list-disc list-inside text-sm text-gray-600 space-y-2">
             <li>Use clear, recognizable names for franchises</li>
             <li>Upload high-quality logos for better branding</li>
@@ -624,13 +620,13 @@ function FranchiseSetupStep() {
 function AdminSetupStep() {
   return (
     <div className="space-y-4">
-      <p className="text-gray-600 mb-6">
+      <p className="text-sm text-gray-600 mb-3">
         Now that you've set up a franchise, you'll need to create administrators who can manage elections within that franchise. There are two types of administrators you can create:
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div className="rounded-lg border p-4">
-          <h4 className="font-medium mb-2">Franchise Administrators</h4>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+        <div className="rounded-lg border border-gray-200 p-3">
+          <h4 className="text-sm font-semibold text-gray-900 mb-1.5">Franchise Administrators</h4>
           <p className="text-sm text-gray-600 mb-2">
             These users can:
           </p>
@@ -642,8 +638,8 @@ function AdminSetupStep() {
           </ul>
         </div>
 
-        <div className="rounded-lg border p-4">
-          <h4 className="font-medium mb-2">Election Administrators</h4>
+        <div className="rounded-lg border border-gray-200 p-3">
+          <h4 className="text-sm font-semibold text-gray-900 mb-1.5">Election Administrators</h4>
           <p className="text-sm text-gray-600 mb-2">
             These users can:
           </p>
@@ -656,18 +652,18 @@ function AdminSetupStep() {
         </div>
       </div>
 
-      <div className="rounded-lg border p-4 bg-yellow-50">
-        <h4 className="font-medium flex items-center text-yellow-800">
-          <CheckCircle2 className="h-5 w-5 mr-2 text-yellow-500" />
+      <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+        <h4 className="flex items-center text-sm font-semibold text-amber-800">
+          <CheckCircle2 className="h-4 w-4 mr-1.5 text-amber-500" />
           Creating Administrators
         </h4>
-        <p className="mt-2 text-sm text-yellow-700">
+        <p className="mt-1.5 text-xs text-amber-700">
           To create administrators, go to the Admins page from the main sidebar. You'll be able to create accounts, set credentials, and assign franchises or specific elections.
         </p>
       </div>
 
-      <div className="rounded-lg border p-4">
-        <h4 className="font-medium mb-2">Security Best Practices</h4>
+      <div className="rounded-lg border border-gray-200 p-3">
+        <h4 className="text-sm font-semibold text-gray-900 mb-1.5">Security Best Practices</h4>
         <ul className="list-disc list-inside text-sm text-gray-600 space-y-2">
           <li>Create unique usernames that identify both the user and their role</li>
           <li>Use strong initial passwords and require users to change them</li>
@@ -682,23 +678,23 @@ function AdminSetupStep() {
 function ElectionSetupStep() {
   return (
     <div className="space-y-4">
-      <p className="text-gray-600 mb-6">
+      <p className="text-sm text-gray-600 mb-3">
         As a Franchise Administrator, one of your primary responsibilities is creating and configuring elections. Let's walk through the process of setting up your first election.
       </p>
 
-      <div className="rounded-lg border p-4 bg-yellow-50 mb-6">
-        <h4 className="font-medium flex items-center text-yellow-800">
-          <CheckCircle2 className="h-5 w-5 mr-2 text-yellow-500" />
+      <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 mb-3">
+        <h4 className="flex items-center text-sm font-semibold text-amber-800">
+          <CheckCircle2 className="h-4 w-4 mr-1.5 text-amber-500" />
           Creating a New Election
         </h4>
-        <p className="mt-2 text-sm text-yellow-700">
+        <p className="mt-1.5 text-xs text-amber-700">
           To create an election, navigate to the Elections page from the main sidebar and click "Create Election". You'll need to fill in the basic details and configure the election settings.
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4">
-        <div className="rounded-lg border p-4">
-          <h4 className="font-medium mb-2">Key Election Settings</h4>
+        <div className="rounded-lg border border-gray-200 p-3">
+          <h4 className="text-sm font-semibold text-gray-900 mb-1.5">Key Election Settings</h4>
           <ul className="list-disc list-inside text-sm text-gray-600 space-y-2">
             <li>Election title and organization name</li>
             <li>Election date and duration</li>
@@ -710,8 +706,8 @@ function ElectionSetupStep() {
           </ul>
         </div>
 
-        <div className="rounded-lg border p-4">
-          <h4 className="font-medium mb-2">Election Status Lifecycle</h4>
+        <div className="rounded-lg border border-gray-200 p-3">
+          <h4 className="text-sm font-semibold text-gray-900 mb-1.5">Election Status Lifecycle</h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3">
             <div className="bg-white border p-2 rounded text-center">
               <span className="text-xs font-medium">Draft</span>
@@ -731,8 +727,8 @@ function ElectionSetupStep() {
           </p>
         </div>
 
-        <div className="rounded-lg border p-4">
-          <h4 className="font-medium mb-2">Best Practices</h4>
+        <div className="rounded-lg border border-gray-200 p-3">
+          <h4 className="text-sm font-semibold text-gray-900 mb-1.5">Best Practices</h4>
           <ul className="list-disc list-inside text-sm text-gray-600 space-y-2">
             <li>Use clear, descriptive titles that identify the purpose of the election</li>
             <li>Configure election settings before adding nominees</li>
@@ -748,23 +744,23 @@ function ElectionSetupStep() {
 function VoterSetupStep() {
   return (
     <div className="space-y-4">
-      <p className="text-gray-600 mb-6">
+      <p className="text-sm text-gray-600 mb-3">
         Managing voters is a critical part of running successful elections. Vote+ provides several ways to add voters to your elections.
       </p>
 
-      <div className="rounded-lg border p-4 bg-yellow-50 mb-6">
-        <h4 className="font-medium flex items-center text-yellow-800">
-          <CheckCircle2 className="h-5 w-5 mr-2 text-yellow-500" />
+      <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 mb-3">
+        <h4 className="flex items-center text-sm font-semibold text-amber-800">
+          <CheckCircle2 className="h-4 w-4 mr-1.5 text-amber-500" />
           Creating Voter Groups
         </h4>
-        <p className="mt-2 text-sm text-yellow-700">
+        <p className="mt-1.5 text-xs text-amber-700">
           Voter groups allow you to organize voters and generate credentials in bulk. To create a voter group, go to the Voters page from the main sidebar and click "Create Voter Group".
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4">
-        <div className="rounded-lg border p-4">
-          <h4 className="font-medium mb-2">Voter Management Methods</h4>
+        <div className="rounded-lg border border-gray-200 p-3">
+          <h4 className="text-sm font-semibold text-gray-900 mb-1.5">Voter Management Methods</h4>
           <div className="space-y-3 mt-3">
             <div>
               <h5 className="text-sm font-medium">Voter Groups</h5>
@@ -796,8 +792,8 @@ function VoterSetupStep() {
           </div>
         </div>
 
-        <div className="rounded-lg border p-4">
-          <h4 className="font-medium mb-2">Voter Credentials</h4>
+        <div className="rounded-lg border border-gray-200 p-3">
+          <h4 className="text-sm font-semibold text-gray-900 mb-1.5">Voter Credentials</h4>
           <p className="text-sm text-gray-600 mb-3">
             Each voter receives unique login credentials:
           </p>
@@ -811,8 +807,8 @@ function VoterSetupStep() {
           </p>
         </div>
 
-        <div className="rounded-lg border p-4">
-          <h4 className="font-medium mb-2">Best Practices</h4>
+        <div className="rounded-lg border border-gray-200 p-3">
+          <h4 className="text-sm font-semibold text-gray-900 mb-1.5">Best Practices</h4>
           <ul className="list-disc list-inside text-sm text-gray-600 space-y-2">
             <li>Create separate voter groups for different constituencies or departments</li>
             <li>Use recognizable prefixes that help identify the voter's group</li>
@@ -829,23 +825,23 @@ function VoterSetupStep() {
 function NomineeSetupStep() {
   return (
     <div className="space-y-4">
-      <p className="text-gray-600 mb-6">
+      <p className="text-sm text-gray-600 mb-3">
         As an Election Administrator, one of your key responsibilities is managing nominees for your assigned elections. Let's walk through the process of adding nominees.
       </p>
 
-      <div className="rounded-lg border p-4 bg-yellow-50 mb-6">
-        <h4 className="font-medium flex items-center text-yellow-800">
-          <CheckCircle2 className="h-5 w-5 mr-2 text-yellow-500" />
+      <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 mb-3">
+        <h4 className="flex items-center text-sm font-semibold text-amber-800">
+          <CheckCircle2 className="h-4 w-4 mr-1.5 text-amber-500" />
           Adding Nominees
         </h4>
-        <p className="mt-2 text-sm text-yellow-700">
+        <p className="mt-1.5 text-xs text-amber-700">
           To add nominees, navigate to the Nominees page from the main sidebar. Select your assigned election and click "Add Nominee" to enter their details.
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4">
-        <div className="rounded-lg border p-4">
-          <h4 className="font-medium mb-2">Nominee Information</h4>
+        <div className="rounded-lg border border-gray-200 p-3">
+          <h4 className="text-sm font-semibold text-gray-900 mb-1.5">Nominee Information</h4>
           <p className="text-sm text-gray-600 mb-3">
             For each nominee, you can provide the following details:
           </p>
@@ -859,8 +855,8 @@ function NomineeSetupStep() {
           </ul>
         </div>
 
-        <div className="rounded-lg border p-4">
-          <h4 className="font-medium mb-2">Nominee Status Management</h4>
+        <div className="rounded-lg border border-gray-200 p-3">
+          <h4 className="text-sm font-semibold text-gray-900 mb-1.5">Nominee Status Management</h4>
           <div className="grid grid-cols-3 gap-2 mt-3">
             <div className="bg-green-100 p-2 rounded text-center">
               <span className="text-xs font-medium">Active</span>
@@ -877,8 +873,8 @@ function NomineeSetupStep() {
           </p>
         </div>
 
-        <div className="rounded-lg border p-4">
-          <h4 className="font-medium mb-2">Best Practices</h4>
+        <div className="rounded-lg border border-gray-200 p-3">
+          <h4 className="text-sm font-semibold text-gray-900 mb-1.5">Best Practices</h4>
           <ul className="list-disc list-inside text-sm text-gray-600 space-y-2">
             <li>Use consistent photo sizes and backgrounds for a professional appearance</li>
             <li>Keep biographical information concise and relevant</li>
@@ -899,27 +895,27 @@ function CompleteStep() {
   const userName = user?.fullName || user?.username || "User";
 
   return (
-    <div className="space-y-4 text-center py-4">
-      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-600 mb-4">
-        <CheckCircle2 className="h-8 w-8" />
+    <div className="space-y-2 text-center">
+      <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-emerald-100 text-emerald-600">
+        <CheckCircle2 className="h-5 w-5" />
       </div>
 
-      <h3 className="text-xl font-medium text-gray-900">
+      <h3 className="text-base font-semibold text-gray-900">
         Congratulations, {userName}!
       </h3>
 
-      <p className="text-gray-600 max-w-lg mx-auto">
+      <p className="text-sm text-gray-600 max-w-lg mx-auto">
         You've completed the onboarding process and are ready to start using Vote+ as a{" "}
-        {userRole === "super_admin" 
-          ? "Super Administrator" 
-          : userRole === "franchise_admin" 
-            ? "Franchise Administrator" 
+        {userRole === "super_admin"
+          ? "Super Administrator"
+          : userRole === "franchise_admin"
+            ? "Franchise Administrator"
             : "Election Administrator"}.
       </p>
 
-      <div className="rounded-lg border p-4 bg-white max-w-lg mx-auto mt-6 text-left">
-        <h4 className="font-medium mb-2">Next Steps</h4>
-        <ul className="list-disc list-inside text-sm text-gray-600 space-y-2">
+      <div className="rounded-lg border border-gray-200 p-2.5 bg-white max-w-lg mx-auto mt-2 text-left">
+        <h4 className="text-sm font-semibold text-gray-900 mb-1">Next Steps</h4>
+        <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
           {userRole === "super_admin" && (
             <>
               <li>Create your first franchise organization</li>
@@ -949,7 +945,7 @@ function CompleteStep() {
         </ul>
       </div>
 
-      <p className="text-gray-500 text-sm mt-6">
+      <p className="text-gray-500 text-xs mt-2">
         Remember, you can always return to these guides through the Help section if you need a refresher.
       </p>
     </div>

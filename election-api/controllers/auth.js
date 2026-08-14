@@ -88,6 +88,13 @@ exports.getCurrentUser = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
   try {
+    // Profile editing is an admin-tier feature — plain voters have nothing to
+    // manage here (GET /me stays open everywhere; it's the session identity
+    // check the whole app relies on, not the profile page itself).
+    if (req.user.role === "voter") {
+      return res.status(403).json({ success: false, message: "Not authorized to edit profile details." });
+    }
+
     const userId = req.user._id || req.user.id;
     const existing = await users.findById(userId, { includePassword: false });
     if (!existing) {
@@ -185,59 +192,6 @@ exports.changePassword = async (req, res) => {
     await logUserActivity(userId, req.ip, "Changed password", user.username, "User", userId);
 
     res.status(200).json({ success: true, message: "Password changed successfully." });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: err.toString() });
-  }
-};
-
-exports.forgotPassword = async (req, res) => {
-  try {
-    const { username, email, newPassword } = req.body;
-
-    if (!username || !String(username).trim()) {
-      return res.status(400).json({ success: false, message: "Username is required." });
-    }
-    if (!email || !String(email).trim()) {
-      return res.status(400).json({ success: false, message: "Email is required." });
-    }
-    if (!newPassword || String(newPassword).length < 6) {
-      return res.status(400).json({
-        success: false,
-        message: "New password must be at least 6 characters.",
-      });
-    }
-
-    const user = await users.findByUsername(String(username).trim());
-    const normalizedEmail = String(email).trim().toLowerCase();
-
-    if (
-      !user ||
-      user.status === "inactive" ||
-      !user.email ||
-      String(user.email).trim().toLowerCase() !== normalizedEmail
-    ) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Username and email do not match our records. Add your email in Profile first, or contact your administrator.",
-      });
-    }
-
-    const hashedPassword = await bcrypt.hash(String(newPassword), 10);
-    await users.updateById(user._id, {
-      password: hashedPassword,
-      ...(user.role === "voter"
-        ? { credentialCiphertext: encryptCredential(newPassword) }
-        : {}),
-    });
-
-    await logUserActivity(user._id, req.ip, "Reset password via forgot flow", user.username, "User", user._id);
-
-    res.status(200).json({
-      success: true,
-      message: "Password updated successfully. You can sign in with your new password.",
-    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: err.toString() });

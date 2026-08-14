@@ -10,6 +10,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiRequest } from "@/lib/queryClient";
 import { PageContent, PageHeader } from "@/components/layout/PageContent";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Card, CardContent } from "@/components/ui/card";
 
 const EMPTY_STATS: DashboardStats = {
   activeElections: 0,
@@ -105,7 +107,7 @@ export default function Dashboard() {
           </Alert>
         )}
 
-        <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3">
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:gap-5">
           {statsLoading ? (
             <>
               <Skeleton className="h-24 w-full md:h-28" />
@@ -202,10 +204,14 @@ export default function Dashboard() {
           ) : recentElections.length > 0 ? (
             <RecentElectionsTable elections={recentElections} />
           ) : (
-            <Alert className="mb-6">
-              <AlertTitle>No elections yet</AlertTitle>
-              <AlertDescription>Create an election to see recent activity here.</AlertDescription>
-            </Alert>
+            <Card className="mb-6 border border-gray-200 shadow-none">
+              <CardContent className="p-0">
+                <EmptyState
+                  title="No elections yet"
+                  description="Create an election to see recent activity here."
+                />
+              </CardContent>
+            </Card>
           )
         )}
 

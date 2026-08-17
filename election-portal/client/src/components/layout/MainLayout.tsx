@@ -2,6 +2,7 @@ import { ReactNode, useState, useEffect } from "react";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import { SiteFooter } from "./SiteFooter";
+import { BottomNav } from "./BottomNav";
 import { cn } from "@/lib/utils";
 
 interface MainLayoutProps {
@@ -113,16 +114,29 @@ export function MainLayout({ children }: MainLayoutProps) {
         />
       )}
 
+      {/*
+        Global content gutter — the single place that spaces every page's
+        content away from the fixed sidebar and the right edge of the
+        viewport. Every page renders through MainLayout, so this is the one
+        spot to change to affect all of them (current and future) at once.
+        Left padding = sidebar width + a fixed gutter (1.5rem) so content
+        never sits flush against the sidebar; right/mobile padding uses the
+        same gutter scale via px-4/sm:px-6/lg:px-8.
+      */}
       <main className={cn(
         "flex flex-1 flex-col w-full bg-background transition-[padding] duration-300",
         "min-h-[calc(100dvh-3.5rem)]",
         "px-4 pt-[calc(4.5rem+env(safe-area-inset-top,0px))] sm:px-6 lg:px-8",
-        "pb-[calc(2rem+env(safe-area-inset-bottom,0px))]",
-        collapsed ? "lg:pl-[72px]" : "lg:pl-60"
+        // Mobile: clear the fixed bottom nav (h-16) plus safe-area inset.
+        // Desktop: bottom nav is hidden, so just the usual breathing room.
+        "pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-[calc(2rem+env(safe-area-inset-bottom,0px))]",
+        collapsed ? "lg:pl-[calc(72px+1.5rem)]" : "lg:pl-[calc(15rem+1.5rem)]"
       )}>
         <div className="flex flex-1 flex-col">{children}</div>
         <SiteFooter />
       </main>
+
+      <BottomNav />
     </div>
   );
 }

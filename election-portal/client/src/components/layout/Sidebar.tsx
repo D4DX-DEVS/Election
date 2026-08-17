@@ -155,7 +155,7 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse, userRo
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 space-y-0.5 overflow-y-auto scrollbar-thin px-2.5 py-2.5">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto scrollbar-hidden px-2.5 py-2.5">
         {isVoter ? (
           <NavLink href="/voting" icon={<Vote />} label="Cast Vote" />
         ) : (

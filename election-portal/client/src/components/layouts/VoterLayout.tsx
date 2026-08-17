@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { useQueryClient } from '@tanstack/react-query';
-import { LogOut, Vote, ChevronLeft } from 'lucide-react';
+import { LogOut, Lock, Vote, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NotificationBell } from '@/components/layout/NotificationBell';
 import { SiteFooter } from '@/components/layout/SiteFooter';
@@ -130,6 +130,13 @@ export default function VoterLayout({ children, title, showBack, onBack }: Voter
                   <p className="font-semibold truncate">{userFullName || 'Voter'}</p>
                   <p className="text-xs text-muted-foreground">Voter account</p>
                 </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/settings" className="flex items-center cursor-pointer">
+                    <Lock className="h-4 w-4 mr-2" />
+                    Change password
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setLogoutConfirmOpen(true)} className="text-red-600 focus:text-red-600">
                   <LogOut className="h-4 w-4 mr-2" />

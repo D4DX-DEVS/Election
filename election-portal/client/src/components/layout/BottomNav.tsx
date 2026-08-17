@@ -6,6 +6,7 @@ import {
   Users,
   UserPlus,
   Activity,
+  UserCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -79,6 +80,12 @@ export function BottomNav() {
         icon: <Users className="h-5 w-5" />,
       });
     }
+  }
+
+  // Account-level access (profile, franchise settings, logout via the page's
+  // own menu) lives under one tab rather than cluttering the primary nav.
+  if (items.length > 0) {
+    items.push({ href: "/profile", label: "Profile", icon: <UserCircle2 className="h-5 w-5" /> });
   }
 
   const navItems = items.slice(0, 5);

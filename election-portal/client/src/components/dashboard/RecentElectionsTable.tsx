@@ -20,8 +20,8 @@ export function RecentElectionsTable({ elections }: RecentElectionsTableProps) {
   const [, navigate] = useLocation();
 
   return (
-    <div className="mb-6">
-      <div className="flex items-center justify-between mb-3">
+    <div className="mb-4">
+      <div className="flex items-center justify-between mb-2">
         <h3 className="app-section-title">Recent Elections</h3>
         <Link href="/elections">
           <Button variant="link" className="h-auto p-0 text-sm font-medium text-primary hover:text-primary-dark">
@@ -42,7 +42,7 @@ export function RecentElectionsTable({ elections }: RecentElectionsTableProps) {
             : "—";
 
           return (
-            <CompactListRow key={electionId} onClick={() => navigate(`/elections/${electionId}`)}>
+            <CompactListRow key={electionId} onClick={() => navigate(`/elections/${electionId}`)} label={`Open ${getElectionLabel(election)}`}>
               <CompactListPrimary>{getElectionLabel(election)}</CompactListPrimary>
               <CompactListSecondary>
                 {`${dateLabel} · ${participationPercentage}% (${totalVotesCast}/${totalVoters})`}

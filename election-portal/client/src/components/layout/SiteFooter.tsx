@@ -12,7 +12,7 @@ export const D4DX_LOGO_SRC = "/d4dx-logo.png";
  */
 export function SiteFooter() {
   return (
-    <footer className="shrink-0 w-full border-t border-gray-100 py-4 text-center text-xs text-gray-400 lg:py-6">
+    <footer className="app-helper shrink-0 w-full border-t border-gray-100 py-4 text-center lg:py-6">
       <a
         href={D4DX_URL}
         target="_blank"

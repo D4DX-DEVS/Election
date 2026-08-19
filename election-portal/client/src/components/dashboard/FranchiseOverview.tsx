@@ -1,4 +1,5 @@
 import { DashboardStats } from "@/lib/types";
+import { useLocation } from "wouter";
 import {
   CompactList,
   CompactListPrimary,
@@ -11,6 +12,7 @@ interface FranchiseOverviewProps {
 }
 
 export function FranchiseOverview({ stats }: FranchiseOverviewProps) {
+  const [, navigate] = useLocation();
   const franchises = stats.franchiseDistribution;
   const hasDistribution = franchises.some((f) => (f.electionCount ?? 0) > 0 || f.percentage > 0);
 
@@ -27,7 +29,11 @@ export function FranchiseOverview({ stats }: FranchiseOverviewProps) {
       {franchises.length > 0 ? (
         <CompactList>
           {franchises.map((franchise) => (
-            <CompactListRow key={franchise.id || franchise.name}>
+            <CompactListRow
+              key={franchise.id || franchise.name}
+              label={`Open ${franchise.name}`}
+              onClick={() => navigate("/franchises")}
+            >
               <CompactListPrimary>{franchise.name}</CompactListPrimary>
               <CompactListSecondary>
                 {[

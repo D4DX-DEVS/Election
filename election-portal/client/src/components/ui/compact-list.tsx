@@ -48,18 +48,24 @@ export function CompactListRow({
   children,
   onClick,
   className,
+  label,
 }: {
   children: ReactNode;
   onClick?: () => void;
   className?: string;
+  /** Accessible name when the row opens a record. */
+  label?: string;
 }) {
   return (
     <div
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
+      aria-label={onClick ? label : undefined}
       className={cn(
-        "flex min-h-11 items-center gap-2 px-3 py-2 hover:bg-primary/5",
-        onClick && "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
+        "flex min-h-11 items-center gap-2 px-3 py-2",
+        onClick
+          ? "cursor-pointer hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+          : undefined,
         className
       )}
       onClick={onClick}
@@ -87,7 +93,7 @@ export function CompactListLeading({ children, className }: { children: ReactNod
 /** Primary label — stays visible; truncates instead of wrapping. */
 export function CompactListPrimary({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <span className={cn("min-w-0 max-w-[48%] shrink truncate text-sm font-medium text-gray-900 sm:max-w-[40%] lg:max-w-xs", className)}>
+    <span className={cn("app-detail-value min-w-0 max-w-[48%] shrink truncate sm:max-w-[40%] lg:max-w-xs", className)}>
       {children}
     </span>
   );
@@ -96,7 +102,7 @@ export function CompactListPrimary({ children, className }: { children: ReactNod
 /** Secondary/muted info — fills leftover width and ellipsizes. */
 export function CompactListSecondary({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <span className={cn("min-w-0 flex-1 truncate text-xs text-gray-500", className)}>
+    <span className={cn("app-muted min-w-0 flex-1 truncate", className)}>
       {children}
     </span>
   );
@@ -115,7 +121,7 @@ export function CompactListStatus({
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center gap-1 text-xs font-medium",
+        "app-helper inline-flex shrink-0 items-center gap-1 font-medium",
         active ? "text-green-700" : "text-gray-500"
       )}
     >

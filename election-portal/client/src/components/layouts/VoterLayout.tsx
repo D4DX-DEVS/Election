@@ -122,8 +122,8 @@ export default function VoterLayout({ children, title, showBack, onBack }: Voter
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuLabel className="font-normal">
-                  <p className="font-semibold truncate">{userFullName || 'Voter'}</p>
-                  <p className="text-xs text-muted-foreground">Voter account</p>
+                  <p className="app-detail-value truncate">{userFullName || 'Voter'}</p>
+                  <p className="app-muted">Voter account</p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>

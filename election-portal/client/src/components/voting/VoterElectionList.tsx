@@ -69,7 +69,7 @@ export function VoterElectionList({
   return (
     <Card className="border border-gray-200 shadow-sm">
       <CardHeader className="px-4 py-3 border-b border-gray-200 md:px-6">
-        <CardTitle className="text-base font-medium text-gray-900">Your elections</CardTitle>
+        <CardTitle>Your elections</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <ul className="divide-y divide-gray-200">
@@ -127,29 +127,29 @@ export function VoterElectionList({
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold text-gray-900 leading-tight truncate">{label}</h3>
+                      <h3 className="app-detail-value leading-tight truncate">{label}</h3>
                       {voted ? (
                         <Badge
                           variant="outline"
-                          className="bg-blue-100 text-blue-800 hover:bg-blue-100 border-blue-200 text-[10px] px-1.5 py-0"
+                          className="bg-blue-100 text-blue-800 hover:bg-blue-100 border-blue-200 text-xs px-1.5 py-0"
                         >
                           Voted
                         </Badge>
                       ) : (
                         <Badge
                           variant="outline"
-                          className={cn("text-[10px] px-1.5 py-0", statusBadgeClass(election.status))}
+                          className={cn("text-xs px-1.5 py-0", statusBadgeClass(election.status))}
                         >
                           {statusLabel(election.status)}
                         </Badge>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 mt-0.5 truncate flex items-center gap-1">
+                    <p className="app-muted mt-0.5 truncate flex items-center gap-1">
                       <Calendar className="h-3 w-3 flex-shrink-0" />
                       {meta}
                     </p>
                     {showTurnout && (
-                      <p className="text-xs text-blue-700 mt-0.5 truncate flex items-center gap-1">
+                      <p className="app-muted mt-0.5 truncate flex items-center gap-1 text-blue-700">
                         <Users className="h-3 w-3 flex-shrink-0" />
                         {voteStats!.voted}/{voteStats!.eligible} voted
                       </p>
@@ -157,7 +157,7 @@ export function VoterElectionList({
                   </div>
 
                   {clickable && (
-                    <div className="flex-shrink-0 flex items-center gap-1 text-xs font-medium text-primary">
+                    <div className="flex-shrink-0 flex items-center gap-1 app-body font-medium text-primary">
                       <span className="hidden sm:inline">
                         {canRevote ? "Revote" : voted ? "View vote" : "Vote"}
                       </span>

@@ -147,36 +147,38 @@ export default function Profile() {
       <div className="space-y-4">
         <Card>
           <CardContent className="p-4 md:p-5">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-              <Avatar className="h-16 w-16">
+            <div className="flex items-start gap-3 sm:items-center sm:gap-4">
+              <Avatar className="h-16 w-16 shrink-0">
                 <AvatarFallback className="text-lg bg-primary/10 text-primary">
                   {getInitials(displayName)}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="app-page-title truncate">{displayName}</p>
-                <p className="app-muted">@{user?.username || "—"}</p>
-                {user?.status && (
-                  <div className="mt-2">
-                    <Badge
-                      variant={user.status === "active" ? "outline" : "secondary"}
-                      className={
-                        user.status === "active"
-                          ? "bg-green-100 text-green-800 hover:bg-green-100"
-                          : "bg-gray-100 text-gray-800 hover:bg-primary/10"
-                      }
-                    >
-                      {user.status}
-                    </Badge>
+              <div className="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
+                <div className="min-w-0 flex-1">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <p className="app-page-title min-w-0 truncate">{displayName}</p>
+                    {user?.status && (
+                      <Badge
+                        variant={user.status === "active" ? "outline" : "secondary"}
+                        className={
+                          user.status === "active"
+                            ? "shrink-0 bg-green-100 text-green-800 hover:bg-green-100"
+                            : "shrink-0 bg-gray-100 text-gray-800 hover:bg-primary/10"
+                        }
+                      >
+                        {user.status}
+                      </Badge>
+                    )}
                   </div>
-                )}
+                  <p className="app-muted truncate">@{user?.username || "—"}</p>
+                </div>
+                <Button variant="outline" size="sm" className="mt-2 shrink-0 self-start sm:mt-0 sm:self-auto" asChild>
+                  <Link href="/settings">
+                    <Lock className="h-4 w-4 mr-1.5" />
+                    Change password
+                  </Link>
+                </Button>
               </div>
-              <Button variant="outline" size="sm" className="shrink-0" asChild>
-                <Link href="/settings">
-                  <Lock className="h-4 w-4 mr-1.5" />
-                  Change password
-                </Link>
-              </Button>
             </div>
           </CardContent>
         </Card>
@@ -197,8 +199,8 @@ export default function Profile() {
               {isLoading ? (
                 <p className="app-muted">Loading profile…</p>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
+                <form onSubmit={handleSubmit} className="app-form-fields">
+                  <div className="grid gap-1">
                     <Label htmlFor="fullName">Full name</Label>
                     <Input
                       id="fullName"
@@ -208,7 +210,7 @@ export default function Profile() {
                       autoComplete="name"
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div className="grid gap-1">
                     <Label htmlFor="email">Email</Label>
                     <Input
                       id="email"
@@ -219,7 +221,7 @@ export default function Profile() {
                       autoComplete="email"
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div className="grid gap-1">
                     <Label htmlFor="username">Username</Label>
                     <Input
                       id="username"

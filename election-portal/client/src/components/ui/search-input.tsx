@@ -17,7 +17,7 @@ const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
         </div>
         <Input
           ref={ref}
-          className={cn("pl-9", className)}
+          className={cn("h-9 rounded-xl pl-9", className)}
           {...props}
         />
       </div>

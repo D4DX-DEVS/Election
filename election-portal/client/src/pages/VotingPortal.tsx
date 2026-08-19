@@ -151,8 +151,8 @@ export default function VotingPortal() {
               )}
             </div>
             <div className="min-w-0">
-              <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">Voting for</p>
-              <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">{franchise.name}</p>
+              <p className="app-kicker">Voting for</p>
+              <p className="truncate app-body font-semibold">{franchise.name}</p>
             </div>
           </div>
         )}
@@ -206,10 +206,10 @@ export default function VotingPortal() {
             <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-3">
               <Info className="h-7 w-7 text-gray-400" />
             </div>
-            <h2 className="text-base font-semibold text-gray-800 dark:text-white mb-1">
+            <h2 className="app-section-title mb-1">
               No elections yet
             </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs">
+            <p className="app-muted max-w-xs">
               When an admin assigns you to an election, it will appear here.
             </p>
           </div>

@@ -465,7 +465,7 @@ export default function Nominees({
         />
       )}
 
-      <div className="mb-4 flex flex-col gap-3 lg:mb-6">
+      <div className="mb-4 flex flex-col gap-2.5 lg:mb-5">
         {!embedded && (
           <Select value={selectedElectionId} onValueChange={handleElectionChange}>
             <SelectTrigger className="w-full sm:w-64">
@@ -534,11 +534,11 @@ export default function Nominees({
 
       <Card className={embedded ? "border-0 shadow-none" : undefined}>
         {!embedded && (
-          <CardHeader className="px-4 py-3 md:px-6">
+          <CardHeader className="px-3 py-2.5 md:px-4">
             <CardTitle>Nominees List</CardTitle>
           </CardHeader>
         )}
-        <CardContent className={embedded ? "p-0" : "px-4 md:px-6"}>
+        <CardContent className={embedded ? "p-0" : "px-3 md:px-4"}>
           {nomineesLoading ? (
             <div className="space-y-2">
               {[...Array(5)].map((_, i) => (
@@ -596,13 +596,24 @@ export default function Nominees({
                   });
 
                   return (
-                    <CompactListRow key={nomineeId}>
+                    <CompactListRow
+                      key={nomineeId}
+                      label={!selection.deleteMode && !isReadOnly ? `Open ${nominee.name}` : undefined}
+                      onClick={
+                        selection.showSelectors
+                          ? () => selection.toggle(nomineeId)
+                          : !isReadOnly
+                            ? () => handleEditNominee(nominee)
+                            : undefined
+                      }
+                    >
                       {selection.showSelectors && (
                         <CompactListLeading>
                           <RowSelectCheckbox
                             checked={selection.isSelected(nomineeId)}
                             onCheckedChange={() => selection.toggle(nomineeId)}
                             aria-label={`Select ${nominee.name}`}
+                            onClick={(e) => e.stopPropagation()}
                           />
                         </CompactListLeading>
                       )}
@@ -664,13 +675,13 @@ export default function Nominees({
       {/* Add Nominee Dialog */}
       <Dialog open={isAddNomineeOpen} onOpenChange={setIsAddNomineeOpen}>
         <DialogContent className="max-w-2xl flex max-h-[90dvh] flex-col gap-0 overflow-hidden p-0">
-          <DialogHeader className="shrink-0 px-6 pt-6 pb-4">
+          <DialogHeader className="shrink-0 px-4 pt-4 pb-2">
             <DialogTitle>Add Nominees</DialogTitle>
             <DialogDescription>
               Add nominees to an election. You can add multiple nominees at once.
             </DialogDescription>
           </DialogHeader>
-          <DialogBody className="px-6 pb-6">
+          <DialogBody className="px-4 pb-4">
             <NomineeForm 
               defaultElectionId={embedded ? selectedElectionId : undefined}
               sourceElections={elections}
@@ -687,13 +698,13 @@ export default function Nominees({
       {/* Edit Nominee Dialog */}
       <Dialog open={isEditNomineeOpen} onOpenChange={setIsEditNomineeOpen}>
         <DialogContent className="max-w-2xl flex max-h-[90dvh] flex-col gap-0 overflow-hidden p-0">
-          <DialogHeader className="shrink-0 px-6 pt-6 pb-4">
+          <DialogHeader className="shrink-0 px-4 pt-4 pb-2">
             <DialogTitle>Edit Nominee</DialogTitle>
             <DialogDescription>
               Update nominee details.
             </DialogDescription>
           </DialogHeader>
-          <DialogBody className="px-6 pb-6">
+          <DialogBody className="px-4 pb-4">
             <NomineeForm 
               initialData={currentNominee}
               isEdit={true}

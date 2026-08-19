@@ -272,7 +272,7 @@ export default function Onboarding() {
             <div className="hidden min-w-0 md:block">
               <Card className="border border-gray-200 shadow-none">
                 <CardContent className="p-2.5">
-                  <h2 className="mb-2 px-1 text-[11px] font-bold uppercase tracking-widest text-slate-400">
+                  <h2 className="app-kicker mb-2 px-1 tracking-widest">
                     Your Progress
                   </h2>
                   <nav className="space-y-0.5">

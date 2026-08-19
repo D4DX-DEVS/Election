@@ -229,7 +229,7 @@ export function NomineeForm({
             <FormControl>
               <Textarea
                 placeholder="Short bio or platform summary for voters"
-                className="min-h-[88px] resize-y"
+                className="min-h-[72px] resize-y"
                 {...field}
               />
             </FormControl>
@@ -257,12 +257,12 @@ export function NomineeForm({
               </Button>
             </div>
           )}
-          <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-white px-4 py-6 hover:bg-primary/5">
-            <Upload className="mb-2 h-5 w-5 text-gray-400" />
+          <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-white px-4 py-4 hover:bg-primary/5">
+            <Upload className="mb-1.5 h-4 w-4 text-gray-400" />
             <span className="text-sm font-medium text-gray-700">
               {photoPreview ? 'Replace image' : 'Upload image'}
             </span>
-            <span className="mt-1 app-helper">PNG, JPG up to 5MB</span>
+            <span className="mt-0.5 app-helper">PNG, JPG up to 5MB</span>
             <input
               type="file"
               className="hidden"
@@ -650,14 +650,14 @@ export function NomineeForm({
 
   return (
     <Card className="w-full">
-      <CardHeader>
+      <CardHeader className="pb-0">
         <CardTitle>{isEdit ? 'Edit Nominee' : 'Add Nominees'}</CardTitle>
       </CardHeader>
       <CardContent>
         {isEdit ? (
           <Form {...singleForm}>
-            <form onSubmit={singleForm.handleSubmit(onSubmitSingle)} className="space-y-6">
-              <div className="space-y-4">
+            <form onSubmit={singleForm.handleSubmit(onSubmitSingle)} className="space-y-2.5">
+              <div className="space-y-2.5">
                 {/* Election selection (disabled in edit mode) */}
                 <FormField
                   control={singleForm.control}
@@ -737,7 +737,7 @@ export function NomineeForm({
                 {renderOptionalDetailsFields(singleForm)}
               </div>
 
-              <div className="flex justify-end space-x-2">
+              <div className="app-form-actions">
                 <Button
                   type="button"
                   variant="outline"
@@ -753,18 +753,18 @@ export function NomineeForm({
           </Form>
         ) : (
           <Tabs defaultValue="single" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-2 sm:grid-cols-4 gap-1 h-auto mb-6">
-              <TabsTrigger value="single" className="text-xs sm:text-sm px-2">Single</TabsTrigger>
-              <TabsTrigger value="bulk" className="text-xs sm:text-sm px-2">Bulk</TabsTrigger>
-              <TabsTrigger value="previous" className="text-xs sm:text-sm px-2">From Previous</TabsTrigger>
-              <TabsTrigger value="file" className="text-xs sm:text-sm px-2">Excel Import</TabsTrigger>
+            <TabsList className="grid grid-cols-2 sm:grid-cols-4 gap-1 h-auto mb-4">
+              <TabsTrigger value="single" className="px-2">Single</TabsTrigger>
+              <TabsTrigger value="bulk" className="px-2">Bulk</TabsTrigger>
+              <TabsTrigger value="previous" className="px-2">From Previous</TabsTrigger>
+              <TabsTrigger value="file" className="px-2">Excel Import</TabsTrigger>
             </TabsList>
 
             {/* Single nominee tab */}
             <TabsContent value="single">
               <Form {...singleForm}>
-                <form onSubmit={singleForm.handleSubmit(onSubmitSingle)} className="space-y-6">
-                  <div className="space-y-4">
+                <form onSubmit={singleForm.handleSubmit(onSubmitSingle)} className="space-y-2.5">
+                  <div className="space-y-2.5">
                     {!defaultElectionId && (
                     <FormField
                       control={singleForm.control}
@@ -844,7 +844,7 @@ export function NomineeForm({
                     {renderOptionalDetailsFields(singleForm)}
                   </div>
 
-                  <div className="flex justify-end space-x-2">
+                  <div className="app-form-actions">
                     <Button
                       type="button"
                       variant="outline"
@@ -863,8 +863,8 @@ export function NomineeForm({
             {/* Bulk nominees tab */}
             <TabsContent value="bulk">
               <Form {...bulkForm}>
-                <form onSubmit={bulkForm.handleSubmit(onSubmitBulk)} className="space-y-6">
-                  <div className="space-y-4">
+                <form onSubmit={bulkForm.handleSubmit(onSubmitBulk)} className="space-y-2.5">
+                  <div className="space-y-2.5">
                     {!defaultElectionId && (
                     <FormField
                       control={bulkForm.control}
@@ -915,7 +915,7 @@ export function NomineeForm({
                               placeholder={isGenderBased(defaultElectionId || bulkForm.watch('electionId'))
                                 ? 'Enter nominee names with gender separated by commas, e.g: John Doe-m, Jane Smith-f'
                                 : 'Enter nominee names separated by commas, e.g: John Doe, Jane Smith, Alex Johnson'}
-                              className="min-h-[100px]"
+                              className="min-h-[80px]"
                               {...field} 
                             />
                           </FormControl>
@@ -930,7 +930,7 @@ export function NomineeForm({
                     />
                   </div>
 
-                  <div className="flex justify-end space-x-2">
+                  <div className="app-form-actions">
                     <Button
                       type="button"
                       variant="outline"
@@ -949,8 +949,8 @@ export function NomineeForm({
             {/* Import from previous election tab */}
             <TabsContent value="previous">
               <Form {...importPreviousForm}>
-                <form onSubmit={importPreviousForm.handleSubmit(onSubmitImportPrevious)} className="space-y-6">
-                  <div className="space-y-4">
+                <form onSubmit={importPreviousForm.handleSubmit(onSubmitImportPrevious)} className="space-y-2.5">
+                  <div className="space-y-2.5">
                     {/* Source election selection */}
                     <FormField
                       control={importPreviousForm.control}
@@ -1040,7 +1040,7 @@ export function NomineeForm({
                     )}
                   </div>
 
-                  <div className="flex justify-end space-x-2">
+                  <div className="app-form-actions">
                     <Button
                       type="button"
                       variant="outline"
@@ -1058,20 +1058,20 @@ export function NomineeForm({
 
             {/* Excel import tab */}
             <TabsContent value="file">
-              <div className="space-y-6">
-                <div className="space-y-4">
+              <div className="space-y-2.5">
+                <div className="space-y-2.5">
                   <div>
                     <div className="text-sm font-medium mb-2">Excel File</div>
                     <div className="mt-2 flex items-center justify-center w-full">
-                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-white hover:bg-primary/10">
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                          <div className="w-8 h-8 mb-2 text-gray-500">📊</div>
-                          <p className="mb-2 text-sm text-gray-500">
+                      <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer bg-white hover:bg-primary/10">
+                        <div className="flex flex-col items-center justify-center py-4">
+                          <div className="w-6 h-6 mb-1.5 text-gray-500">📊</div>
+                          <p className="mb-1 text-sm text-gray-500">
                             <span className="font-semibold">Click to upload</span> or drag and drop
                           </p>
                           <p className="text-xs text-gray-500">Excel (.xlsx) or CSV (.csv)</p>
                           {importFile && (
-                            <p className="mt-2 text-sm text-blue-600 font-semibold">
+                            <p className="mt-1 text-sm text-blue-600 font-semibold">
                               {importFile.name}
                             </p>
                           )}
@@ -1090,7 +1090,7 @@ export function NomineeForm({
                   </div>
                 </div>
 
-                <div className="flex justify-end space-x-2">
+                <div className="app-form-actions">
                   <Button
                     type="button"
                     variant="outline"

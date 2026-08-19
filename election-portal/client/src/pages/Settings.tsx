@@ -77,8 +77,8 @@ export default function Settings() {
       <div className="space-y-3">
         <Card>
           <CardContent className="p-4">
-            <form onSubmit={handlePasswordSubmit} className="space-y-4 max-w-md">
-              <div className="space-y-2">
+            <form onSubmit={handlePasswordSubmit} className="app-form-fields max-w-md">
+              <div className="grid gap-1">
                 <Label htmlFor="currentPassword">Current password</Label>
                 <Input
                   id="currentPassword"
@@ -89,7 +89,7 @@ export default function Settings() {
                   required
                 />
               </div>
-              <div className="space-y-2">
+              <div className="grid gap-1">
                 <Label htmlFor="newPassword">New password</Label>
                 <Input
                   id="newPassword"
@@ -101,7 +101,7 @@ export default function Settings() {
                   required
                 />
               </div>
-              <div className="space-y-2">
+              <div className="grid gap-1">
                 <Label htmlFor="confirmPassword">Confirm new password</Label>
                 <Input
                   id="confirmPassword"

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'wouter';
+import { useLocation } from 'wouter';
 import { Eye, EyeOff, Lock, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -120,7 +120,7 @@ export default function Login() {
             <div className="bg-white/95 rounded-2xl px-5 py-3 shadow-lg">
               <img src="/logo.png" alt="Vote+" className="h-10 w-auto object-contain" />
             </div>
-            <p className="text-white/90 text-sm max-w-[220px] leading-relaxed">
+            <p className="text-white/90 app-body max-w-[220px] leading-relaxed">
               Comprehensive Election Management System
             </p>
           </div>
@@ -131,7 +131,7 @@ export default function Login() {
           {/* Brand strip (shown only when visual panel is hidden, e.g. mobile) */}
           <div className="pb-6 flex flex-col items-center md:hidden">
             <img src="/logo.png" alt="Vote+" className="h-14 w-auto object-contain mb-3" />
-            <p className="text-sm text-slate-500 dark:text-slate-400 text-center max-w-xs">
+            <p className="app-muted text-center max-w-xs">
               Comprehensive Election Management System
             </p>
           </div>
@@ -157,7 +157,7 @@ export default function Login() {
                   onChange={(e) => setUsername(e.target.value)}
                   required
                   disabled={loginMutation.isPending}
-                  className="pl-10 h-12 rounded-xl text-base bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
+                  className="pl-10 h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
                   autoComplete="username"
                   autoCapitalize="none"
                   autoCorrect="off"
@@ -180,7 +180,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={loginMutation.isPending}
-                  className="pl-10 pr-12 h-12 rounded-xl text-base bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
+                  className="pl-10 pr-12 h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
                   autoComplete="current-password"
                 />
                 <button
@@ -198,17 +198,11 @@ export default function Login() {
             {/* Submit */}
             <Button
               type="submit"
-              className="w-full h-12 rounded-xl text-base font-semibold mt-2 shadow-md shadow-primary/25 transition-transform active:scale-[0.98] hover:shadow-lg hover:shadow-primary/30"
+              className="w-full h-12 rounded-xl font-semibold mt-2 shadow-md shadow-primary/25 transition-transform active:scale-[0.98] hover:shadow-lg hover:shadow-primary/30"
               disabled={loginMutation.isPending}
             >
               {loginMutation.isPending ? 'Signing in…' : 'Sign In'}
             </Button>
-
-            <p className="text-center text-sm pt-1">
-              <Link href="/forgot-password" className="text-primary font-medium hover:underline">
-                Forgot password?
-              </Link>
-            </p>
           </form>
 
           <SiteFooter />

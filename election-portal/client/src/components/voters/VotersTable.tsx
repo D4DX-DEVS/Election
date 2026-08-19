@@ -193,22 +193,21 @@ export function VotersTable({
     <Card className="border-0 shadow-none bg-transparent lg:border lg:bg-white lg:shadow-sm">
       <CardContent className="p-0">
         {selectionMode && onToggleSelectAll && voters.length > 0 && (
-          <div className="flex items-center justify-between border-b px-4 py-2">
-            <button
-              type="button"
-              onClick={onToggleSelectAll}
-              className="inline-flex items-center gap-2 text-sm font-medium text-primary"
-              aria-label="Select all voters on this page"
-            >
+          <div className="flex items-center justify-between border-b px-3 py-2">
+            <div className="inline-flex items-center gap-2">
               <RowSelectCheckbox
                 checked={allSelected ? true : someSelected ? "indeterminate" : false}
                 onCheckedChange={onToggleSelectAll}
-                onClick={(e) => e.stopPropagation()}
                 aria-label="Select all voters on this page"
               />
-              <span>{allSelected ? "Clear selection" : "Select all on this page"}</span>
-            </button>
-            <span className="text-xs text-gray-500">{voters.length} shown</span>
+              <span
+                onClick={onToggleSelectAll}
+                className="cursor-pointer select-none text-sm font-medium text-primary"
+              >
+                {allSelected ? "Clear selection" : "Select all on this page"}
+              </span>
+            </div>
+            <span className="app-helper">{voters.length} shown</span>
           </div>
         )}
         {voters.length > 0 ? (
@@ -223,7 +222,17 @@ export function VotersTable({
                 voter.fullName.trim().toLowerCase() !== voter.username.trim().toLowerCase();
 
               return (
-                <CompactListRow key={voterId}>
+                <CompactListRow
+                  key={voterId}
+                  label={onEdit && !selectionMode ? `Open ${displayName}` : undefined}
+                  onClick={
+                    selectionMode && onToggleSelect
+                      ? () => onToggleSelect(voterId)
+                      : onEdit
+                        ? () => onEdit(voterId)
+                        : undefined
+                  }
+                >
                   {selectionMode && onToggleSelect && isSelected && (
                     <CompactListLeading>
                       <RowSelectCheckbox

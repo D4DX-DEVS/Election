@@ -153,7 +153,7 @@ export function FranchiseSettingsCard({ franchiseId }: FranchiseSettingsCardProp
         <span className="mt-0.5 text-muted-foreground">{icon}</span>
         <div className="min-w-0">
           <p className="app-helper">{label}</p>
-          <p className={text ? "app-body font-medium break-words" : "app-muted"}>
+          <p className={text ? "app-detail-value break-words" : "app-muted"}>
             {text || "Not set"}
           </p>
         </div>
@@ -228,8 +228,8 @@ export function FranchiseSettingsCard({ franchiseId }: FranchiseSettingsCardProp
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
+            <div className="app-form-fields">
+              <div className="grid gap-1">
                 <Label htmlFor="franchise-name">Franchise Name</Label>
                 <Input
                   id="franchise-name"
@@ -239,7 +239,7 @@ export function FranchiseSettingsCard({ franchiseId }: FranchiseSettingsCardProp
                   placeholder="Enter franchise name"
                 />
               </div>
-              <div className="grid gap-2">
+              <div className="grid gap-1">
                 <Label htmlFor="franchise-website">Website URL</Label>
                 <Input
                   id="franchise-website"
@@ -248,7 +248,7 @@ export function FranchiseSettingsCard({ franchiseId }: FranchiseSettingsCardProp
                   placeholder="https://example.com"
                 />
               </div>
-              <div className="grid gap-2">
+              <div className="grid gap-1">
                 <Label htmlFor="franchise-phone">Contact Number</Label>
                 <Input
                   id="franchise-phone"
@@ -257,7 +257,7 @@ export function FranchiseSettingsCard({ franchiseId }: FranchiseSettingsCardProp
                   placeholder="+1 (555) 123-4567"
                 />
               </div>
-              <div className="grid gap-2">
+              <div className="grid gap-1">
                 <Label htmlFor="franchise-email">Contact Email</Label>
                 <Input
                   id="franchise-email"
@@ -267,7 +267,7 @@ export function FranchiseSettingsCard({ franchiseId }: FranchiseSettingsCardProp
                   placeholder="contact@example.com"
                 />
               </div>
-              <div className="grid gap-2">
+              <div className="grid gap-1">
                 <Label htmlFor="franchise-logo">Franchise Logo</Label>
                 <div className="flex flex-wrap items-center gap-3">
                   {(logoPreview || franchise.logo?.url) && (
@@ -293,7 +293,7 @@ export function FranchiseSettingsCard({ franchiseId }: FranchiseSettingsCardProp
                     <Upload className="mr-2 h-4 w-4" />
                     {franchise.logo?.url || logoPreview ? "Change File" : "Choose File"}
                   </Label>
-                  <span className="min-w-0 break-all text-sm text-gray-500">
+                  <span className="min-w-0 break-all app-muted">
                     {logoFile ? logoFile.name : franchise.logo?.url ? "Current logo" : "No file chosen"}
                   </span>
                 </div>

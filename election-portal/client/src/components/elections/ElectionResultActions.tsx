@@ -148,20 +148,20 @@ export function ElectionResultActions({
   };
 
   return (
-    <Card className="mb-6">
-      <CardContent className="p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-start gap-3">
+    <Card className="mb-4">
+      <CardContent className="p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-start gap-2.5">
             <div
-              className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${
+              className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${
                 resultsPublished ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
               }`}
             >
-              {resultsPublished ? <Globe className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+              {resultsPublished ? <Globe className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-gray-900">Result visible to voters</h3>
+                <h3 className="app-section-title">Result visible to voters</h3>
                 {resultsPublished ? (
                   <Badge variant="outline" className="bg-green-100 text-green-800">
                     Published
@@ -172,13 +172,13 @@ export function ElectionResultActions({
                   </Badge>
                 )}
               </div>
-              <p className="text-xs text-gray-500 mt-0.5 max-w-md">
+              <p className="app-helper mt-0.5 max-w-md">
                 {resultsPublished
                   ? "Voters can now see the full result tally for this election."
                   : "Enable this to let voters view the result. They will only see vote counts, no private details."}
               </p>
               {resultsPublished && resultsPublishedAt && (
-                <p className="text-[11px] text-gray-400 mt-0.5">
+                <p className="app-muted mt-0.5">
                   Published on {fmtDate(resultsPublishedAt)}
                 </p>
               )}
@@ -252,25 +252,25 @@ export function ElectionResultActions({
                   onChange={(e) => setPreparedBy(e.target.value)}
                   className="mt-1"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="app-helper mt-1">
                   This name appears above the signature line on the printed sheet.
                 </p>
               </div>
-              <div className="rounded-md bg-white p-3 text-xs text-gray-600 flex items-center gap-2">
+              <div className="rounded-md bg-white p-3 app-muted flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
                 {results?.nominees?.length || 0} nominees · {results?.totalBallots ?? 0} votes ·{" "}
                 {results?.turnout ?? 0}% turnout
               </div>
             </div>
-            <DialogFooter className="flex-col sm:flex-row gap-2">
-              <Button variant="outline" className="sm:mr-auto" onClick={() => setPrintOpen(false)}>
+            <DialogFooter>
+              <Button variant="outline" size="sm" onClick={() => setPrintOpen(false)}>
                 Cancel
               </Button>
-              <Button variant="outline" onClick={handleDownload}>
-                <Download className="h-4 w-4 mr-1.5" /> Download PDF
+              <Button variant="outline" size="sm" onClick={handleDownload}>
+                <Download className="h-3.5 w-3.5 mr-1" /> Download PDF
               </Button>
-              <Button onClick={handlePrint}>
-                <Printer className="h-4 w-4 mr-1.5" /> Print
+              <Button size="sm" onClick={handlePrint}>
+                <Printer className="h-3.5 w-3.5 mr-1" /> Print
               </Button>
             </DialogFooter>
           </DialogContent>

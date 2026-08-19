@@ -287,9 +287,9 @@ export default function VotingBallot() {
 
           {/* Election info */}
           <div className="rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 mb-4">
-            <p className="text-xs text-gray-400 mb-1">Election</p>
-            <h2 className="font-bold text-gray-900 dark:text-white">{getElectionLabel(election)}</h2>
-            <div className="flex items-center gap-1.5 mt-2 text-xs text-gray-400">
+            <p className="app-helper mb-1">Election</p>
+            <h2 className="app-section-title">{getElectionLabel(election)}</h2>
+            <div className="app-muted mt-2 flex items-center gap-1.5">
               <Calendar className="h-3.5 w-3.5" />
               {formatDate(election.electionDate)}
             </div>
@@ -348,10 +348,10 @@ export default function VotingBallot() {
 
           {/* Election info */}
           <div className="rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 mb-5">
-            <h2 className="font-bold text-gray-900 dark:text-white">{getElectionLabel(election)}</h2>
+            <h2 className="app-section-title">{getElectionLabel(election)}</h2>
           </div>
 
-          <h3 className="font-bold text-base text-gray-800 dark:text-white mb-3">
+          <h3 className="app-section-title mb-3">
             Your selections ({selectedNomineesList.length})
           </h3>
 
@@ -371,7 +371,7 @@ export default function VotingBallot() {
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-gray-900 dark:text-white">{nominee.name}</p>
                   {nominee.description && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">{nominee.description}</p>
+                    <p className="app-muted mt-0.5 truncate">{nominee.description}</p>
                   )}
                 </div>
                 <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
@@ -441,11 +441,11 @@ export default function VotingBallot() {
                       <Shield className="h-3.5 w-3.5 text-primary/70" />
                     )}
                   </div>
-                  <p className="truncate text-xs font-medium text-gray-500">{election.franchise.name}</p>
+                  <p className="app-muted truncate font-medium">{election.franchise.name}</p>
                 </div>
               )}
               <h1 className="app-page-title">{getElectionLabel(election)}</h1>
-              <div className="flex items-center gap-1.5 mt-2 text-xs text-gray-400">
+              <div className="app-muted mt-2 flex items-center gap-1.5">
                 <Calendar className="h-3.5 w-3.5" />
                 {formatDate(election.electionDate)}
               </div>
@@ -553,19 +553,19 @@ export default function VotingBallot() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={cn(
-                          'font-semibold text-base leading-tight',
+                          'app-body font-semibold leading-tight',
                           selected ? 'text-primary' : 'text-gray-900 dark:text-white',
                         )}>
                           {nominee.name}
                         </span>
                         {election?.genderBasedSelection && nominee.gender && (
-                          <Badge variant="outline" className="capitalize text-[10px] px-1.5 py-0 h-4">
+                          <Badge variant="outline" className="capitalize text-xs px-1.5 py-0 h-4">
                             {nominee.gender}
                           </Badge>
                         )}
                       </div>
                       {(nominee.description || nominee.bio) && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">
+                        <p className="app-muted mt-0.5 line-clamp-2">
                           {nominee.description || nominee.bio}
                         </p>
                       )}

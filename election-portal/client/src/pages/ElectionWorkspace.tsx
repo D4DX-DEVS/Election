@@ -199,28 +199,34 @@ export default function ElectionWorkspace() {
 
       {/* Tabs */}
       <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="mb-5 flex h-auto min-w-0 max-w-full justify-start gap-1 overflow-x-auto sm:mb-6">
-          <TabsTrigger value="home" className="shrink-0 gap-1.5">
-            <CalendarDays className="h-4 w-4" /> Home
+        <TabsList className="mb-4 flex h-auto w-full sm:mb-5">
+          <TabsTrigger value="home" className="min-w-0 flex-1 flex-col gap-0.5 whitespace-normal px-1.5 py-1.5 text-center leading-tight sm:flex-row sm:gap-1.5 sm:px-2.5">
+            <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+            <span>Home</span>
           </TabsTrigger>
-          <TabsTrigger value="nominees" className="shrink-0 gap-1.5">
-            <Users className="h-4 w-4" /> Nominees
+          <TabsTrigger value="nominees" className="min-w-0 flex-1 flex-col gap-0.5 whitespace-normal px-1.5 py-1.5 text-center leading-tight sm:flex-row sm:gap-1.5 sm:px-2.5">
+            <Users className="h-3.5 w-3.5 shrink-0" />
+            <span>Nominees</span>
           </TabsTrigger>
-          <TabsTrigger value="voters" className="shrink-0 gap-1.5">
-            <User className="h-4 w-4" /> Voters
+          <TabsTrigger value="voters" className="min-w-0 flex-1 flex-col gap-0.5 whitespace-normal px-1.5 py-1.5 text-center leading-tight sm:flex-row sm:gap-1.5 sm:px-2.5">
+            <User className="h-3.5 w-3.5 shrink-0" />
+            <span>Voters</span>
           </TabsTrigger>
           {!electionLocked && election?.status === "active" && (
-            <TabsTrigger value="status" className="shrink-0 gap-1.5">
-              <BarChart3 className="h-4 w-4" /> Live Status
+            <TabsTrigger value="status" className="min-w-0 flex-1 flex-col gap-0.5 whitespace-normal px-1.5 py-1.5 text-center leading-tight sm:flex-row sm:gap-1.5 sm:px-2.5">
+              <BarChart3 className="h-3.5 w-3.5 shrink-0" />
+              <span>Live Status</span>
             </TabsTrigger>
           )}
           {election?.manualWinnerSelection && (
-            <TabsTrigger value="generate" className="shrink-0 gap-1.5">
-              <Trophy className="h-4 w-4" /> Generate Result
+            <TabsTrigger value="generate" className="min-w-0 flex-1 flex-col gap-0.5 whitespace-normal px-1.5 py-1.5 text-center leading-tight sm:flex-row sm:gap-1.5 sm:px-2.5">
+              <Trophy className="h-3.5 w-3.5 shrink-0" />
+              <span>Generate Result</span>
             </TabsTrigger>
           )}
-          <TabsTrigger value="results" className="shrink-0 gap-1.5">
-            <Vote className="h-4 w-4" /> Results &amp; Analytics
+          <TabsTrigger value="results" className="min-w-0 flex-1 flex-col gap-0.5 whitespace-normal px-1.5 py-1.5 text-center leading-tight sm:flex-row sm:gap-1.5 sm:px-2.5">
+            <Vote className="h-3.5 w-3.5 shrink-0" />
+            <span>Results &amp; Analytics</span>
           </TabsTrigger>
         </TabsList>
 

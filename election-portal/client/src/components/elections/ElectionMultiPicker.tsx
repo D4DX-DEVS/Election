@@ -52,10 +52,10 @@ export function ElectionMultiPicker({
                 onCheckedChange={() => toggle(id)}
                 aria-label={`Select ${getElectionLabel(e)}`}
               />
-              <div className="min-w-0 text-sm">
-                <span className="font-medium text-gray-900">{getElectionLabel(e)}</span>
+              <div className="min-w-0">
+                <span className="app-detail-value">{getElectionLabel(e)}</span>
                 {subtitle ? (
-                  <span className="ml-1 text-xs text-gray-500">({subtitle})</span>
+                  <span className="app-muted ml-1">({subtitle})</span>
                 ) : null}
               </div>
             </div>

@@ -57,8 +57,8 @@ function RosterList({
       <CardContent className="p-0">
         <div className="flex items-center gap-2 border-b border-gray-200 px-4 py-3">
           <span className={accent}>{icon}</span>
-          <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
-          <span className="ml-auto text-xs font-medium text-gray-500">{voters.length}</span>
+          <h3 className="app-section-title">{title}</h3>
+          <span className="app-muted ml-auto font-medium">{voters.length}</span>
         </div>
         {voters.length === 0 ? (
           <p className="px-4 py-6 text-center text-sm text-gray-500">{emptyText}</p>
@@ -73,7 +73,7 @@ function RosterList({
                   <CompactListSecondary>{voter.username}</CompactListSecondary>
                 )}
                 {showCounts && (
-                  <span className="shrink-0 text-xs font-medium text-gray-600 tabular-nums">
+                  <span className="app-muted shrink-0 font-medium tabular-nums">
                     {voter.voteCount ?? 0} vote{(voter.voteCount ?? 0) === 1 ? "" : "s"}
                   </span>
                 )}
@@ -173,15 +173,15 @@ export function VotingStatusPanel({ electionId }: { electionId: string }) {
       {posts.length > 1 && (
         <Card>
           <CardContent className="p-4 sm:p-5">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Vote count by post</h3>
+            <h3 className="app-section-title mb-3">Vote count by post</h3>
             <div className="space-y-3">
               {posts.map((post) => (
                 <div key={post.electionId} className="min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-1">
-                    <p className="truncate text-sm font-medium text-gray-700">
+                    <p className="app-detail-value truncate">
                       {post.title || post.organization || "Untitled post"}
                     </p>
-                    <p className="shrink-0 text-xs text-gray-500">
+                    <p className="app-muted shrink-0">
                       {post.votedCount}/{post.totalVoters} voted
                     </p>
                   </div>

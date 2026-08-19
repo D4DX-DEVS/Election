@@ -611,10 +611,10 @@ export default function VoterGroups({
                       onCheckedChange={() => toggleElection(el._id)}
                       aria-label={`Assign ${getElectionLabel(el)}`}
                     />
-                    <div className="min-w-0 text-sm">
-                      <span className="font-medium text-gray-900">{getElectionLabel(el)}</span>
+                    <div className="min-w-0">
+                      <span className="app-detail-value">{getElectionLabel(el)}</span>
                       {subtitle ? (
-                        <span className="ml-1 text-xs text-gray-500">({subtitle})</span>
+                        <span className="app-muted ml-1">({subtitle})</span>
                       ) : null}
                     </div>
                   </div>
@@ -736,7 +736,7 @@ export default function VoterGroups({
                       </DialogDescription>
                     </DialogHeader>
 
-                    <div className="space-y-3 py-1">
+                    <div className="app-form-fields">
                       <div className="space-y-1">
                         <Label>Username *</Label>
                         <Input
@@ -750,6 +750,13 @@ export default function VoterGroups({
                     </div>
 
                     <DialogFooter>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setSingleVoterOpen(false)}
+                      >
+                        Cancel
+                      </Button>
                       <Button
                         onClick={() => addSingleVoterMutation.mutate()}
                         disabled={!singleVoterUsername.trim() || addSingleVoterMutation.isPending}
@@ -776,10 +783,10 @@ export default function VoterGroups({
                       <DialogTitle>Bulk Create Voters</DialogTitle>
                       <DialogDescription>
                         Generating for <strong>{selectedGroup?.name}</strong>.
-                        {selectedGroup?.description && <span className="block text-xs text-gray-400 mt-0.5">{selectedGroup.description}</span>}
+                        {selectedGroup?.description && <span className="app-muted mt-0.5 block">{selectedGroup.description}</span>}
                       </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-3 py-2">
+                    <div className="app-form-fields">
                       <div className="space-y-1">
                         <Label>Prefix</Label>
                         <div className="flex gap-2">
@@ -820,6 +827,13 @@ export default function VoterGroups({
                     </div>
                     <DialogFooter>
                       <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setBulkVoterOpen(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
                         onClick={() => bulkGenerateMutation.mutate()}
                         disabled={bulkGenerateMutation.isPending}
                       >
@@ -859,12 +873,7 @@ export default function VoterGroups({
               />
               {groupVoterSelection.showSelectors && groupVoters.length > 0 && (
                 <div className="mb-3 flex items-center justify-between rounded-md border bg-white px-3 py-2">
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-2 text-sm font-medium text-primary"
-                    onClick={() => groupVoterSelection.toggleAll()}
-                    aria-label="Select all voters on this page"
-                  >
+                  <div className="inline-flex items-center gap-2">
                     <RowSelectCheckbox
                       checked={
                         groupVoterSelection.allSelected
@@ -876,9 +885,14 @@ export default function VoterGroups({
                       onCheckedChange={() => groupVoterSelection.toggleAll()}
                       aria-label="Select all voters on this page"
                     />
-                    <span>{groupVoterSelection.allSelected ? "Clear selection" : "Select all on this page"}</span>
-                  </button>
-                  <span className="text-xs text-gray-500">{groupVoters.length} shown</span>
+                    <span
+                      onClick={() => groupVoterSelection.toggleAll()}
+                      className="cursor-pointer select-none text-sm font-medium text-primary"
+                    >
+                      {groupVoterSelection.allSelected ? "Clear selection" : "Select all on this page"}
+                    </span>
+                  </div>
+                  <span className="app-helper">{groupVoters.length} shown</span>
                 </div>
               )}
               <CompactList>
@@ -1047,17 +1061,28 @@ export default function VoterGroups({
                 }
                 createMutation.mutate();
               }}
-              className="space-y-3 pt-1"
+              className="app-form-fields"
             >
-              <div className="space-y-1.5">
+              <div className="grid gap-1">
                 <Label htmlFor="gname">Group Name *</Label>
                 <Input id="gname" value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="e.g. Block A Voters" autoFocus />
               </div>
-              <div className="space-y-1.5">
+              <div className="grid gap-1">
                 <Label htmlFor="gdesc">Description <span className="text-gray-400 text-xs font-normal">(optional)</span></Label>
                 <Input id="gdesc" value={groupDescription} onChange={(e) => setGroupDescription(e.target.value)} placeholder="e.g. Voters from Ward 3" />
               </div>
-              <DialogFooter className="pt-2">
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsOpen(false);
+                    setGroupName("");
+                    setGroupDescription("");
+                  }}
+                >
+                  Cancel
+                </Button>
                 <Button type="submit" disabled={!groupName.trim() || createMutation.isPending}>
                   {createMutation.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Creating…</> : "Create Group"}
                 </Button>
@@ -1115,12 +1140,7 @@ export default function VoterGroups({
           />
           {selection.showSelectors && groups.length > 0 && (
             <div className="mb-3 flex items-center justify-between rounded-md border bg-white px-3 py-2">
-              <button
-                type="button"
-                className="inline-flex items-center gap-2 text-sm font-medium text-primary"
-                onClick={() => selection.toggleAll()}
-                aria-label="Select all groups on this page"
-              >
+              <div className="inline-flex items-center gap-2">
                 <RowSelectCheckbox
                   checked={
                     selection.allSelected
@@ -1132,9 +1152,14 @@ export default function VoterGroups({
                   onCheckedChange={() => selection.toggleAll()}
                   aria-label="Select all groups on this page"
                 />
-                <span>{selection.allSelected ? "Clear selection" : "Select all on this page"}</span>
-              </button>
-              <span className="text-xs text-gray-500">{groups.length} shown</span>
+                <span
+                  onClick={() => selection.toggleAll()}
+                  className="cursor-pointer select-none text-sm font-medium text-primary"
+                >
+                  {selection.allSelected ? "Clear selection" : "Select all on this page"}
+                </span>
+              </div>
+              <span className="app-helper">{groups.length} shown</span>
             </div>
           )}
           <CompactList>
@@ -1144,13 +1169,22 @@ export default function VoterGroups({
             const canExport = !selection.deleteMode && !assignOnly && voterCount > 0;
 
             return (
-            <CompactListRow key={g._id}>
+            <CompactListRow
+              key={g._id}
+              label={selection.deleteMode ? `Select ${g.name || "group"}` : `Open ${g.name || "group"}`}
+              onClick={
+                selection.showSelectors
+                  ? () => selection.toggle(g._id)
+                  : () => openGroup(g)
+              }
+            >
                   {selection.showSelectors && (
                     <CompactListLeading>
                     <RowSelectCheckbox
                       checked={selection.isSelected(g._id)}
                       onCheckedChange={() => selection.toggle(g._id)}
                       aria-label={`Select ${g.name || "group"}`}
+                      onClick={(e) => e.stopPropagation()}
                     />
                     </CompactListLeading>
                   )}

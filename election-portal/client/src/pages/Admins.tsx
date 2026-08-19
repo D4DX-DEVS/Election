@@ -451,13 +451,13 @@ export default function Admins() {
         description={canCreateFranchiseAdmin ? "Manage system administrators" : "Manage election admins for your franchise"}
       />
 
-      <div className="mb-5 sm:mb-6">
+      <div className="mb-4">
         <div className="flex items-center gap-2">
           <SearchInput
             placeholder="Search administrators..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="h-10 min-w-0 flex-1 sm:max-w-xs"
+            className="min-w-0 flex-1 sm:max-w-xs"
           />
 
           {/* Single unified create flow: asks for the administrator type, then shows matching fields */}
@@ -466,7 +466,6 @@ export default function Admins() {
               <AddButton
                 title="Add administrator"
                 label="Add administrator"
-                className="h-10 w-10"
                 onClick={() => setAdminType(canCreateFranchiseAdmin ? 'franchise' : 'election')}
               />
             </DialogTrigger>
@@ -502,7 +501,7 @@ export default function Admins() {
 
             {adminType === 'franchise' ? (
               <Form {...franchiseAdminForm}>
-                <form onSubmit={franchiseAdminForm.handleSubmit(onSubmitFranchiseAdmin)} className="space-y-4">
+                <form onSubmit={franchiseAdminForm.handleSubmit(onSubmitFranchiseAdmin)} className="space-y-2.5">
                   <FormField
                     control={franchiseAdminForm.control}
                     name="username"
@@ -584,6 +583,9 @@ export default function Admins() {
                     )}
                   />
                   <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
+                      Cancel
+                    </Button>
                     <Button type="submit" disabled={createFranchiseAdminMutation.isPending}>
                       {createFranchiseAdminMutation.isPending ? "Creating..." : "Create Admin"}
                     </Button>
@@ -592,7 +594,7 @@ export default function Admins() {
               </Form>
             ) : (
               <Form {...electionAdminForm}>
-                <form onSubmit={electionAdminForm.handleSubmit(onSubmitElectionAdmin)} className="space-y-4">
+                <form onSubmit={electionAdminForm.handleSubmit(onSubmitElectionAdmin)} className="space-y-2.5">
                   <FormField
                     control={electionAdminForm.control}
                     name="username"
@@ -690,7 +692,7 @@ export default function Admins() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Elections</FormLabel>
-                          <div className="border rounded-md p-4 space-y-2">
+                          <div className="border rounded-md p-3 space-y-2">
                             {electionsLoading ? (
                               <Skeleton className="h-20 w-full" />
                             ) : electionList.length > 0 ? (
@@ -742,6 +744,9 @@ export default function Admins() {
                     />
                   )}
                   <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
+                      Cancel
+                    </Button>
                     <Button type="submit" disabled={createElectionAdminMutation.isPending}>
                       {createElectionAdminMutation.isPending ? "Creating..." : "Create Admin"}
                     </Button>
@@ -754,7 +759,7 @@ export default function Admins() {
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Franchise Administrators (super admins only) */}
         {canCreateFranchiseAdmin && (
           <Card className="border-0 shadow-none bg-transparent lg:border lg:bg-white lg:shadow-sm">
@@ -766,7 +771,7 @@ export default function Admins() {
                 </CardDescription>
               </div>
             </CardHeader>
-            <CardContent className="p-0 lg:p-6">
+            <CardContent className="p-0 lg:p-4">
               {franchiseAdminsError && (
                 <Alert variant="destructive" className="mb-4">
                   <AlertCircle className="h-4 w-4" />
@@ -853,7 +858,7 @@ export default function Admins() {
                 </CardDescription>
               </div>
             </CardHeader>
-            <CardContent className="p-0 lg:p-6">
+            <CardContent className="p-0 lg:p-4">
               {electionAdminsListError && (
                 <Alert variant="destructive" className="mb-4">
                   <AlertCircle className="h-4 w-4" />
@@ -985,7 +990,7 @@ export default function Admins() {
               value={resetPasswordInput}
               onChange={(e) => setResetPasswordInput(e.target.value)}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="app-helper">
               Use at least 6 characters.
             </p>
           </div>

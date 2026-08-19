@@ -300,9 +300,9 @@ export function AdminVotingDetailsPanel({
                       aria-label={`Select ${n.name}`}
                       onClick={(e) => e.stopPropagation()}
                     />
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-900">{n.name}</span>
+                    <span className="min-w-0 flex-1 truncate app-detail-value">{n.name}</span>
                     {genderBasedSelection && n.gender && (
-                      <Badge variant="outline" className="shrink-0 capitalize text-[10px] px-1.5 py-0 h-4">
+                      <Badge variant="outline" className="shrink-0 capitalize text-xs px-1.5 py-0 h-4">
                         {n.gender}
                       </Badge>
                     )}
@@ -312,7 +312,7 @@ export function AdminVotingDetailsPanel({
             )}
           </div>
           {genderBasedSelection && (maleMinimum > 0 || femaleMinimum > 0) && (
-            <p className="text-xs text-gray-500">
+            <p className="app-helper">
               Minimums: {maleMinimum > 0 ? `${maleMinimum} male` : ""}
               {maleMinimum > 0 && femaleMinimum > 0 ? " · " : ""}
               {femaleMinimum > 0 ? `${femaleMinimum} female` : ""}

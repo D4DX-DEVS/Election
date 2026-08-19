@@ -576,11 +576,11 @@ export default function Franchises() {
   return (
     <MainLayout>
       <PageContent>
-            <div className="mb-5 sm:mb-6">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                    <Building2 className="h-5 w-5" />
+            <div className="mb-4 sm:mb-5">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Building2 className="h-4 w-4" />
                   </div>
                   <div>
                     <h1 className="app-page-title">{isSuperAdmin ? "Franchises" : "My Franchise"}</h1>
@@ -600,8 +600,8 @@ export default function Franchises() {
                     </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleCreateSubmit}>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid gap-2">
+                    <div className="app-form-fields">
+                      <div className="grid gap-1">
                         <Label htmlFor="name">Franchise Name</Label>
                         <Input
                           id="name"
@@ -612,7 +612,7 @@ export default function Franchises() {
                           placeholder="Enter franchise name"
                         />
                       </div>
-                      <div className="grid gap-2">
+                      <div className="grid gap-1">
                         <Label htmlFor="logo">Logo Image</Label>
                         <Input
                           id="logo"
@@ -624,7 +624,7 @@ export default function Franchises() {
                         <p className="app-helper">Upload a logo image for the franchise (JPG, PNG, SVG, etc.)</p>
                       </div>
 
-                      <div className="grid gap-2">
+                      <div className="grid gap-1">
                         <Label htmlFor="websiteUrl">Website URL</Label>
                         <Input
                           id="websiteUrl"
@@ -634,7 +634,7 @@ export default function Franchises() {
                           placeholder="https://example.com"
                         />
                       </div>
-                      <div className="grid gap-2">
+                      <div className="grid gap-1">
                         <Label htmlFor="contactNumber">Contact Number</Label>
                         <Input
                           id="contactNumber"
@@ -644,7 +644,7 @@ export default function Franchises() {
                           placeholder="+1 (555) 123-4567"
                         />
                       </div>
-                      <div className="grid gap-2">
+                      <div className="grid gap-1">
                         <Label htmlFor="contactEmail">Contact Email</Label>
                         <Input
                           id="contactEmail"
@@ -686,8 +686,8 @@ export default function Franchises() {
                     </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleEditSubmit}>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid gap-2">
+                    <div className="app-form-fields">
+                      <div className="grid gap-1">
                         <Label htmlFor="edit-name">Franchise Name</Label>
                         <Input
                           id="edit-name"
@@ -698,7 +698,7 @@ export default function Franchises() {
                           placeholder="Enter franchise name"
                         />
                       </div>
-                      <div className="grid gap-2">
+                      <div className="grid gap-1">
                         <Label htmlFor="edit-logo">Logo Image</Label>
                         <Input
                           id="edit-logo"
@@ -710,7 +710,7 @@ export default function Franchises() {
                         <p className="app-helper">Upload a new logo image or leave empty to keep the current one</p>
                       </div>
 
-                      <div className="grid gap-2">
+                      <div className="grid gap-1">
                         <Label htmlFor="edit-websiteUrl">Website URL</Label>
                         <Input
                           id="edit-websiteUrl"
@@ -720,7 +720,7 @@ export default function Franchises() {
                           placeholder="https://example.com"
                         />
                       </div>
-                      <div className="grid gap-2">
+                      <div className="grid gap-1">
                         <Label htmlFor="edit-contactNumber">Contact Number</Label>
                         <Input
                           id="edit-contactNumber"
@@ -730,7 +730,7 @@ export default function Franchises() {
                           placeholder="+1 (555) 123-4567"
                         />
                       </div>
-                      <div className="grid gap-2">
+                      <div className="grid gap-1">
                         <Label htmlFor="edit-contactEmail">Contact Email</Label>
                         <Input
                           id="edit-contactEmail"
@@ -741,14 +741,14 @@ export default function Franchises() {
                           placeholder="contact@example.com"
                         />
                       </div>
-                      <div className="grid gap-2">
+                      <div className="grid gap-1">
                         <Label htmlFor="edit-status">Status</Label>
                         <select
                           id="edit-status"
                           name="status"
                           value={editFormData.status}
                           onChange={handleEditFormChange}
-                          className="app-input-text flex h-12 w-full rounded-xl border border-input bg-white px-3.5 py-2.5 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          className="app-input-text flex h-9 w-full rounded-xl border border-input bg-white px-3 py-1.5 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         >
                           <option value="active">Active</option>
                           <option value="inactive">Inactive</option>
@@ -789,7 +789,7 @@ export default function Franchises() {
                     </DialogDescription>
                   </DialogHeader>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Current Admins List */}
                     <div>
                       <div className="mb-3 flex items-center justify-between gap-2">
@@ -868,8 +868,8 @@ export default function Franchises() {
                     {/* Add New Admin Form */}
                     <div>
                       <h3 className="app-section-title mb-3">Add New Administrator</h3>
-                      <form onSubmit={handleAdminSubmit} className="space-y-4">
-                        <div className="grid gap-2">
+                      <form onSubmit={handleAdminSubmit} className="app-form-fields">
+                        <div className="grid gap-1">
                           <Label htmlFor="username">Username</Label>
                           <Input
                             id="username"
@@ -880,7 +880,7 @@ export default function Franchises() {
                             placeholder="admin_username"
                           />
                         </div>
-                        <div className="grid gap-2">
+                        <div className="grid gap-1">
                           <Label htmlFor="fullName">Full Name</Label>
                           <Input
                             id="fullName"
@@ -891,7 +891,7 @@ export default function Franchises() {
                             placeholder="John Doe"
                           />
                         </div>
-                        <div className="grid gap-2">
+                        <div className="grid gap-1">
                           <Label htmlFor="password">Password</Label>
                           <Input
                             id="password"
@@ -914,7 +914,7 @@ export default function Franchises() {
                     </div>
                   </div>
                   
-                  <DialogFooter className="mt-6">
+                  <DialogFooter>
                     <Button 
                       variant="outline" 
                       onClick={() => setIsAdminDialogOpen(false)}
@@ -942,8 +942,8 @@ export default function Franchises() {
                       newPassword
                     });
                   }}>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid gap-2">
+                    <div className="app-form-fields">
+                      <div className="grid gap-1">
                         <Label htmlFor="newPassword">New Password</Label>
                         <Input
                           id="newPassword"
@@ -980,10 +980,10 @@ export default function Franchises() {
             </div>
 
             <Card className="border-0 shadow-none bg-transparent lg:border lg:bg-white lg:shadow-card">
-              <CardHeader className="lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:px-6 lg:py-4 lg:border-b lg:border-slate-100 hidden lg:flex">
+              <CardHeader className="lg:flex-row lg:items-center lg:justify-between lg:gap-3 lg:px-4 lg:py-3 lg:border-b lg:border-slate-100 hidden lg:flex">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <UsersRound className="h-5 w-5" />
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <UsersRound className="h-4 w-4" />
                   </div>
                   <div>
                     <CardTitle>All Franchises</CardTitle>
@@ -997,13 +997,12 @@ export default function Franchises() {
                     placeholder="Search franchise..."
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
-                    className="h-10 flex-1"
+                    className="bg-white"
                   />
                   {isSuperAdmin && (
                     <AddButton
                       title="Add franchise"
                       label="Add franchise"
-                      className="h-10 w-10"
                       onClick={() => setIsCreateDialogOpen(true)}
                     />
                   )}
@@ -1015,30 +1014,29 @@ export default function Franchises() {
                   placeholder="Search franchise..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  className="h-10 bg-white flex-1"
+                  className="bg-white"
                 />
                 {isSuperAdmin && (
                   <AddButton
                     title="Add franchise"
                     label="Add franchise"
-                    className="h-10 w-10"
                     onClick={() => setIsCreateDialogOpen(true)}
                   />
                 )}
               </div>
               <CardContent className="p-0">
                 {isLoading ? (
-                  <div className="p-6 space-y-4">
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
+                  <div className="p-4 space-y-3">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
                   </div>
                 ) : error ? (
-                  <div className="p-6 text-center text-red-500">
+                  <div className="p-4 text-center text-red-500">
                     Failed to load franchises. Please try again.
                   </div>
                 ) : franchises && Array.isArray(franchises) && franchises.length > 0 && visibleFranchises.length === 0 ? (
-                  <div className="p-10 text-center">
+                  <div className="p-8 text-center">
                     <Search className="mx-auto mb-3 h-8 w-8 text-slate-300" />
                     <p className="text-slate-500">No franchises match "{searchInput}".</p>
                   </div>
@@ -1048,7 +1046,11 @@ export default function Franchises() {
                     {visibleFranchises.map((franchise: Franchise) => {
                       const contact = resolveFranchiseContact(franchise);
                       return (
-                      <CompactListRow key={franchise._id}>
+                      <CompactListRow
+                        key={franchise._id}
+                        label={`Open ${franchise.name}`}
+                        onClick={() => handleEditFranchise(franchise)}
+                      >
                         <CompactListLeading>
                           {franchise.logo?.url ? (
                             <img

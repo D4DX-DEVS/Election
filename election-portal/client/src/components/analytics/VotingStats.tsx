@@ -29,30 +29,30 @@ export function VotingStats({
 
   return (
     <Card>
-      <CardHeader className="px-6 py-4 border-b border-gray-200">
+      <CardHeader className="px-4 py-3 border-b border-gray-200">
         <CardTitle>Voting Statistics</CardTitle>
       </CardHeader>
-      <CardContent className="p-6">
-        <div className="space-y-6">
+      <CardContent className="p-4">
+        <div className="space-y-4">
           <div className="grid grid-cols-3 gap-2 md:hidden">
             <div className="rounded-md bg-white p-3">
-              <p className="text-[11px] font-medium leading-tight text-gray-500">Turnout</p>
-              <p className="mt-1 text-lg font-semibold leading-none text-gray-900">{participationPercentage}%</p>
+              <p className="app-helper font-medium leading-tight">Turnout</p>
+              <p className="app-metric-compact mt-1">{participationPercentage}%</p>
             </div>
             <div className="rounded-md bg-white p-3">
-              <p className="text-[11px] font-medium leading-tight text-gray-500">Votes</p>
-              <p className="mt-1 text-lg font-semibold leading-none text-gray-900">{totalVotesCast}</p>
+              <p className="app-helper font-medium leading-tight">Votes</p>
+              <p className="app-metric-compact mt-1">{totalVotesCast}</p>
             </div>
             <div className="rounded-md bg-white p-3">
-              <p className="text-[11px] font-medium leading-tight text-gray-500">Pending</p>
-              <p className="mt-1 text-lg font-semibold leading-none text-gray-900">{pendingVoters}</p>
+              <p className="app-helper font-medium leading-tight">Pending</p>
+              <p className="app-metric-compact mt-1">{pendingVoters}</p>
             </div>
           </div>
 
           <div className="hidden md:block">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Voter Participation</h3>
+            <h3 className="app-label mb-2">Voter Participation</h3>
             <div className="relative pt-1">
-              <div className="flex mb-2 items-center justify-between">
+              <div className="flex mb-1.5 items-center justify-between">
                 <div>
                   <span className="text-xs font-semibold inline-block text-primary">
                     {participationPercentage}%
@@ -64,27 +64,28 @@ export function VotingStats({
                   </span>
                 </div>
               </div>
-              <Progress value={participationPercentage} className="h-2.5 mb-4" />
+              <Progress value={participationPercentage} className="h-2 mb-3" />
             </div>
           </div>
 
-          <div className="hidden bg-white rounded-lg p-4 md:block">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Total Votes Cast</h3>
-            <p className="text-3xl font-bold text-gray-900">{totalVotesCast}</p>
+          <div className="hidden bg-white rounded-lg p-3 md:block">
+            <h3 className="app-label mb-2">Total Votes Cast</h3>
+            <p className="app-metric">{totalVotesCast}</p>
           </div>
 
           <div className="hidden md:block">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Pending Voters</h3>
-            <p className="text-3xl font-bold text-gray-900">{pendingVoters}</p>
+            <h3 className="app-label mb-2">Pending Voters</h3>
+            <p className="app-metric">{pendingVoters}</p>
             <div className="mt-2">
               {onSendReminder && (
                 <Button 
-                  variant="outline" 
-                  className="w-full text-sm" 
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
                   onClick={onSendReminder}
                   disabled={sendReminderPending || !votingOpen || pendingVoters === 0}
                 >
-                  <Mail className="mr-2 h-4 w-4" />
+                  <Mail className="mr-1.5 h-3.5 w-3.5" />
                   {sendReminderPending ? "Sending…" : "Send Reminder"}
                 </Button>
               )}

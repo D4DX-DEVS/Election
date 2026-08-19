@@ -54,7 +54,7 @@ export function ResultsTable({
 
   return (
     <Card>
-      <CardHeader className="px-6 py-4 border-b border-gray-200">
+      <CardHeader className="px-4 py-3 border-b border-gray-200">
         <CardTitle>Election Results</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
@@ -69,7 +69,7 @@ export function ResultsTable({
                 key={nomineeId}
                 className={cn(isElected && "bg-green-50 hover:bg-green-50/80")}
               >
-                <span className="w-8 shrink-0 text-xs font-medium text-gray-500 tabular-nums">
+                <span className="app-muted w-8 shrink-0 font-medium tabular-nums">
                   #{rank}
                 </span>
                 <CompactListPrimary>{nominee.name}</CompactListPrimary>
@@ -83,23 +83,23 @@ export function ResultsTable({
           })}
         </CompactList>
       </CardContent>
-      <CardFooter className="px-6 py-4 border-t border-gray-200 flex justify-between items-center">
+      <CardFooter className="px-4 py-3 border-t border-gray-200 flex justify-between items-center">
         <div>
           <Badge>
-            <Award className="mr-1 h-4 w-4" />
+            <Award className="mr-1 h-3.5 w-3.5" />
             Elected
           </Badge>
         </div>
-        <div className="flex space-x-2">
+        <div className="flex gap-2">
           {onPrint && (
             <Button variant="outline" size="sm" onClick={onPrint}>
-              <Printer className="mr-2 h-4 w-4" />
+              <Printer className="mr-1.5 h-3.5 w-3.5" />
               Print
             </Button>
           )}
           {onExport && (
             <Button variant="outline" size="sm" onClick={onExport}>
-              <Download className="mr-2 h-4 w-4" />
+              <Download className="mr-1.5 h-3.5 w-3.5" />
               Export
             </Button>
           )}

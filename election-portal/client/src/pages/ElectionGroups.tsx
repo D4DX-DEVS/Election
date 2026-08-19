@@ -374,36 +374,34 @@ export default function ElectionGroups() {
                     Create a group and add elections to it. You can change elections later via Edit.
                   </DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="name" className="text-right">
+                <div className="app-form-fields">
+                  <div className="grid gap-1">
+                    <Label htmlFor="name">
                       Name
                     </Label>
                     <Input
                       id="name"
                       placeholder="Group name"
-                      className="col-span-3"
                       required
                       value={createFormData.name}
                       onChange={(e) => setCreateFormData({ ...createFormData, name: e.target.value })}
                     />
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="description" className="text-right">
+                  <div className="grid gap-1">
+                    <Label htmlFor="description">
                       Description
                     </Label>
                     <Input
                       id="description"
                       placeholder="Group description (optional)"
-                      className="col-span-3"
                       value={createFormData.description}
                       onChange={(e) => setCreateFormData({ ...createFormData, description: e.target.value })}
                     />
                   </div>
 
                   {userRole === 'super_admin' && (
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="franchiseId" className="text-right">
+                    <div className="grid gap-1">
+                      <Label htmlFor="franchiseId">
                         Franchise
                       </Label>
                       <Select
@@ -413,7 +411,7 @@ export default function ElectionGroups() {
                           setCreateElectionIds([]);
                         }}
                       >
-                        <SelectTrigger className="col-span-3">
+                        <SelectTrigger>
                           <SelectValue placeholder="Select a franchise" />
                         </SelectTrigger>
                         <SelectContent>
@@ -452,6 +450,18 @@ export default function ElectionGroups() {
                 </div>
                 <DialogFooter>
                   <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setOpen(false);
+                      setCreateElectionIds([]);
+                      setCreateFormData({ name: '', description: '', franchiseId: '' });
+                    }}
+                    disabled={createMutation.isPending}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
                     type="submit"
                     disabled={!createFormData.name || createMutation.isPending}
                   >
@@ -484,28 +494,26 @@ export default function ElectionGroups() {
                 Update the group details and manage which elections belong to it.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-name" className="text-right">
+            <div className="app-form-fields">
+              <div className="grid gap-1">
+                <Label htmlFor="edit-name">
                   Name
                 </Label>
                 <Input
                   id="edit-name"
                   placeholder="Group name"
-                  className="col-span-3"
                   required
                   value={editFormData.name}
                   onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
                 />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-description" className="text-right">
+              <div className="grid gap-1">
+                <Label htmlFor="edit-description">
                   Description
                 </Label>
                 <Input
                   id="edit-description"
                   placeholder="Group description (optional)"
-                  className="col-span-3"
                   value={editFormData.description}
                   onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
                 />
@@ -590,7 +598,7 @@ export default function ElectionGroups() {
         </CardHeader>
         <CardContent className="p-0">
           {electionGroupsLoading ? (
-            <div className="p-6 text-center">Loading groups...</div>
+            <div className="p-4 text-center">Loading groups...</div>
           ) : electionGroups && electionGroups.length > 0 ? (
             <div>
               <CompactList>
@@ -603,7 +611,11 @@ export default function ElectionGroups() {
                   const electionCount = getElectionCount(group);
 
                   return (
-                    <CompactListRow key={groupId}>
+                    <CompactListRow
+                      key={groupId}
+                      label={`Open ${group.name}`}
+                      onClick={() => handleEditGroup(groupId)}
+                    >
                       <CompactListPrimary>{group.name}</CompactListPrimary>
                       <CompactListSecondary>
                         {[

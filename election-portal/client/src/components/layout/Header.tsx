@@ -101,7 +101,7 @@ export function Header({ sidebarCollapsed, user }: HeaderProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuLabel className="text-xs text-muted-foreground pt-0">
+              <DropdownMenuLabel className="app-muted pt-0 font-normal">
                 {user.displayRole || user.role}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />

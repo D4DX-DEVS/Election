@@ -75,8 +75,8 @@ export function NotificationBell() {
       <PopoverContent align="end" className="w-[calc(100vw-1rem)] max-w-96 p-0">
         <div className="flex items-center justify-between border-b px-4 py-3">
           <div>
-            <p className="text-sm font-semibold">Notifications</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="app-section-title">Notifications</p>
+            <p className="app-muted">
               {unreadCount > 0 ? `${unreadCount} unread` : "You're all caught up"}
             </p>
           </div>
@@ -100,7 +100,7 @@ export function NotificationBell() {
           </div>
         ) : isError ? (
           <div className="px-4 py-8 text-center">
-            <p className="text-sm text-muted-foreground mb-3">Could not load notifications.</p>
+            <p className="app-muted mb-3">Could not load notifications.</p>
             <Button variant="outline" size="sm" onClick={() => refetch()}>
               Retry
             </Button>
@@ -108,8 +108,8 @@ export function NotificationBell() {
         ) : notifications.length === 0 ? (
           <div className="px-4 py-10 text-center">
             <Bell className="h-8 w-8 mx-auto text-muted-foreground/40 mb-2" />
-            <p className="text-sm font-medium">No notifications</p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="app-detail-value">No notifications</p>
+            <p className="app-muted mt-1">
               Election updates and alerts will appear here.
             </p>
           </div>
@@ -131,7 +131,7 @@ export function NotificationBell() {
                       {notification.title}
                     </CompactListPrimary>
                     <CompactListSecondary>{notification.message}</CompactListSecondary>
-                    <span className="shrink-0 text-[11px] text-muted-foreground/70">
+                    <span className="app-helper shrink-0 text-muted-foreground/70">
                       {formatNotificationTime(notification.createdAt)}
                     </span>
                     {!read && (
@@ -148,7 +148,7 @@ export function NotificationBell() {
         )}
 
         {isFetching && !isLoading && (
-          <div className="border-t px-4 py-2 text-[11px] text-muted-foreground flex items-center gap-1">
+          <div className="app-helper border-t px-4 py-2 flex items-center gap-1">
             <Loader2 className="h-3 w-3 animate-spin" />
             Refreshing…
           </div>

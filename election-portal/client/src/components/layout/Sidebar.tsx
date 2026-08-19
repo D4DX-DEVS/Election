@@ -99,7 +99,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse, userRole = "" }: Sideba
       return <div className="mx-3 my-2 border-t border-slate-100" aria-hidden />;
     }
     return (
-      <p className="mb-1 px-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+      <p className="app-kicker mb-1 px-1 tracking-widest">
         {children}
       </p>
     );
@@ -193,7 +193,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse, userRole = "" }: Sideba
           target="_blank"
           rel="noopener noreferrer"
           className={cn(
-            "flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] text-slate-400 transition-colors hover:bg-slate-50 hover:text-primary",
+            "app-helper flex items-center gap-1.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-50 hover:text-primary",
             collapsed && "justify-center px-2"
           )}
           title="Powered by D4DX.CO"

@@ -101,8 +101,8 @@ export default function SystemHealth() {
               <CardContent className="p-4 sm:p-5 space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <p className="text-sm font-medium text-gray-700">Memory usage</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="app-helper">Memory usage</p>
+                    <p className="app-detail-value">
                       {health.memory.usedMB} MB / {health.memory.totalMB} MB
                     </p>
                   </div>
@@ -110,13 +110,13 @@ export default function SystemHealth() {
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <p className="text-sm font-medium text-gray-700">CPU load (1 min avg)</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="app-helper">CPU load (1 min avg)</p>
+                    <p className="app-detail-value">
                       {health.cpu.loadAvg1} / {health.cpu.cores} cores
                     </p>
                   </div>
                   <Progress value={Math.min(health.cpu.loadPercent, 100)} className="h-2" />
-                  <p className="text-[11px] text-gray-400 mt-1">
+                  <p className="app-helper mt-1">
                     5 min: {health.cpu.loadAvg5} · 15 min: {health.cpu.loadAvg15}
                   </p>
                 </div>
@@ -127,7 +127,7 @@ export default function SystemHealth() {
                     <AlertDescription>{health.database.message}</AlertDescription>
                   </Alert>
                 )}
-                <p className="text-[11px] text-gray-400">
+                <p className="app-helper">
                   Last checked {new Date(health.timestamp).toLocaleTimeString()}
                 </p>
               </CardContent>

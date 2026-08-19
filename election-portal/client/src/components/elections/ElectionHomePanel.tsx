@@ -27,8 +27,8 @@ function formatDate(value?: string | Date | null) {
 function SettingRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="border-b border-gray-100 py-2.5 last:border-0 sm:flex sm:items-baseline sm:justify-between sm:gap-6">
-      <dt className="text-xs text-gray-500 sm:shrink-0 sm:text-sm">{label}</dt>
-      <dd className="mt-0.5 text-sm font-medium text-gray-900 sm:mt-0 sm:text-right">{value}</dd>
+      <dt className="app-helper sm:shrink-0">{label}</dt>
+      <dd className="app-detail-value mt-0.5 sm:mt-0 sm:text-right">{value}</dd>
     </div>
   );
 }
@@ -36,7 +36,7 @@ function SettingRow({ label, value }: { label: string; value: React.ReactNode })
 function SettingGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h3 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+      <h3 className="app-kicker mb-1">
         {title}
       </h3>
       <dl>{children}</dl>
@@ -58,7 +58,7 @@ export function ElectionHomePanel({ electionId, election, editable }: ElectionHo
       <Card>
         <CardContent className="p-5">
           <div className="flex items-center justify-between gap-3 mb-4">
-            <h2 className="text-sm font-semibold text-gray-900">Election details</h2>
+            <h2 className="app-section-title">Election details</h2>
             {editable && (
               <Link href={`/elections/${electionId}/edit`}>
                 <Button variant="outline" size="sm">
@@ -82,8 +82,8 @@ export function ElectionHomePanel({ electionId, election, editable }: ElectionHo
                 )}
               </div>
               <div className="min-w-0">
-                <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">Franchise</p>
-                <p className="truncate text-sm font-semibold text-gray-900">{election.franchise.name}</p>
+                <p className="app-helper">Franchise</p>
+                <p className="app-detail-value truncate">{election.franchise.name}</p>
               </div>
             </div>
           )}
@@ -153,12 +153,12 @@ export function ElectionHomePanel({ electionId, election, editable }: ElectionHo
       </Card>
 
       {!editable && (
-        <p className="text-xs text-gray-400 px-1">
-          <Badge variant="outline" className="mr-2 bg-gray-100 text-gray-600 border-gray-200">
+        <div className="flex items-center gap-2 px-1">
+          <Badge variant="outline" className="shrink-0 bg-gray-100 text-gray-600 border-gray-200">
             Locked
           </Badge>
-          Completed or archived elections can't be edited.
-        </p>
+          <span className="app-muted">Completed or archived elections can't be edited.</span>
+        </div>
       )}
     </div>
   );

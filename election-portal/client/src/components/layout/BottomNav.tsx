@@ -124,7 +124,7 @@ export function BottomNav() {
               <Link
                 href={item.href}
                 className={cn(
-                  "relative flex h-full flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold transition-colors active:bg-primary/5",
+                  "relative flex h-full flex-col items-center justify-center gap-1 rounded-xl text-xs font-semibold leading-4 transition-colors active:bg-primary/5",
                   active ? "text-primary" : "text-slate-500 hover:text-slate-700"
                 )}
                 aria-current={active ? "page" : undefined}

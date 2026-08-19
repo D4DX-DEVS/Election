@@ -204,7 +204,7 @@ export function ElectionsTable({
   return (
     <Card className="border border-gray-200 shadow-none">
       {showToolbar && (
-        <CardHeader className="flex-row items-center gap-3 px-4 py-3 border-b border-gray-200 sm:px-5">
+        <CardHeader className="flex-row items-center gap-2.5 px-3 py-2 border-b border-gray-200 sm:px-4">
           {onSearchChange && (
             <SearchInput
               value={search ?? ""}
@@ -229,7 +229,6 @@ export function ElectionsTable({
               <AddButton
                 title={addLabel}
                 label={addLabel}
-                className="h-9 w-9"
               />
             </Link>
           )}
@@ -239,20 +238,19 @@ export function ElectionsTable({
         {elections.length === 0 && <EmptyElections />}
         {selectionMode && onToggleSelectAll && elections.length > 0 && (
           <div className="flex items-center justify-between border-b px-3 py-2">
-            <button
-              type="button"
-              onClick={onToggleSelectAll}
-              className="inline-flex items-center gap-2 text-sm font-medium text-primary"
-              aria-label="Select all deletable elections on this page"
-            >
+            <div className="inline-flex items-center gap-2">
               <RowSelectCheckbox
                 checked={allSelected ? true : someSelected ? "indeterminate" : false}
                 onCheckedChange={() => onToggleSelectAll()}
-                onClick={(e) => e.stopPropagation()}
                 aria-label="Select all deletable elections on this page"
               />
-              <span>{allSelected ? "Clear selection" : "Select all on this page"}</span>
-            </button>
+              <span
+                onClick={() => onToggleSelectAll()}
+                className="cursor-pointer select-none text-sm font-medium text-primary"
+              >
+                {allSelected ? "Clear selection" : "Select all on this page"}
+              </span>
+            </div>
           </div>
         )}
         {elections.length > 0 && (
@@ -266,7 +264,7 @@ export function ElectionsTable({
               const meta = `${dateLabel} · ${election.voterCount ?? 0} voters`;
 
               return (
-                <CompactListRow key={id} onClick={() => navigate(`/elections/${id}`)}>
+                <CompactListRow key={id} onClick={() => navigate(`/elections/${id}`)} label={`Open ${getElectionLabel(election)}`}>
                   {selectionMode && deletable && onToggleSelect && isSelected && (
                     <CompactListLeading>
                       <RowSelectCheckbox

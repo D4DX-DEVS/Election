@@ -126,7 +126,7 @@ export function ElectionForm({
 
   return (
     <Card>
-      <CardContent className="p-4 sm:p-6">
+      <CardContent className="p-4">
         <form
           onSubmit={handleSubmit(
             (values) => {
@@ -154,7 +154,7 @@ export function ElectionForm({
             }
           )}
         >
-          <div className="mb-5 grid grid-cols-1 gap-4 md:mb-6 md:grid-cols-2 md:gap-6">
+          <div className="mb-3 grid grid-cols-1 gap-2.5 md:mb-4 md:grid-cols-2 md:gap-3">
             <div>
               <Label htmlFor="organization">Election Title</Label>
               <Input
@@ -169,7 +169,7 @@ export function ElectionForm({
             </div>
           </div>
 
-          <div className="mb-5 grid grid-cols-1 gap-4 md:mb-6 md:grid-cols-3 md:gap-6">
+          <div className="mb-3 grid grid-cols-1 gap-2.5 md:mb-4 md:grid-cols-3 md:gap-3">
             <div>
               <Label htmlFor="electionDate">Election Date</Label>
               <Input
@@ -301,7 +301,7 @@ export function ElectionForm({
             </div>
           </div>
 
-          <div className="mb-5 grid grid-cols-1 gap-4 md:mb-6 md:grid-cols-2 md:gap-6">
+          <div className="mb-3 grid grid-cols-1 gap-2.5 md:mb-4 md:grid-cols-2 md:gap-3">
             <div>
               <Label htmlFor="maxVoters">Max Voters to Participate</Label>
               <Input
@@ -322,7 +322,7 @@ export function ElectionForm({
           </div>
 
           {/* Gender-based selection owns its minimums, so they stay grouped with the toggle */}
-          <div className="mb-5 md:mb-6">
+          <div className="mb-3 md:mb-4">
             <div className="flex items-center space-x-2">
               <Controller
                 name="genderBasedSelection"
@@ -344,7 +344,7 @@ export function ElectionForm({
             </div>
 
             {watch("genderBasedSelection") === true && (
-              <div className="mt-4 ml-6 grid grid-cols-1 gap-4 border-l-2 border-gray-100 pl-4 md:grid-cols-2 md:gap-6">
+              <div className="mt-3 ml-6 grid grid-cols-1 gap-2.5 border-l-2 border-gray-100 pl-4 md:grid-cols-2 md:gap-3">
                 <div>
                   <Label htmlFor="maleMinimum">Male Minimum</Label>
                   <Input
@@ -379,7 +379,7 @@ export function ElectionForm({
             )}
           </div>
 
-          <div className="mb-5 grid grid-cols-1 gap-4 md:mb-6 md:grid-cols-2 md:gap-6">
+          <div className="mb-3 grid grid-cols-1 gap-2.5 md:mb-4 md:grid-cols-2 md:gap-3">
             <div className="flex items-center space-x-2">
               <Controller
                 name="selfRegOpen"
@@ -488,7 +488,7 @@ export function ElectionForm({
           </div>
 
           {showFranchiseSelect && (
-            <div className="mb-6">
+            <div className="mb-4">
               <Label htmlFor="franchiseId">Franchise</Label>
               <Select
                 onValueChange={(value) => {
@@ -520,7 +520,7 @@ export function ElectionForm({
             </div>
           )}
 
-          <div className="mb-6">
+          <div className="mb-4">
             <Label htmlFor="logo">Election Logo (Optional)</Label>
             <div className="mt-1 flex flex-wrap items-center gap-3">
               {/* Preview: the newly picked file, else the logo already saved. */}
@@ -557,11 +557,11 @@ export function ElectionForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
-            <Button type="button" variant="outline" onClick={onCancel} className="w-full sm:w-auto">
+          <div className="app-form-actions">
+            <Button type="button" variant="outline" onClick={onCancel}>
               Cancel
             </Button>
-            <Button type="submit" disabled={formState.isSubmitting} className="w-full sm:w-auto">
+            <Button type="submit" disabled={formState.isSubmitting}>
               {initialValues ? "Update Election" : "Create Election"}
             </Button>
           </div>

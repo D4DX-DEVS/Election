@@ -65,12 +65,19 @@ export function useNotifications() {
     () => !isEndpointTemporarilyDisabled()
   );
 
+  const hasToken = typeof window !== "undefined" && !!localStorage.getItem("authToken");
+
   const { data, isLoading, isError, refetch, isFetching } = useQuery<NotificationFetchResult>({
     queryKey: ["/api/notifications"],
     queryFn: fetchNotifications,
-    refetchInterval: notificationsEndpointAvailable ? 60_000 : false,
+    refetchInterval: notificationsEndpointAvailable && hasToken ? 60_000 : false,
     staleTime: 30_000,
-    enabled: notificationsEndpointAvailable,
+    enabled: notificationsEndpointAvailable && hasToken,
+    retry: (failureCount, error) => {
+      const message = error instanceof Error ? error.message : "";
+      if (message.startsWith("401:")) return false;
+      return failureCount < 1;
+    },
   });
 
   useEffect(() => {

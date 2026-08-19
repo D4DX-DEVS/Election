@@ -149,7 +149,7 @@ export function ManualWinnerPicker({
         {hasCutoffTie && (
           <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3">
             <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
-            <p className="text-xs text-amber-800">
+            <p className="app-muted text-amber-800">
               {tiedCount} nominees are tied on {cutoffVotes} vote{cutoffVotes === 1 ? "" : "s"} for
               the last winning position. Pick which of them takes the seat.
             </p>
@@ -157,7 +157,7 @@ export function ManualWinnerPicker({
         )}
 
         {nominees.length === 0 ? (
-          <p className="text-sm text-gray-500">Add nominees before selecting winners.</p>
+          <p className="app-muted">Add nominees before selecting winners.</p>
         ) : (
           <CompactList>
             {ranked.map((nominee, index) => {
@@ -181,19 +181,19 @@ export function ManualWinnerPicker({
                     onClick={(e) => e.stopPropagation()}
                   />
                   </CompactListLeading>
-                  <span className="w-6 shrink-0 text-xs font-medium text-gray-400 tabular-nums">
+                  <span className="app-muted w-6 shrink-0 font-medium tabular-nums">
                     {index + 1}
                   </span>
                   <CompactListPrimary>{nominee.name}</CompactListPrimary>
                   {tied && (
                     <Badge
                       variant="outline"
-                      className="shrink-0 border-amber-300 bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0"
+                      className="shrink-0 border-amber-300 bg-amber-100 text-amber-800 text-xs px-1.5 py-0"
                     >
                       Tied
                     </Badge>
                   )}
-                  <span className="shrink-0 text-xs text-gray-500 tabular-nums">
+                  <span className="app-muted shrink-0 tabular-nums">
                     {nominee.voteCount ?? 0} vote{(nominee.voteCount ?? 0) === 1 ? "" : "s"}
                   </span>
                 </CompactListRow>

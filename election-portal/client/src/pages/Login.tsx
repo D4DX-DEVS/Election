@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { clearAccountSession, storeAccountSession } from '@/lib/session';
+import { SiteFooter } from '@/components/layout/SiteFooter';
 import { BallotIllustration } from '@/components/illustrations/BallotIllustration';
 
 interface LoginResponse {
@@ -135,15 +136,15 @@ export default function Login() {
             </p>
           </div>
 
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Sign in</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-8">
+          <h1 className="app-page-title mb-1">Sign in</h1>
+          <p className="app-muted mb-8">
             Enter the credentials provided by your administrator.
           </p>
 
           <form onSubmit={handleLogin} className="space-y-5">
             {/* Username */}
             <div className="space-y-1.5">
-              <Label htmlFor="username" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <Label htmlFor="username">
                 Username
               </Label>
               <div className="relative">
@@ -166,7 +167,7 @@ export default function Login() {
 
             {/* Password */}
             <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <Label htmlFor="password">
                 Password
               </Label>
               <div className="relative">
@@ -210,18 +211,7 @@ export default function Login() {
             </p>
           </form>
 
-          {/* Footer */}
-          <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-10">
-            Powered by{' '}
-            <a
-              href="https://d4dx.co"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-primary hover:underline"
-            >
-              D4DX.CO
-            </a>
-          </p>
+          <SiteFooter />
         </div>
       </div>
     </div>

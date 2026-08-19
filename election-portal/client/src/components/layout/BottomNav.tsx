@@ -26,7 +26,9 @@ function isVoterGroupsSectionPath(path: string) {
 }
 
 /**
- * Mobile bottom navigation — hidden on desktop (lg+).
+ * Mobile bottom navigation — the only primary nav below `lg`.
+ * Hidden on desktop/laptop where the Sidebar is used instead.
+ * Do not add a hamburger/drawer alongside this bar.
  */
 export function BottomNav() {
   const [location] = useLocation();
@@ -45,6 +47,7 @@ export function BottomNav() {
   const isSuperAdmin = role === "super_admin";
   const isFranchiseAdmin = role === "franchise_admin";
   const isElectionAdmin = role === "election_admin";
+  const isVoter = role === "voter";
 
   const items: BottomNavItem[] = [];
 
@@ -82,9 +85,19 @@ export function BottomNav() {
     }
   }
 
+  if (isVoter) {
+    items.push({
+      href: "/voting",
+      label: "Elections",
+      icon: <Vote className="h-5 w-5" />,
+      isActive: (path) =>
+        path === "/voting" || path.startsWith("/voting/"),
+    });
+  }
+
   // Account-level access (profile, franchise settings, logout via the page's
   // own menu) lives under one tab rather than cluttering the primary nav.
-  if (items.length > 0) {
+  if (!isVoter && items.length > 0) {
     items.push({ href: "/profile", label: "Profile", icon: <UserCircle2 className="h-5 w-5" /> });
   }
 

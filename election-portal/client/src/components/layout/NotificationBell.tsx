@@ -10,6 +10,7 @@ import {
   formatNotificationTime,
   notificationIconType,
 } from "@/lib/notifications";
+import { CompactList, CompactListLeading, CompactListPrimary, CompactListRow, CompactListSecondary } from "@/components/ui/compact-list";
 
 function NotificationIcon({ type }: { type: AppNotification["type"] }) {
   const iconType = notificationIconType(type);
@@ -114,46 +115,35 @@ export function NotificationBell() {
           </div>
         ) : (
           <ScrollArea className="max-h-[360px]">
-            <ul className="divide-y">
+            <CompactList className="rounded-none border-0">
               {notifications.map((notification) => {
                 const read = isRead(notification.id);
                 return (
-                  <li key={notification.id}>
-                    <button
-                      type="button"
-                      onClick={() => handleClick(notification)}
-                      className={cn(
-                        "w-full text-left px-4 py-3 hover:bg-primary/5 transition-colors flex gap-3",
-                        !read && "bg-primary/5"
-                      )}
-                    >
-                      <div className="mt-0.5">
-                        <NotificationIcon type={notification.type} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <p className={cn("text-sm leading-snug", !read && "font-semibold")}>
-                            {notification.title}
-                          </p>
-                          {!read && (
-                            <span
-                              className={cn("mt-1.5 h-2 w-2 rounded-full shrink-0", priorityDot(notification.priority))}
-                              aria-hidden
-                            />
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                          {notification.message}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground/70 mt-1">
-                          {formatNotificationTime(notification.createdAt)}
-                        </p>
-                      </div>
-                    </button>
-                  </li>
+                  <CompactListRow
+                    key={notification.id}
+                    onClick={() => handleClick(notification)}
+                    className={cn(!read && "bg-primary/5")}
+                  >
+                    <CompactListLeading>
+                      <NotificationIcon type={notification.type} />
+                    </CompactListLeading>
+                    <CompactListPrimary className={cn(!read && "font-semibold")}>
+                      {notification.title}
+                    </CompactListPrimary>
+                    <CompactListSecondary>{notification.message}</CompactListSecondary>
+                    <span className="shrink-0 text-[11px] text-muted-foreground/70">
+                      {formatNotificationTime(notification.createdAt)}
+                    </span>
+                    {!read && (
+                      <span
+                        className={cn("h-2 w-2 rounded-full shrink-0", priorityDot(notification.priority))}
+                        aria-hidden
+                      />
+                    )}
+                  </CompactListRow>
                 );
               })}
-            </ul>
+            </CompactList>
           </ScrollArea>
         )}
 

@@ -152,8 +152,8 @@ export function FranchiseSettingsCard({ franchiseId }: FranchiseSettingsCardProp
       <div className="flex items-start gap-3">
         <span className="mt-0.5 text-muted-foreground">{icon}</span>
         <div className="min-w-0">
-          <p className="text-xs text-muted-foreground">{label}</p>
-          <p className={text ? "font-medium break-words" : "text-gray-400"}>
+          <p className="app-helper">{label}</p>
+          <p className={text ? "app-body font-medium break-words" : "app-muted"}>
             {text || "Not set"}
           </p>
         </div>
@@ -166,7 +166,7 @@ export function FranchiseSettingsCard({ franchiseId }: FranchiseSettingsCardProp
       <CardHeader className="p-4 pb-0 md:p-5 md:pb-0">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <CardTitle className="text-lg">My Franchise</CardTitle>
+            <CardTitle>My Franchise</CardTitle>
             <CardDescription>Your organisation's public details.</CardDescription>
           </div>
           <Button
@@ -181,7 +181,7 @@ export function FranchiseSettingsCard({ franchiseId }: FranchiseSettingsCardProp
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="p-4 pt-3 md:p-5 md:pt-3 space-y-4 text-sm">
+      <CardContent className="p-4 pt-3 md:p-5 md:pt-3 space-y-4">
         {isLoading ? (
           <div className="space-y-3">
             <Skeleton className="h-10 w-full" />
@@ -203,10 +203,10 @@ export function FranchiseSettingsCard({ franchiseId }: FranchiseSettingsCardProp
                 )}
               </div>
               <div className="min-w-0">
-                <p className="truncate text-sm md:text-base font-medium text-gray-900">
+                <p className="truncate app-section-title">
                   {franchise.name || "—"}
                 </p>
-                <p className="text-xs text-muted-foreground">Organisation</p>
+                <p className="app-helper">Organisation</p>
               </div>
             </div>
 

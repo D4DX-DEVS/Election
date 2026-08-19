@@ -11,9 +11,12 @@ interface MainLayoutProps {
 
 const COLLAPSE_STORAGE_KEY = "voteplus:sidebar-collapsed";
 
+/**
+ * App shell navigation:
+ * - Mobile/tablet (< lg): BottomNav only. No hamburger, drawer, or overlay.
+ * - Desktop/laptop (lg+): existing Sidebar. BottomNav is hidden.
+ */
 export function MainLayout({ children }: MainLayoutProps) {
-  // Mobile/tablet: sidebar is an off-canvas drawer, closed by default.
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   // Desktop: sidebar is always visible, but can collapse to icon-only. Persisted across sessions.
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     try {
@@ -29,10 +32,6 @@ export function MainLayout({ children }: MainLayoutProps) {
     email: ""
   });
 
-  const toggleSidebar = () => {
-    setSidebarOpen(prev => !prev);
-  };
-
   const toggleSidebarCollapse = () => {
     setSidebarCollapsed(prev => {
       const next = !prev;
@@ -44,16 +43,6 @@ export function MainLayout({ children }: MainLayoutProps) {
       return next;
     });
   };
-
-  // Close the mobile drawer whenever the viewport grows past the lg breakpoint.
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)");
-    const onChange = () => {
-      if (mq.matches) setSidebarOpen(false);
-    };
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
 
   // Load user data from localStorage
   useEffect(() => {
@@ -83,7 +72,6 @@ export function MainLayout({ children }: MainLayoutProps) {
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background">
       <Header
-        toggleSidebar={toggleSidebar}
         sidebarCollapsed={collapsed}
         user={{
           name: currentUser.name,
@@ -97,22 +85,10 @@ export function MainLayout({ children }: MainLayoutProps) {
         }}
       />
       <Sidebar
-        isOpen={sidebarOpen}
         isCollapsed={sidebarCollapsed}
-        onClose={() => setSidebarOpen(false)}
         onToggleCollapse={toggleSidebarCollapse}
         userRole={currentUser.role}
       />
-
-      {/* Backdrop shown when the sidebar drawer is open on mobile/tablet */}
-      {sidebarOpen && (
-        <button
-          type="button"
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-[1px] z-30 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-          aria-label="Close navigation menu"
-        />
-      )}
 
       {/*
         Global content gutter — the single place that spaces every page's
@@ -133,6 +109,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         collapsed ? "lg:pl-[calc(72px+1.5rem)]" : "lg:pl-[calc(15rem+1.5rem)]"
       )}>
         <div className="flex flex-1 flex-col">{children}</div>
+        {/* Document-flow footer: above BottomNav on mobile; existing inline brand on desktop */}
         <SiteFooter />
       </main>
 

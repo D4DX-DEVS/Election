@@ -155,7 +155,7 @@ export default function VotingResults() {
               <p className="truncate text-xs font-medium text-gray-500">{election.franchise.name}</p>
             </div>
           )}
-          <h1 className="font-bold text-lg text-gray-900 dark:text-white leading-snug">{election ? getElectionLabel(election) : ''}</h1>
+          <h1 className="app-page-title">{election ? getElectionLabel(election) : ''}</h1>
           {election?.electionDate && (
             <div className="flex items-center gap-1.5 mt-2 text-xs text-gray-400">
               <Calendar className="h-3.5 w-3.5" />

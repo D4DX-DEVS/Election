@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useQueryClient } from '@tanstack/react-query';
-import { LogOut, Lock, Vote, ChevronLeft } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { LogOut, Lock, ChevronLeft } from 'lucide-react';
 import { NotificationBell } from '@/components/layout/NotificationBell';
+import { BottomNav } from '@/components/layout/BottomNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import {
   DropdownMenu,
@@ -27,7 +27,6 @@ interface VoterLayoutProps {
 
 export default function VoterLayout({ children, title, showBack, onBack }: VoterLayoutProps) {
   const [, navigate] = useLocation();
-  const [location] = useLocation();
   const queryClient = useQueryClient();
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const { toast } = useToast();
@@ -69,10 +68,6 @@ export default function VoterLayout({ children, title, showBack, onBack }: Voter
         .toUpperCase()
         .slice(0, 2)
     : 'V';
-
-  const isOnBallot = location.startsWith('/election/');
-  const isOnResults = location.startsWith('/results/');
-  const isOnSettings = location === '/settings';
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background dark:bg-gray-900">
@@ -164,27 +159,8 @@ export default function VoterLayout({ children, title, showBack, onBack }: Voter
         <SiteFooter />
       </main>
 
-      {/* ── Bottom Navigation (mobile only) ── */}
-      <nav
-        className="lg:hidden bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-t border-slate-200/80 dark:border-gray-700 fixed bottom-0 left-0 right-0 z-50 shadow-[0_-8px_24px_rgba(15,23,42,0.06)] mobile-bottom-nav"
-        aria-label="Voter navigation"
-      >
-        <ul className="flex h-16 items-stretch justify-around">
-          <li className="flex-1">
-            <button
-              type="button"
-              onClick={() => navigate('/voting')}
-              className={cn(
-                'mx-auto w-[calc(100%-0.5rem)] flex flex-col items-center justify-center gap-1 rounded-xl py-2 text-[11px] font-semibold transition-colors active:bg-primary/5',
-                !isOnBallot && !isOnResults && !isOnSettings ? 'bg-primary/10 text-primary' : 'text-gray-500 dark:text-gray-400',
-              )}
-            >
-              <Vote className="h-5 w-5" />
-              <span>Elections</span>
-            </button>
-          </li>
-        </ul>
-      </nav>
+      {/* Mobile primary nav — BottomNav only; hidden at lg+ */}
+      <BottomNav />
     </div>
   );
 }

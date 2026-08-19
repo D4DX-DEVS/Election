@@ -58,8 +58,8 @@ export function ConfirmDialog({
               <AlertTriangle className="h-5 w-5" />
             </div>
             <div className="space-y-1.5 pt-0.5">
-              <AlertDialogTitle className="text-base">{title}</AlertDialogTitle>
-              <AlertDialogDescription className="text-sm leading-relaxed">
+              <AlertDialogTitle>{title}</AlertDialogTitle>
+              <AlertDialogDescription className="leading-relaxed">
                 {description}
               </AlertDialogDescription>
             </div>

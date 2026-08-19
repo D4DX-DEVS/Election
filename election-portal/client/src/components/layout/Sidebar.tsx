@@ -3,6 +3,7 @@ import { cloneElement, isValidElement } from "react";
 import type { ReactElement } from "react";
 import { cn } from "@/lib/utils";
 import { buildVoterGroupsListUrl } from "@/lib/voterGroupNav";
+import { D4DX_LOGO_SRC, D4DX_URL } from "@/components/layout/SiteFooter";
 import {
   LayoutDashboard,
   Building,
@@ -12,15 +13,11 @@ import {
   Activity,
   ChevronsLeft,
   ChevronsRight,
-  X,
 } from "lucide-react";
 
 interface SidebarProps {
-  /** Mobile/tablet drawer open state (below lg breakpoint) */
-  isOpen: boolean;
   /** Desktop icon-only collapse state (lg breakpoint and up) */
   isCollapsed: boolean;
-  onClose: () => void;
   onToggleCollapse: () => void;
   userRole?: string;
 }
@@ -46,7 +43,7 @@ function isPathActive(location: string, href: string) {
   return location === href || location.startsWith(`${href}/`);
 }
 
-export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse, userRole = "" }: SidebarProps) {
+export function Sidebar({ isCollapsed, onToggleCollapse, userRole = "" }: SidebarProps) {
   const [location] = useLocation();
 
   const isSuperAdmin = userRole === "super_admin";
@@ -73,7 +70,6 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse, userRo
     return (
       <Link
         href={href}
-        onClick={onClose}
         title={collapsed ? label : undefined}
         className={cn(
           "group relative flex items-center gap-2.5 rounded-lg text-sm font-medium transition-all duration-200",
@@ -127,16 +123,6 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse, userRo
             <img src="/logo.png" alt="Vote+" className="h-7 w-auto object-contain" />
           </div>
         )}
-
-        {/* Mobile/tablet close button */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="ml-auto flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 lg:hidden"
-          aria-label="Close navigation menu"
-        >
-          <X className="h-4.5 w-4.5" />
-        </button>
 
         {/* Desktop collapse toggle */}
         {!isVoter && (
@@ -203,7 +189,7 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse, userRo
       {/* Footer brand tag */}
       <div className={cn("shrink-0 border-t border-slate-200/80 p-2.5", collapsed && "flex justify-center px-2")}>
         <a
-          href="https://d4dx.co"
+          href={D4DX_URL}
           target="_blank"
           rel="noopener noreferrer"
           className={cn(
@@ -212,7 +198,7 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse, userRo
           )}
           title="Powered by D4DX.CO"
         >
-          <img src="/d4dx-logo.png" alt="D4DX" className="h-3.5 w-auto shrink-0 object-contain opacity-70" />
+          <img src={D4DX_LOGO_SRC} alt="D4DX" className="h-3.5 w-auto shrink-0 object-contain opacity-70" />
           {!collapsed && (
             <span className="min-w-0 truncate">
               Powered by <span className="font-medium">D4DX.CO</span>
@@ -226,10 +212,9 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse, userRo
   return (
     <aside
       className={cn(
-        "sidebar fixed top-0 left-0 bottom-0 z-40 flex w-60 flex-col bg-white border-r border-slate-200/80 shadow-xl shadow-slate-900/5 transition-transform duration-300 ease-in-out lg:shadow-none",
-        "lg:translate-x-0 lg:transition-[width] lg:duration-300",
-        collapsed ? "lg:w-[72px]" : "lg:w-60",
-        isOpen ? "translate-x-0" : "-translate-x-full"
+        "sidebar hidden lg:flex fixed top-0 left-0 bottom-0 z-40 w-60 flex-col bg-white border-r border-slate-200/80",
+        "lg:shadow-none lg:transition-[width] lg:duration-300",
+        collapsed ? "lg:w-[72px]" : "lg:w-60"
       )}
     >
       {content}

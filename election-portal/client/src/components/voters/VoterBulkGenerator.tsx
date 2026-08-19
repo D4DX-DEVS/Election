@@ -138,7 +138,7 @@ export function VoterBulkGenerator({
               className="mt-1"
               disabled={isGenerating}
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="app-helper mt-1">
               First sequential number to use
             </p>
           </div>
@@ -155,7 +155,7 @@ export function VoterBulkGenerator({
               className="mt-1"
               disabled={isGenerating}
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="app-helper mt-1">
               Maximum 1000 voters at once
             </p>
           </div>
@@ -210,7 +210,7 @@ export function VoterBulkGenerator({
 
               <TabsContent value="voterGroup" className="mt-4">
                 <Label>Select Voter Group</Label>
-                <p className="text-xs text-gray-500 mb-3">New voters will be placed in the selected group and inherit its election access.</p>
+                <p className="app-helper mb-3">New voters will be placed in the selected group and inherit its election access.</p>
                 {voterGroups && voterGroups.length > 0 ? (
                   <div className="grid grid-cols-2 gap-2 max-h-52 overflow-y-auto pr-1">
                     {voterGroups.map((group) => {

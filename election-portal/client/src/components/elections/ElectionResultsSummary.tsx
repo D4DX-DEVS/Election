@@ -69,7 +69,7 @@ export function ElectionResultsSummary({ electionId }: ElectionResultsSummaryPro
       {winners.length > 0 && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2">
               <Trophy className="h-5 w-5 text-amber-500" />
               Winner{winners.length !== 1 ? "s" : ""}
             </CardTitle>

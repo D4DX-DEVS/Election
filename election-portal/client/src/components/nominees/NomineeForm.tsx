@@ -262,7 +262,7 @@ export function NomineeForm({
             <span className="text-sm font-medium text-gray-700">
               {photoPreview ? 'Replace image' : 'Upload image'}
             </span>
-            <span className="mt-1 text-xs text-gray-500">PNG, JPG up to 5MB</span>
+            <span className="mt-1 app-helper">PNG, JPG up to 5MB</span>
             <input
               type="file"
               className="hidden"

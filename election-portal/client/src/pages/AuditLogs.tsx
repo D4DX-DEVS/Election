@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { PageContent, PageHeader } from "@/components/layout/PageContent";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, History, User as UserIcon, Globe, ChevronLeft, ChevronRight } from "lucide-react";
+import { AlertCircle, User as UserIcon, Globe, ChevronLeft, ChevronRight } from "lucide-react";
+import { CompactList, CompactListPrimary, CompactListRow, CompactListSecondary } from "@/components/ui/compact-list";
 import { apiRequest } from "@/lib/queryClient";
 
 const PAGE_SIZE = 10;
@@ -79,15 +81,11 @@ export default function AuditLogs() {
 
   return (
     <MainLayout>
-      <div className="mb-6">
-        <h1 className="app-page-title flex items-center gap-2">
-          <History className="h-6 w-6 text-primary" />
-          Audit Logs
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          A record of important actions performed across the system.
-        </p>
-      </div>
+      <PageContent>
+      <PageHeader
+        title="Audit Logs"
+        description="A record of important actions performed across the system."
+      />
 
       {error && (
         <Alert variant="destructive" className="mb-4">
@@ -100,7 +98,7 @@ export default function AuditLogs() {
       {isLoading ? (
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
-            <Skeleton key={i} className="h-24 w-full rounded-lg" />
+            <Skeleton key={i} className="h-11 w-full rounded-lg" />
           ))}
         </div>
       ) : logs.length === 0 ? (
@@ -111,80 +109,24 @@ export default function AuditLogs() {
         </Card>
       ) : (
         <>
-          {/* Mobile: card list */}
-          <div className="space-y-3 lg:hidden">
+          <CompactList>
             {logs.map((log) => (
-              <Card key={log._id}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <Badge className={actionColor(log.action)}>
-                      {log.action || "Action"}
-                    </Badge>
-                    <span className="text-xs text-gray-400">
-                      {formatDate(log.createdAt || log.timestamp)}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-sm font-medium text-gray-900">
-                    {log.entityType || "—"}
-                    {log.details?.entity ? `: ${log.details.entity}` : ""}
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-                    <span className="flex items-center gap-1">
-                      <UserIcon className="h-3 w-3" />
-                      {log.userId?.fullName || log.userId?.username || "System"}
-                    </span>
-                    {log.ipAddress && (
-                      <span className="flex items-center gap-1">
-                        <Globe className="h-3 w-3" />
-                        {log.ipAddress}
-                      </span>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+              <CompactListRow key={log._id}>
+                <CompactListPrimary>
+                  {log.entityType || "—"}
+                  {log.details?.entity ? `: ${log.details.entity}` : ""}
+                </CompactListPrimary>
+                <CompactListSecondary>
+                  {[
+                    log.userId?.fullName || log.userId?.username || "System",
+                    formatDate(log.createdAt || log.timestamp),
+                    log.ipAddress,
+                  ].filter(Boolean).join(" · ")}
+                </CompactListSecondary>
+                <Badge className={`${actionColor(log.action)} shrink-0`}>{log.action || "Action"}</Badge>
+              </CompactListRow>
             ))}
-          </div>
-
-          {/* Desktop: table */}
-          <Card className="hidden lg:block">
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-white text-left text-gray-500">
-                      <th className="px-4 py-3 font-medium">Action</th>
-                      <th className="px-4 py-3 font-medium">Entity</th>
-                      <th className="px-4 py-3 font-medium">User</th>
-                      <th className="px-4 py-3 font-medium">IP Address</th>
-                      <th className="px-4 py-3 font-medium">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {logs.map((log) => (
-                      <tr key={log._id} className="border-b last:border-0 transition-colors hover:bg-primary/5">
-                        <td className="px-4 py-3">
-                          <Badge className={actionColor(log.action)}>
-                            {log.action || "Action"}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3 text-gray-900">
-                          {log.entityType || "—"}
-                          {log.details?.entity ? `: ${log.details.entity}` : ""}
-                        </td>
-                        <td className="px-4 py-3 text-gray-700">
-                          {log.userId?.fullName || log.userId?.username || "System"}
-                        </td>
-                        <td className="px-4 py-3 text-gray-500">{log.ipAddress || "—"}</td>
-                        <td className="px-4 py-3 text-gray-500">
-                          {formatDate(log.createdAt || log.timestamp)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
+          </CompactList>
 
           {/* Pagination controls */}
           {totalPages > 1 && (
@@ -217,6 +159,7 @@ export default function AuditLogs() {
           )}
         </>
       )}
+      </PageContent>
     </MainLayout>
   );
 }

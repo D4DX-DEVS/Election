@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { CheckCircle2, Clock, Users } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { CompactList, CompactListPrimary, CompactListRow, CompactListSecondary } from "@/components/ui/compact-list";
 
 interface VotingStatusEntry {
   electionId: string;
@@ -62,25 +63,23 @@ function RosterList({
         {voters.length === 0 ? (
           <p className="px-4 py-6 text-center text-sm text-gray-500">{emptyText}</p>
         ) : (
-          <ul className="max-h-80 divide-y divide-gray-100 overflow-y-auto">
+          <CompactList className="rounded-none border-0 max-h-80 overflow-y-auto">
             {voters.map((voter) => (
-              <li key={voter.id} className="flex items-center gap-3 px-4 py-2.5">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-gray-900">
-                    {voter.fullName?.trim() || voter.username}
-                  </p>
-                  {voter.fullName?.trim() && voter.fullName.trim() !== voter.username && (
-                    <p className="truncate text-xs text-gray-500">{voter.username}</p>
-                  )}
-                </div>
+              <CompactListRow key={voter.id}>
+                <CompactListPrimary>
+                  {voter.fullName?.trim() || voter.username}
+                </CompactListPrimary>
+                {voter.fullName?.trim() && voter.fullName.trim() !== voter.username && (
+                  <CompactListSecondary>{voter.username}</CompactListSecondary>
+                )}
                 {showCounts && (
                   <span className="shrink-0 text-xs font-medium text-gray-600 tabular-nums">
                     {voter.voteCount ?? 0} vote{(voter.voteCount ?? 0) === 1 ? "" : "s"}
                   </span>
                 )}
-              </li>
+              </CompactListRow>
             ))}
-          </ul>
+          </CompactList>
         )}
       </CardContent>
     </Card>
@@ -108,10 +107,10 @@ export function VotingStatusPanel({ electionId }: { electionId: string }) {
 
   if (isLoading) {
     return (
-      <div className="mb-6 grid grid-cols-3 gap-2 sm:gap-3">
+      <div className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
         <Skeleton className="h-24 w-full md:h-28" />
         <Skeleton className="h-24 w-full md:h-28" />
-        <Skeleton className="h-24 w-full md:h-28" />
+        <Skeleton className="col-span-2 h-24 w-full sm:col-span-1 md:h-28" />
       </div>
     );
   }
@@ -126,7 +125,7 @@ export function VotingStatusPanel({ electionId }: { electionId: string }) {
 
   return (
     <div className="mb-6">
-      <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 mb-4">
         <StatCard
           title="Votes cast"
           value={current.votedCount}
@@ -147,6 +146,7 @@ export function VotingStatusPanel({ electionId }: { electionId: string }) {
           icon={<Users className="h-5 w-5" />}
           iconBgColor="bg-indigo-100"
           iconColor="text-indigo-600"
+          className="col-span-2 sm:col-span-1"
         />
       </div>
 

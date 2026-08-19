@@ -279,8 +279,8 @@ export default function VotingBallot() {
             <div className="w-24 h-24 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-5 shadow-lg shadow-green-200/60">
               <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-400" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Vote Submitted!</h1>
-            <p className="text-gray-500 dark:text-gray-400 max-w-xs">
+            <h1 className="app-page-title mb-2">Vote Submitted!</h1>
+            <p className="app-muted max-w-xs">
               Thank you for participating. Your vote has been securely recorded.
             </p>
           </div>
@@ -444,7 +444,7 @@ export default function VotingBallot() {
                   <p className="truncate text-xs font-medium text-gray-500">{election.franchise.name}</p>
                 </div>
               )}
-              <h1 className="font-bold text-lg text-gray-900 dark:text-white leading-snug">{getElectionLabel(election)}</h1>
+              <h1 className="app-page-title">{getElectionLabel(election)}</h1>
               <div className="flex items-center gap-1.5 mt-2 text-xs text-gray-400">
                 <Calendar className="h-3.5 w-3.5" />
                 {formatDate(election.electionDate)}

@@ -107,16 +107,17 @@ export default function Dashboard() {
           </Alert>
         )}
 
-        <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:gap-5">
+        <div className="mb-6 grid grid-cols-3 gap-2 sm:gap-4 lg:gap-5">
           {statsLoading ? (
             <>
-              <Skeleton className="h-24 w-full md:h-28" />
-              <Skeleton className="h-24 w-full md:h-28" />
-              <Skeleton className="h-24 w-full md:h-28" />
+              <Skeleton className="h-20 w-full md:h-28" />
+              <Skeleton className="h-20 w-full md:h-28" />
+              <Skeleton className="h-20 w-full md:h-28" />
             </>
           ) : user?.role === "super_admin" ? (
             <>
               <StatCard
+                compact
                 title="Active Elections"
                 value={displayStats.activeElections}
                 icon={<Vote className="h-5 w-5" />}
@@ -127,6 +128,7 @@ export default function Dashboard() {
               />
 
               <StatCard
+                compact
                 title="Franchises"
                 value={displayStats.totalFranchises.toLocaleString()}
                 icon={<Building2 className="h-5 w-5" />}
@@ -139,6 +141,7 @@ export default function Dashboard() {
               />
 
               <StatCard
+                compact
                 title="Total Elections"
                 value={displayStats.totalElections.toLocaleString()}
                 icon={<BarChart3 className="h-5 w-5" />}
@@ -153,6 +156,7 @@ export default function Dashboard() {
           ) : (
             <>
               <StatCard
+                compact
                 title="Active Elections"
                 value={displayStats.activeElections}
                 icon={<Vote className="h-5 w-5" />}
@@ -163,6 +167,7 @@ export default function Dashboard() {
               />
 
               <StatCard
+                compact
                 title="Total Elections"
                 value={displayStats.totalElections.toLocaleString()}
                 icon={<BarChart3 className="h-5 w-5" />}
@@ -175,6 +180,7 @@ export default function Dashboard() {
               />
 
               <StatCard
+                compact
                 title="Registered Voters"
                 value={displayStats.totalVoters.toLocaleString()}
                 icon={<Users className="h-5 w-5" />}

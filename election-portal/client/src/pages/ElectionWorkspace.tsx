@@ -171,7 +171,7 @@ export default function ElectionWorkspace() {
                     </Link>
                   )}
                 </div>
-                <p className="text-sm text-gray-500 mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
+                <p className="app-page-description flex flex-wrap items-center gap-x-4 gap-y-1">
                   {election.electionDate && (
                     <span className="inline-flex items-center gap-1">
                       <CalendarDays className="h-3.5 w-3.5" />
@@ -199,7 +199,7 @@ export default function ElectionWorkspace() {
 
       {/* Tabs */}
       <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="mb-5 flex h-auto w-full justify-start gap-1 overflow-x-auto sm:mb-6">
+        <TabsList className="mb-5 flex h-auto min-w-0 max-w-full justify-start gap-1 overflow-x-auto sm:mb-6">
           <TabsTrigger value="home" className="shrink-0 gap-1.5">
             <CalendarDays className="h-4 w-4" /> Home
           </TabsTrigger>

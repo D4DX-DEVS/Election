@@ -9,7 +9,7 @@ import VoterGroups from "@/pages/VoterGroups";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { SelectCheckbox } from "@/components/ui/row-select-checkbox";
-import { PlusIcon, Upload, AlertCircle, UsersRound, Download, MoreHorizontal, Search, FileSpreadsheet, Printer } from "lucide-react";
+import { PlusIcon, Upload, AlertCircle, UsersRound, Download, MoreHorizontal, FileSpreadsheet, Printer } from "lucide-react";
 import {
   downloadVoterImportTemplate,
   exportVotersToExcel,
@@ -46,6 +46,8 @@ import { DeleteModeBar } from "@/components/ui/delete-mode-bar";
 import { DeleteModeButton } from "@/components/ui/delete-mode-button";
 import { useBulkDeleteMode } from "@/hooks/useBulkDeleteMode";
 import { deleteByIds } from "@/lib/bulkDelete";
+import { SearchInput } from "@/components/ui/search-input";
+import { AddButton } from "@/components/ui/add-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -547,12 +549,11 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-1 items-center gap-2 sm:flex-row sm:items-center">
           <div className="relative flex-1 sm:max-w-xs">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <Input
+            <SearchInput
               placeholder="Search by name or username..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="h-10 pl-9"
+              className="h-10"
             />
           </div>
           {isReadOnly && (
@@ -610,17 +611,7 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
 
         {!isReadOnly && (
           <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-end">
-            <Button
-              size="sm"
-              className="h-10 justify-center gap-1.5 px-3"
-              onClick={handleAddVoter}
-            >
-              <PlusIcon className="h-4 w-4 shrink-0" />
-              <span className="truncate">
-                <span className="sm:hidden">Add</span>
-                <span className="hidden sm:inline">Add Voter</span>
-              </span>
-            </Button>
+            <AddButton title="Add voter" label="Add voter" onClick={handleAddVoter} />
             <div className="flex items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

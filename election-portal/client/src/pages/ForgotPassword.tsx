@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Link } from "wouter";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 
 export default function ForgotPassword() {
   useEffect(() => {
@@ -19,12 +20,13 @@ export default function ForgotPassword() {
             </Button>
           </Link>
 
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Reset password</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <h1 className="app-page-title mb-1">Reset password</h1>
+          <p className="app-muted">
             Self-service reset is currently disabled. Contact your administrator to reset your password.
           </p>
         </div>
       </div>
+      <SiteFooter />
     </div>
   );
 }

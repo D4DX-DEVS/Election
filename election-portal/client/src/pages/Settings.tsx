@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { AccountShell } from "@/components/account/AccountShell";
+import { PageHeader } from "@/components/layout/PageContent";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Lock } from "lucide-react";
 
 export default function Settings() {
   const { toast } = useToast();
@@ -69,15 +69,10 @@ export default function Settings() {
 
   return (
     <AccountShell title="Change Password">
-      <div className="mb-6">
-        <h1 className="app-page-title flex items-center gap-2">
-          <Lock className="h-5 w-5 text-primary" />
-          Change Password
-        </h1>
-        <p className="text-sm text-gray-600">
-          Enter your current password, then choose a new one.
-        </p>
-      </div>
+      <PageHeader
+        title="Change Password"
+        description="Enter your current password, then choose a new one."
+      />
 
       <div className="space-y-3">
         <Card>

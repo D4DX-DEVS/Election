@@ -107,10 +107,10 @@ export default function VotingPortal() {
         <PageContent className="px-4 sm:px-6 py-4 max-w-3xl mx-auto w-full space-y-4">
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-4 w-64" />
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-20 rounded-lg" />
-            ))}
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
+            <Skeleton className="h-20 rounded-lg" />
+            <Skeleton className="h-20 rounded-lg" />
+            <Skeleton className="col-span-2 h-20 rounded-lg sm:col-span-1" />
           </div>
           <Skeleton className="h-64 w-full rounded-lg" />
         </PageContent>
@@ -158,10 +158,10 @@ export default function VotingPortal() {
         )}
 
         <div className="mb-4">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 className="app-page-title">
             Hi, {userFullName || 'Voter'}
           </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
+          <p className="app-page-description">
             {stats.total > 0
               ? `${stats.voted} of ${stats.total} election${stats.total !== 1 ? 's' : ''} completed`
               : 'No elections assigned yet'}
@@ -169,7 +169,7 @@ export default function VotingPortal() {
         </div>
 
         {stats.total > 0 && (
-          <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 mb-4">
             <StatCard
               title="Total elections"
               value={stats.total}
@@ -190,6 +190,7 @@ export default function VotingPortal() {
               icon={<CheckCircle2 className="h-full w-full" />}
               iconBgColor="bg-blue-100"
               iconColor="text-blue-600"
+              className="col-span-2 sm:col-span-1"
             />
           </div>
         )}

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { AccountShell } from "@/components/account/AccountShell";
+import { PageHeader } from "@/components/layout/PageContent";
 import { FranchiseSettingsCard } from "@/components/account/FranchiseSettingsCard";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -138,12 +139,10 @@ export default function Profile() {
 
   return (
     <AccountShell title="Profile">
-      <div className="mb-6">
-        <h1 className="app-page-title">Profile</h1>
-        <p className="text-sm text-gray-600">
-          View and update your personal account information.
-        </p>
-      </div>
+      <PageHeader
+        title="Profile"
+        description="View and update your personal account information."
+      />
 
       <div className="space-y-4">
         <Card>
@@ -155,8 +154,8 @@ export default function Profile() {
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <h2 className="text-xl font-semibold truncate">{displayName}</h2>
-                <p className="text-sm text-muted-foreground">@{user?.username || "—"}</p>
+                <p className="app-page-title truncate">{displayName}</p>
+                <p className="app-muted">@{user?.username || "—"}</p>
                 {user?.status && (
                   <div className="mt-2">
                     <Badge
@@ -191,12 +190,12 @@ export default function Profile() {
         <div className="grid gap-4 lg:grid-cols-2">
           <Card>
             <CardHeader className="p-4 pb-0 md:p-5 md:pb-0">
-              <CardTitle className="text-lg">Edit profile</CardTitle>
+              <CardTitle>Edit profile</CardTitle>
               <CardDescription>Update the details shown on your account.</CardDescription>
             </CardHeader>
             <CardContent className="p-4 pt-3 md:p-5 md:pt-3">
               {isLoading ? (
-                <p className="text-sm text-muted-foreground">Loading profile…</p>
+                <p className="app-muted">Loading profile…</p>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
@@ -228,7 +227,7 @@ export default function Profile() {
                       disabled
                       className="disabled:opacity-100 disabled:text-gray-900 disabled:bg-gray-50"
                     />
-                    <p className="text-xs text-muted-foreground">Username cannot be changed.</p>
+                    <p className="app-helper">Username cannot be changed.</p>
                   </div>
                   <Button type="submit" disabled={updateProfileMutation.isPending}>
                     {updateProfileMutation.isPending ? "Saving…" : "Save changes"}
@@ -240,15 +239,15 @@ export default function Profile() {
 
           <Card>
             <CardHeader className="p-4 pb-0 md:p-5 md:pb-0">
-              <CardTitle className="text-lg">Account details</CardTitle>
+              <CardTitle>Account details</CardTitle>
               <CardDescription>Information managed by your organization.</CardDescription>
             </CardHeader>
-            <CardContent className="p-4 pt-3 md:p-5 md:pt-3 space-y-4 text-sm">
+            <CardContent className="p-4 pt-3 md:p-5 md:pt-3 space-y-4">
               <div className="flex items-start gap-3">
                 <Shield className="h-4 w-4 mt-0.5 text-muted-foreground" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Role</p>
-                  <p className="font-medium">{formatRoleLabel(user?.role)}</p>
+                  <p className="app-helper">Role</p>
+                  <p className="app-body font-medium">{formatRoleLabel(user?.role)}</p>
                 </div>
               </div>
 
@@ -257,8 +256,8 @@ export default function Profile() {
                 <div className="flex items-start gap-3">
                   <Building2 className="h-4 w-4 mt-0.5 text-muted-foreground" />
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">Franchise</p>
-                    <p className="font-medium truncate">{franchiseName}</p>
+                    <p className="app-helper">Franchise</p>
+                    <p className="app-body font-medium truncate">{franchiseName}</p>
                   </div>
                 </div>
               )}
@@ -267,8 +266,8 @@ export default function Profile() {
                 <div className="flex items-start gap-3">
                   <Hash className="h-4 w-4 mt-0.5 text-muted-foreground" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Registration number</p>
-                    <p className="font-medium">{user.registrationNumber}</p>
+                    <p className="app-helper">Registration number</p>
+                    <p className="app-body font-medium">{user.registrationNumber}</p>
                   </div>
                 </div>
               )}
@@ -277,8 +276,8 @@ export default function Profile() {
                 <div className="flex items-start gap-3">
                   <Mail className="h-4 w-4 mt-0.5 text-muted-foreground" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Assigned elections</p>
-                    <p className="font-medium">{user.electionAccess.length}</p>
+                    <p className="app-helper">Assigned elections</p>
+                    <p className="app-body font-medium">{user.electionAccess.length}</p>
                   </div>
                 </div>
               )}
@@ -288,16 +287,16 @@ export default function Profile() {
               <div className="flex items-start gap-3">
                 <Calendar className="h-4 w-4 mt-0.5 text-muted-foreground" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Member since</p>
-                  <p className="font-medium">{formatDateTime(user?.createdAt)}</p>
+                  <p className="app-helper">Member since</p>
+                  <p className="app-body font-medium">{formatDateTime(user?.createdAt)}</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
                 <Calendar className="h-4 w-4 mt-0.5 text-muted-foreground" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Last login</p>
-                  <p className="font-medium">{formatDateTime(user?.lastLogin)}</p>
+                  <p className="app-helper">Last login</p>
+                  <p className="app-body font-medium">{formatDateTime(user?.lastLogin)}</p>
                 </div>
               </div>
             </CardContent>

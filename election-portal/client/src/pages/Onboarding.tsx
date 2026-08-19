@@ -19,10 +19,10 @@ import {
   FileText 
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { getStoredUser } from "@/lib/authUser";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 
 // Step interface for the onboarding process
 interface OnboardingStep {
@@ -246,7 +246,7 @@ export default function Onboarding() {
     "User";
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-[100dvh] bg-background flex flex-col">
       {/* Compact header — mirrors the dashboard's brand mark + wordmark */}
       <header className="h-12 shrink-0 border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
         <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -260,21 +260,16 @@ export default function Onboarding() {
       </header>
 
       <main className="flex-1">
-        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
-          <div className="mb-3">
+        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8 lg:py-5">
+          <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
             <h1 className="app-page-title">Setting up your {roleLabel} account</h1>
-            <div className="mt-2 flex items-center gap-3">
-              <Progress value={progress} className="h-1.5 flex-1" />
-              <span className="shrink-0 text-xs font-medium text-gray-500">{Math.round(progress)}%</span>
-            </div>
-            <div className="mt-1 flex justify-between text-[11px] text-gray-400">
-              <span>Getting started</span>
-              <span>Complete</span>
-            </div>
+            <p className="app-muted shrink-0 tabular-nums">
+              Step {currentStepIndex + 1} of {steps.length}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-[200px_1fr] md:gap-4">
-            <div className="min-w-0">
+            <div className="hidden min-w-0 md:block">
               <Card className="border border-gray-200 shadow-none">
                 <CardContent className="p-2.5">
                   <h2 className="mb-2 px-1 text-[11px] font-bold uppercase tracking-widest text-slate-400">
@@ -320,26 +315,25 @@ export default function Onboarding() {
 
             <div className="min-w-0">
               <Card className="border border-gray-200 shadow-none">
-                <CardHeader className="p-3.5 pb-2.5 sm:p-4 sm:pb-2.5">
+                <CardHeader className="p-3 pb-2 sm:p-4 sm:pb-2.5">
                   <CardTitle>{currentStep.title}</CardTitle>
                   <CardDescription>{currentStep.description}</CardDescription>
                 </CardHeader>
-                <CardContent className="p-3.5 pt-0 sm:p-4 sm:pt-0">
+                <CardContent className="p-3 pt-0 sm:p-4 sm:pt-0">
                   {currentStep.component}
                 </CardContent>
-                <CardFooter className="flex justify-between border-t border-gray-100 p-3.5 sm:p-4">
+                <CardFooter className="flex justify-between gap-2 border-t border-gray-100 p-3 sm:p-4">
                   <Button
                     variant="outline"
-                    size="sm"
                     onClick={goToPreviousStep}
                     disabled={currentStepIndex === 0}
                   >
                     Back
                   </Button>
-                  <Button size="sm" onClick={goToNextStep}>
+                  <Button onClick={goToNextStep}>
                     {currentStepIndex === steps.length - 1 ? "Finish" : "Continue"}
                     {currentStepIndex !== steps.length - 1 && (
-                      <ChevronRight className="ml-1.5 h-3.5 w-3.5" />
+                      <ChevronRight className="ml-1.5 h-4 w-4" />
                     )}
                   </Button>
                 </CardFooter>
@@ -348,6 +342,7 @@ export default function Onboarding() {
           </div>
         </div>
       </main>
+      <SiteFooter />
     </div>
   );
 }
@@ -361,11 +356,11 @@ function WelcomeStep() {
 
   return (
     <div className="space-y-2.5">
-      <div className="rounded-lg border border-primary/10 bg-primary/5 p-3.5">
-        <h3 className="mb-1 text-base font-semibold text-gray-900">
+      <div className="rounded-lg border border-primary/10 bg-primary/5 p-3">
+        <h3 className="app-section-title mb-1">
           Welcome, {userName}!
         </h3>
-        <p className="text-sm text-gray-600 mb-1.5">
+        <p className="app-body mb-1.5">
           We're excited to have you on board as a{" "}
           {userRole === "super_admin"
             ? "Super Administrator"
@@ -374,7 +369,7 @@ function WelcomeStep() {
               : "Election Administrator"}.
           Let's get you started with Vote+.
         </p>
-        <p className="text-sm text-gray-600">
+        <p className="app-body">
           This quick onboarding process will help you understand the system
           and set up your first{" "}
           {userRole === "super_admin"
@@ -392,8 +387,8 @@ function WelcomeStep() {
               <BookOpen className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <h4 className="text-sm font-semibold text-gray-900">Learn the Basics</h4>
-              <p className="text-xs text-gray-500">
+              <h4 className="app-label">Learn the Basics</h4>
+              <p className="app-muted mt-0.5">
                 Understand the core features and capabilities of the system
               </p>
             </div>
@@ -406,8 +401,8 @@ function WelcomeStep() {
               <Settings className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <h4 className="text-sm font-semibold text-gray-900">Configure Your Account</h4>
-              <p className="text-xs text-gray-500">
+              <h4 className="app-label">Configure Your Account</h4>
+              <p className="app-muted mt-0.5">
                 Set up your profile and preferences for a personalized experience
               </p>
             </div>
@@ -420,8 +415,8 @@ function WelcomeStep() {
               <Users className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <h4 className="text-sm font-semibold text-gray-900">Manage Users</h4>
-              <p className="text-xs text-gray-500">
+              <h4 className="app-label">Manage Users</h4>
+              <p className="app-muted mt-0.5">
                 Create and organize administrators, nominees, and voters
               </p>
             </div>
@@ -434,8 +429,8 @@ function WelcomeStep() {
               <FileText className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <h4 className="text-sm font-semibold text-gray-900">Election Management</h4>
-              <p className="text-xs text-gray-500">
+              <h4 className="app-label">Election Management</h4>
+              <p className="app-muted mt-0.5">
                 Create, configure, and monitor election processes
               </p>
             </div>
@@ -900,11 +895,11 @@ function CompleteStep() {
         <CheckCircle2 className="h-5 w-5" />
       </div>
 
-      <h3 className="text-base font-semibold text-gray-900">
+      <h3 className="app-section-title">
         Congratulations, {userName}!
       </h3>
 
-      <p className="text-sm text-gray-600 max-w-lg mx-auto">
+      <p className="app-body max-w-lg mx-auto">
         You've completed the onboarding process and are ready to start using Vote+ as a{" "}
         {userRole === "super_admin"
           ? "Super Administrator"
@@ -914,8 +909,8 @@ function CompleteStep() {
       </p>
 
       <div className="rounded-lg border border-gray-200 p-2.5 bg-white max-w-lg mx-auto mt-2 text-left">
-        <h4 className="text-sm font-semibold text-gray-900 mb-1">Next Steps</h4>
-        <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+        <h4 className="app-label mb-1">Next Steps</h4>
+        <ul className="list-disc list-inside app-body space-y-1">
           {userRole === "super_admin" && (
             <>
               <li>Create your first franchise organization</li>
@@ -945,7 +940,7 @@ function CompleteStep() {
         </ul>
       </div>
 
-      <p className="text-gray-500 text-xs mt-2">
+      <p className="app-muted mt-2">
         Remember, you can always return to these guides through the Help section if you need a refresher.
       </p>
     </div>

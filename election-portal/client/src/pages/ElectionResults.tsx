@@ -65,7 +65,7 @@ export default function ElectionResults() {
               </Badge>
             </div>
             {election.electionDate && (
-              <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
+              <p className="app-page-description flex items-center gap-1">
                 <CalendarDays className="h-3.5 w-3.5" />
                 {format(new Date(election.electionDate), "PPP")}
               </p>

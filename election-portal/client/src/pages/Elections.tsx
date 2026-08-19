@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Link } from "wouter";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ElectionFilters } from "@/components/elections/ElectionFilters";
 import { ElectionsTable } from "@/components/elections/ElectionsTable";
-import { Button } from "@/components/ui/button";
-import { PlusIcon, AlertCircle, Vote, Users, User, CheckCircle2 } from "lucide-react";
+import { AlertCircle, Vote, Users, User, CheckCircle2 } from "lucide-react";
 import { ElectionFilter, ElectionWithDetails, Franchise, Pagination } from "@/lib/types";
 import { useCallback } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -259,14 +257,6 @@ export default function Elections() {
       <PageHeader
         title="Elections"
         description="Manage elections, nominees, and voters"
-        actions={userRole !== "election_admin" ? (
-          <Link href="/elections/create">
-          <Button size="sm">
-            <PlusIcon className="mr-1 h-3.5 w-3.5" />
-            Add election
-          </Button>
-          </Link>
-        ) : undefined}
       />
 
       {!electionsLoading && (
@@ -318,6 +308,8 @@ export default function Elections() {
             onSearchChange={setSearch}
             onToggleFilters={userRole === 'super_admin' ? () => setFiltersOpen((v) => !v) : undefined}
             filtersOpen={filtersOpen}
+            addHref={userRole !== "election_admin" ? "/elections/create" : undefined}
+            addLabel="Add election"
           />
           <PageBottom>
           {electionsPagination && (

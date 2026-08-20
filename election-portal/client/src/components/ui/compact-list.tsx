@@ -17,7 +17,7 @@ export function CompactList({
   className?: string;
 }) {
   return (
-    <div className={cn("flex flex-col gap-1.5", className)}>{children}</div>
+    <div className={cn("flex flex-col gap-1", className)}>{children}</div>
   );
 }
 
@@ -31,7 +31,7 @@ export function CompactListToolbar({
   className?: string;
 }) {
   return (
-    <div className={cn("mb-3 flex items-center gap-2", className)}>
+    <div className={cn("mb-2 flex items-center gap-2", className)}>
       {children ? <div className="min-w-0 flex-1">{children}</div> : null}
       {actions ? (
         <div className="flex shrink-0 items-center gap-2">{actions}</div>
@@ -58,7 +58,7 @@ export function CompactListRow({
       tabIndex={onClick ? 0 : undefined}
       aria-label={onClick ? label : undefined}
       className={cn(
-        "flex min-h-11 items-center gap-2.5 rounded-xl border border-gray-100 bg-white px-3 py-2.5 shadow-sm transition-all duration-150",
+        "flex items-center gap-2 rounded-xl border border-gray-100 bg-white px-3 py-2 shadow-sm transition-all duration-150",
         onClick
           ? "cursor-pointer hover:border-primary/20 hover:shadow-md active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           : undefined,
@@ -127,30 +127,32 @@ export function CompactListSecondary({
   );
 }
 
-/** Standard dot + label status (Active/Inactive and similar binary states). */
+/**
+ * Status indicator for list rows.
+ * Active → small green dot only (no text).
+ * Inactive → gray dot + "Inactive" label.
+ */
 export function CompactListStatus({
   active,
-  activeLabel = "Active",
   inactiveLabel = "Inactive",
 }: {
   active: boolean;
-  activeLabel?: string;
+  /** Label shown when inactive. Defaults to "Inactive". */
   inactiveLabel?: string;
 }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex shrink-0 items-center gap-1 text-[10px] font-semibold uppercase tracking-wide",
-        active ? "text-green-700" : "text-gray-500"
-      )}
-    >
+  if (active) {
+    return (
       <span
-        className={cn(
-          "h-1.5 w-1.5 rounded-full",
-          active ? "bg-green-500" : "bg-gray-400"
-        )}
+        className="inline-flex h-2 w-2 shrink-0 rounded-full bg-green-500"
+        aria-label="Active"
+        title="Active"
       />
-      {active ? activeLabel : inactiveLabel}
+    );
+  }
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+      <span className="h-1.5 w-1.5 rounded-full bg-gray-400" />
+      {inactiveLabel}
     </span>
   );
 }
@@ -165,7 +167,7 @@ export function CompactListActions({
 }) {
   return (
     <div
-      className={cn("flex shrink-0 items-center gap-0.5", className)}
+      className={cn("flex shrink-0 items-center gap-0", className)}
       onClick={(event) => event.stopPropagation()}
     >
       {children}

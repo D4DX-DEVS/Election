@@ -909,11 +909,11 @@ export default function VoterGroups({
                           />
                         </CompactListLeading>
                       )}
+                      <CompactListStatus active={(v.status || "active") === "active"} />
                       <CompactListPrimary className="font-mono">{getDisplayUsername(v)}</CompactListPrimary>
                       <CompactListSecondary className="font-mono">
                         {pwd || "unavailable"}
                       </CompactListSecondary>
-                      <CompactListStatus active={(v.status || "active") === "active"} />
                       <CompactListActions>
                         <VoterSlipPrinter
                           voter={{ ...v, plainPassword: pwd } as any}
@@ -925,11 +925,11 @@ export default function VoterGroups({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                             onClick={() => setPendingDeleteGroupVoterIds([v._id])}
                             title="Delete voter"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         )}
                       </CompactListActions>
@@ -986,7 +986,7 @@ export default function VoterGroups({
   return (
     <Wrapper>
       <PageContent>
-      <div className={cn("mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-end sm:justify-between", suppressTitle && "sm:justify-end")}>
+      <div className={cn("mb-3 flex flex-col gap-2 sm:mb-4 sm:flex-row sm:items-end sm:justify-between", suppressTitle && "sm:justify-end")}>
         {!suppressTitle && (
         <div>
           <h1 className={embedded ? "app-section-title flex items-center gap-2" : "app-page-title flex items-center gap-2"}>
@@ -1211,11 +1211,11 @@ export default function VoterGroups({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
+                            className="h-6 w-6"
                             onClick={() => openGroup(g)}
                             aria-label={`Assign ${g.name || "group"}`}
                           >
-                            <Link2 className="h-4 w-4" />
+                            <Link2 className="h-3.5 w-3.5" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>Assign elections</TooltipContent>
@@ -1226,11 +1226,11 @@ export default function VoterGroups({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
+                            className="h-6 w-6"
                             onClick={() => openGroup(g, "voters")}
                             aria-label={`View ${g.name || "group"}`}
                           >
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-3.5 w-3.5" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>View voters</TooltipContent>
@@ -1241,11 +1241,11 @@ export default function VoterGroups({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
+                            className="h-6 w-6"
                             onClick={() => openGroup(g)}
                             aria-label={`Manage ${g.name || "group"}`}
                           >
-                            <Settings2 className="h-4 w-4" />
+                            <Settings2 className="h-3.5 w-3.5" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>Manage group</TooltipContent>
@@ -1256,11 +1256,11 @@ export default function VoterGroups({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700"
+                          className="h-6 w-6 text-red-600 hover:bg-red-50 hover:text-red-700"
                           onClick={() => setPendingDeleteIds([g._id])}
                           aria-label={`Delete ${g.name || "group"}`}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>Delete group</TooltipContent>

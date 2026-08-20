@@ -127,7 +127,7 @@ export default function Login() {
         </div>
 
         {/* Form panel */}
-        <div className="flex flex-col justify-center px-6 py-10 sm:px-10 sm:py-12">
+        <div className="flex flex-col justify-center px-6 py-8 sm:px-10 sm:py-10">
           {/* Brand strip (shown only when visual panel is hidden, e.g. mobile) */}
           <div className="pb-6 flex flex-col items-center md:hidden">
             <img src="/logo.png" alt="Vote+" className="h-14 w-auto object-contain mb-3" />
@@ -137,11 +137,11 @@ export default function Login() {
           </div>
 
           <h1 className="app-page-title mb-1">Sign in</h1>
-          <p className="app-muted mb-8">
+          <p className="app-muted mb-6">
             Enter the credentials provided by your administrator.
           </p>
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleLogin} className="space-y-4">
             {/* Username */}
             <div className="space-y-1.5">
               <Label htmlFor="username">
@@ -157,7 +157,7 @@ export default function Login() {
                   onChange={(e) => setUsername(e.target.value)}
                   required
                   disabled={loginMutation.isPending}
-                  className="pl-10 h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
+                  className="pl-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
                   autoComplete="username"
                   autoCapitalize="none"
                   autoCorrect="off"
@@ -180,7 +180,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={loginMutation.isPending}
-                  className="pl-10 pr-12 h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
+                  className="pl-10 pr-12 h-10 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
                   autoComplete="current-password"
                 />
                 <button
@@ -198,7 +198,7 @@ export default function Login() {
             {/* Submit */}
             <Button
               type="submit"
-              className="w-full h-12 rounded-xl font-semibold mt-2 shadow-md shadow-primary/25 transition-transform active:scale-[0.98] hover:shadow-lg hover:shadow-primary/30"
+              className="w-full h-10 rounded-xl font-semibold mt-2 shadow-md shadow-primary/25 transition-transform active:scale-[0.98] hover:shadow-lg hover:shadow-primary/30"
               disabled={loginMutation.isPending}
             >
               {loginMutation.isPending ? 'Signing in…' : 'Sign In'}

@@ -815,49 +815,49 @@ export default function Admins() {
               ) : franchiseAdminList.length > 0 ? (
                 <>
                 {visibleFranchiseAdmins.length === 0 ? (
-                  <div className="py-6 text-center text-sm text-gray-500">
+                  <div className="py-4 text-center text-sm text-gray-500">
                     No administrators match "{searchInput}".
                   </div>
                 ) : (
                 <CompactList>
                   {visibleFranchiseAdmins.map((admin) => (
                     <CompactListRow key={admin._id}>
+                      <CompactListStatus active={isUserActive(admin.status)} />
                       <CompactListPrimary>{admin.username}</CompactListPrimary>
                       <CompactListSecondary>
                         {[admin.fullName || "-", resolveFranchiseName(admin, franchiseList)].filter(Boolean).join(" · ")}
                       </CompactListSecondary>
-                      <CompactListStatus active={isUserActive(admin.status)} />
                       <CompactListActions>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8"
+                          className="h-6 w-6"
                           title="Edit"
                           aria-label={`Edit ${admin.username}`}
                           onClick={() => handleOpenEditDialog(admin, 'franchise')}
                         >
-                          <Pencil className="h-4 w-4" />
+                          <Pencil className="h-3.5 w-3.5" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8"
+                          className="h-6 w-6"
                           title="Reset Password"
                           aria-label={`Reset password for ${admin.username}`}
                           onClick={() => handleOpenResetDialog(admin)}
                         >
-                          <KeyRound className="h-4 w-4" />
+                          <KeyRound className="h-3.5 w-3.5" />
                         </Button>
                         {canDeleteAdmin && String(admin._id) !== currentUserId && (
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="h-6 w-6 text-red-600 hover:text-red-700 hover:bg-red-50"
                             title="Delete"
                             aria-label={`Delete ${admin.username}`}
                             onClick={() => handleDeleteAdminClick(admin)}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         )}
                       </CompactListActions>
@@ -876,7 +876,7 @@ export default function Admins() {
                 )}
                 </>
               ) : (
-                <div className="py-6 text-center text-sm text-gray-500">No franchise administrators found</div>
+                <div className="py-4 text-center text-sm text-gray-500">No franchise administrators found</div>
               )}
             </CardContent>
           </Card>
@@ -913,49 +913,49 @@ export default function Admins() {
               ) : electionAdminList.length > 0 ? (
                 <>
                 {visibleElectionAdmins.length === 0 ? (
-                  <div className="py-6 text-center text-sm text-gray-500">
+                  <div className="py-4 text-center text-sm text-gray-500">
                     No administrators match "{searchInput}".
                   </div>
                 ) : (
                 <CompactList>
                   {visibleElectionAdmins.map((admin) => (
                     <CompactListRow key={admin._id}>
+                      <CompactListStatus active={isUserActive(admin.status)} />
                       <CompactListPrimary>{admin.username}</CompactListPrimary>
                       <CompactListSecondary>
                         {[admin.fullName || "-", resolveElectionNames(admin, electionList)].filter(Boolean).join(" · ")}
                       </CompactListSecondary>
-                      <CompactListStatus active={isUserActive(admin.status)} />
                       <CompactListActions>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8"
+                          className="h-6 w-6"
                           title="Edit"
                           aria-label={`Edit ${admin.username}`}
                           onClick={() => handleOpenEditDialog(admin, 'election')}
                         >
-                          <Pencil className="h-4 w-4" />
+                          <Pencil className="h-3.5 w-3.5" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8"
+                          className="h-6 w-6"
                           title="Reset Password"
                           aria-label={`Reset password for ${admin.username}`}
                           onClick={() => handleOpenResetDialog(admin)}
                         >
-                          <KeyRound className="h-4 w-4" />
+                          <KeyRound className="h-3.5 w-3.5" />
                         </Button>
                         {canDeleteElectionAdmin && String(admin._id) !== currentUserId && (
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="h-6 w-6 text-red-600 hover:text-red-700 hover:bg-red-50"
                             title="Delete"
                             aria-label={`Delete ${admin.username}`}
                             onClick={() => handleDeleteAdminClick(admin)}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         )}
                       </CompactListActions>
@@ -974,7 +974,7 @@ export default function Admins() {
                 )}
                 </>
               ) : (
-                <div className="py-6 text-center text-sm text-gray-500">No election administrators found</div>
+                <div className="py-4 text-center text-sm text-gray-500">No election administrators found</div>
               )}
             </CardContent>
           </Card>

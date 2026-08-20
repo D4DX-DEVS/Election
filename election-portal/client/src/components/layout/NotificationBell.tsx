@@ -10,7 +10,6 @@ import {
   formatNotificationTime,
   notificationIconType,
 } from "@/lib/notifications";
-import { CompactList, CompactListLeading, CompactListPrimary, CompactListRow, CompactListSecondary } from "@/components/ui/compact-list";
 
 function NotificationIcon({ type }: { type: AppNotification["type"] }) {
   const iconType = notificationIconType(type);
@@ -94,9 +93,9 @@ export function NotificationBell() {
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-10 text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin mr-2" />
-            Loading…
+          <div className="flex items-center justify-center gap-2 px-4 py-10 text-muted-foreground">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span className="text-sm">Loading…</span>
           </div>
         ) : isError ? (
           <div className="px-4 py-8 text-center">
@@ -107,48 +106,61 @@ export function NotificationBell() {
           </div>
         ) : notifications.length === 0 ? (
           <div className="px-4 py-10 text-center">
-            <Bell className="h-8 w-8 mx-auto text-muted-foreground/40 mb-2" />
+            <Bell className="mx-auto mb-2 h-8 w-8 text-muted-foreground/40" />
             <p className="app-detail-value">No notifications</p>
-            <p className="app-muted mt-1">
+            <p className="app-muted mt-1 mx-auto max-w-[220px]">
               Election updates and alerts will appear here.
             </p>
           </div>
         ) : (
           <ScrollArea className="max-h-[360px]">
-            <CompactList className="rounded-none border-0">
+            <div className="divide-y divide-gray-100">
               {notifications.map((notification) => {
                 const read = isRead(notification.id);
                 return (
-                  <CompactListRow
+                  <button
                     key={notification.id}
+                    type="button"
                     onClick={() => handleClick(notification)}
-                    className={cn(!read && "bg-primary/5")}
+                    className={cn(
+                      "w-full px-4 py-3 flex items-start gap-3 text-left transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+                      !read && "bg-primary/5 hover:bg-primary/10",
+                    )}
                   >
-                    <CompactListLeading>
+                    <span className="mt-0.5 shrink-0">
                       <NotificationIcon type={notification.type} />
-                    </CompactListLeading>
-                    <CompactListPrimary className={cn(!read && "font-semibold")}>
-                      {notification.title}
-                    </CompactListPrimary>
-                    <CompactListSecondary>{notification.message}</CompactListSecondary>
-                    <span className="app-helper shrink-0 text-muted-foreground/70">
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span
+                        className={cn(
+                          "block truncate text-sm text-gray-800",
+                          !read ? "font-semibold" : "font-medium",
+                        )}
+                      >
+                        {notification.title}
+                      </span>
+                      <span className="mt-0.5 block truncate text-xs text-gray-500">
+                        {notification.message}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-[11px] text-muted-foreground/70">
                       {formatNotificationTime(notification.createdAt)}
                     </span>
                     {!read && (
                       <span
-                        className={cn("h-2 w-2 rounded-full shrink-0", priorityDot(notification.priority))}
+                        className={cn("mt-1 h-2 w-2 shrink-0 rounded-full", priorityDot(notification.priority))}
                         aria-hidden
                       />
                     )}
-                  </CompactListRow>
+                  </button>
                 );
               })}
-            </CompactList>
+            </div>
           </ScrollArea>
         )}
 
         {isFetching && !isLoading && (
-          <div className="app-helper border-t px-4 py-2 flex items-center gap-1">
+          <div className="app-helper flex items-center gap-1 border-t px-4 py-2">
             <Loader2 className="h-3 w-3 animate-spin" />
             Refreshing…
           </div>

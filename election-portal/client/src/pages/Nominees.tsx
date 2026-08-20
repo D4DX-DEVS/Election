@@ -465,7 +465,7 @@ export default function Nominees({
         />
       )}
 
-      <div className="mb-4 flex flex-col gap-2.5 lg:mb-5">
+      <div className="mb-3 flex flex-col gap-2 lg:mb-4">
         {!embedded && (
           <Select value={selectedElectionId} onValueChange={handleElectionChange}>
             <SelectTrigger className="w-full sm:w-64">
@@ -637,20 +637,20 @@ export default function Nominees({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8"
+                              className="h-6 w-6"
                               aria-label={`Edit ${nominee.name}`}
                               onClick={() => handleEditNominee(nominee)}
                             >
-                              <Pencil className="h-4 w-4" />
+                              <Pencil className="h-3.5 w-3.5" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-red-600 hover:text-red-900 hover:bg-red-50"
+                              className="h-6 w-6 text-red-600 hover:text-red-900 hover:bg-red-50"
                               aria-label={`Delete ${nominee.name}`}
                               onClick={() => handleDeleteClick(nomineeId)}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </>
                         )}

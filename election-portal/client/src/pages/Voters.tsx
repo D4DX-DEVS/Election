@@ -700,7 +700,7 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
       {votersLoading || (votersFetching && !!searchQuery.trim()) ? (
         <Skeleton className="h-96 w-full" />
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {!isReadOnly && (
             <DeleteModeBar
               active={selection.deleteMode}

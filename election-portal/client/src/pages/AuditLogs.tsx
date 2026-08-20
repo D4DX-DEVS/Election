@@ -4,11 +4,11 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { PageContent, PageHeader } from "@/components/layout/PageContent";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, User as UserIcon, Globe, ChevronLeft, ChevronRight } from "lucide-react";
+import { AlertCircle, User as UserIcon, Globe } from "lucide-react";
 import { CompactList, CompactListPrimary, CompactListRow, CompactListSecondary } from "@/components/ui/compact-list";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 import { apiRequest } from "@/lib/queryClient";
 
 const PAGE_SIZE = 10;
@@ -129,34 +129,14 @@ export default function AuditLogs() {
           </CompactList>
 
           {/* Pagination controls */}
-          {totalPages > 1 && (
-            <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <p className="text-sm text-gray-500">
-                Page {currentPage} of {totalPages}
-                {total > 0 ? ` · ${total} total` : ""}
-              </p>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                  disabled={currentPage <= 1}
-                >
-                  <ChevronLeft className="h-4 w-4 mr-1" />
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-                  disabled={currentPage >= totalPages}
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
-              </div>
-            </div>
-          )}
+          <PaginationControls
+            page={currentPage}
+            totalPages={totalPages}
+            total={total}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+            className="mt-4"
+          />
         </>
       )}
       </PageContent>

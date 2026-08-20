@@ -82,12 +82,12 @@ function ElectionRowActions({
   }
 
   return (
-    <div className="flex items-center gap-0.5">
+    <div className="flex items-center gap-0">
       {editable && (
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 shrink-0"
+          className="h-6 w-6 shrink-0"
           title="Edit"
           aria-label="Edit election"
           onClick={(e) => {
@@ -104,7 +104,7 @@ function ElectionRowActions({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 shrink-0"
+              className="h-6 w-6 shrink-0"
               title="Change status"
               aria-label="Change election status"
               onClick={(e) => e.stopPropagation()}
@@ -132,7 +132,7 @@ function ElectionRowActions({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 shrink-0 text-red-600 hover:bg-red-50 hover:text-red-700"
+          className="h-6 w-6 shrink-0 text-red-600 hover:bg-red-50 hover:text-red-700"
           title="Delete"
           aria-label="Delete election"
           onClick={(e) => {

@@ -96,39 +96,39 @@ function VoterRowActions({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8"
+          className="h-6 w-6"
           title="Edit"
           aria-label={`Edit ${voter.fullName || voter.username}`}
           onClick={() => onEdit(voterId)}
         >
-          <Pencil className="h-4 w-4" />
+          <Pencil className="h-3.5 w-3.5" />
         </Button>
       )}
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8"
+        className="h-6 w-6"
         title="Print slip"
         aria-label="Print voter slip"
         onClick={openPrintableCredential}
         disabled={loadingCredential}
       >
         {loadingCredential ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
         ) : (
-          <Printer className="h-4 w-4" />
+          <Printer className="h-3.5 w-3.5" />
         )}
       </Button>
       {onDelete && (
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+          className="h-6 w-6 text-red-600 hover:text-red-700 hover:bg-red-50"
           title="Delete"
           aria-label="Delete voter"
           onClick={() => onDelete(voterId)}
         >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="h-3.5 w-3.5" />
         </Button>
       )}
       <VoterSlipPrinter
@@ -144,14 +144,17 @@ function VoterRowActions({
 
 function StatusBadge({ status }: { status?: string | null }) {
   if (status === "active") {
+    // Green dot only — no text label for active
     return (
-      <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
-        Active
-      </Badge>
+      <span
+        className="inline-flex h-2 w-2 shrink-0 rounded-full bg-green-500"
+        aria-label="Active"
+        title="Active"
+      />
     );
   }
   return (
-    <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+    <Badge variant="outline" className="border-yellow-200 bg-yellow-100 text-yellow-800">
       Inactive
     </Badge>
   );
@@ -240,9 +243,9 @@ export function VotersTable({
                       />
                     </CompactListLeading>
                   )}
+                  <StatusBadge status={voter.status} />
                   <CompactListPrimary>{displayName}</CompactListPrimary>
                   <CompactListSecondary>{showUsername ? voter.username : ""}</CompactListSecondary>
-                  <StatusBadge status={voter.status} />
                   <CompactListActions>
                     <VoterRowActions
                       voter={voter}

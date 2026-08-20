@@ -260,7 +260,7 @@ export default function Elections() {
       />
 
       {!electionsLoading && (
-        <div className="mb-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
+        <div className="mb-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
           <SummaryStat label="Total elections" value={totalElections} icon={<Vote className="h-4 w-4" />} />
           <SummaryStat label="Total nominees" value={totalNominees} icon={<Users className="h-4 w-4" />} />
           <SummaryStat label="Total voters" value={totalVoters} icon={<User className="h-4 w-4" />} />

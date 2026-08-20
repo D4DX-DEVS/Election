@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -80,6 +81,7 @@ function resolveFranchiseContact(franchise: Franchise) {
 export default function Franchises() {
   // Franchise admins only manage their own franchise — the API scopes the list
   // and the update; here we hide the create/delete/admin actions they can't use.
+  const [, navigate] = useLocation();
   const currentUser = getStoredUser();
   const isSuperAdmin = currentUser?.role === "super_admin";
 
@@ -570,7 +572,7 @@ export default function Franchises() {
   return (
     <MainLayout>
       <PageContent>
-            <div className="mb-4 sm:mb-5">
+            <div className="mb-3 sm:mb-4">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div className="flex items-center gap-2.5">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -830,7 +832,7 @@ export default function Franchises() {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8 text-blue-500 hover:text-blue-700"
+                                  className="h-6 w-6 text-blue-500 hover:text-blue-700"
                                   title="Reset password"
                                   aria-label="Reset password"
                                   onClick={() => handleResetAdminPassword(admin._id)}
@@ -844,7 +846,7 @@ export default function Franchises() {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8 text-red-600 hover:text-red-900 hover:bg-red-50"
+                                  className="h-6 w-6 text-red-600 hover:text-red-900 hover:bg-red-50"
                                   title="Delete"
                                   aria-label="Delete administrator"
                                   onClick={() => handleDeleteAdmin(admin._id)}
@@ -1013,7 +1015,7 @@ export default function Franchises() {
                     Failed to load franchises. Please try again.
                   </div>
                 ) : franchises && Array.isArray(franchises) && franchises.length > 0 && visibleFranchises.length === 0 ? (
-                  <div className="p-8 text-center">
+                  <div className="p-5 text-center">
                     <Search className="mx-auto mb-3 h-8 w-8 text-slate-300" />
                     <p className="text-slate-500">No franchises match "{searchInput}".</p>
                   </div>
@@ -1026,7 +1028,7 @@ export default function Franchises() {
                       <CompactListRow
                         key={franchise._id}
                         label={`Open ${franchise.name}`}
-                        onClick={() => handleEditFranchise(franchise)}
+                        onClick={() => navigate(`/franchises/${franchise._id}`)}
                       >
                         <CompactListLeading>
                           {franchise.logo?.url ? (
@@ -1041,44 +1043,44 @@ export default function Franchises() {
                             </div>
                           )}
                         </CompactListLeading>
+                        <CompactListStatus active={franchise.status === "active"} />
                         <CompactListPrimary>{franchise.name}</CompactListPrimary>
                         <CompactListSecondary>
                           {contact.contactNumber || contact.websiteUrl || `Created ${formatDate(franchise.createdAt)}`}
                         </CompactListSecondary>
-                        <CompactListStatus active={franchise.status === "active"} />
                         <CompactListActions>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
+                            className="h-6 w-6"
                             title="Edit"
                             aria-label={`Edit ${franchise.name}`}
                             onClick={() => handleEditFranchise(franchise)}
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Pencil className="h-3.5 w-3.5" />
                           </Button>
                           {isSuperAdmin && (
                             <>
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8"
+                                className="h-6 w-6"
                                 title="Manage Admins"
                                 aria-label={`Manage admins for ${franchise.name}`}
                                 onClick={() => handleManageAdmin(franchise)}
                               >
-                                <UsersRound className="h-4 w-4" />
+                                <UsersRound className="h-3.5 w-3.5" />
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                className="h-6 w-6 text-red-600 hover:text-red-700 hover:bg-red-50"
                                 title="Delete"
                                 aria-label={`Delete ${franchise.name}`}
                                 onClick={() => handleDeleteFranchise(franchise._id)}
                                 disabled={deleteFranchisesMutation.isPending}
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-3.5 w-3.5" />
                               </Button>
                             </>
                           )}

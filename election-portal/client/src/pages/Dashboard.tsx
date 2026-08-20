@@ -107,7 +107,7 @@ export default function Dashboard() {
           </Alert>
         )}
 
-        <div className="mb-4 grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="mb-3 grid grid-cols-3 gap-2 sm:gap-3">
           {statsLoading ? (
             <>
               <Skeleton className="h-16 w-full md:h-20" />
@@ -173,12 +173,12 @@ export default function Dashboard() {
 
         {user?.role !== "super_admin" && (
           electionsLoading ? (
-            <div className="mb-4">
-              <Skeleton className="h-7 w-48 mb-3" />
+            <div className="mb-3">
+              <Skeleton className="h-7 w-48 mb-2" />
               <Skeleton className="h-48 w-full" />
             </div>
           ) : electionsError ? (
-            <Alert variant="destructive" className="mb-6">
+            <Alert variant="destructive" className="mb-3">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Recent elections unavailable</AlertTitle>
               <AlertDescription>{(electionsFetchError as Error)?.message}</AlertDescription>
@@ -186,7 +186,7 @@ export default function Dashboard() {
           ) : recentElections.length > 0 ? (
             <RecentElectionsTable elections={recentElections} />
           ) : (
-            <Card className="mb-4 border border-gray-200 shadow-none">
+            <Card className="mb-3 border border-gray-200 shadow-none">
               <CardContent className="p-0">
                 <EmptyState
                   title="No elections yet"
@@ -198,7 +198,7 @@ export default function Dashboard() {
         )}
 
         {user?.role === "super_admin" && (
-          <div className="mt-4">
+          <div className="mt-3">
             {statsLoading ? (
               <Skeleton className="h-64 w-full" />
             ) : statsError ? null : (

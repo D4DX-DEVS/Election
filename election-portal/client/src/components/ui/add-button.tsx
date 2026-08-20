@@ -17,10 +17,7 @@ const AddButton = React.forwardRef<HTMLButtonElement, AddButtonProps>(
         ref={ref}
         size="icon"
         variant="default"
-        className={cn(
-          "no-touch-target h-9 w-9 shrink-0 rounded-xl p-0",
-          className
-        )}
+        className={cn("h-9 w-9 shrink-0 rounded-xl p-0", className)}
         title={buttonTitle}
         aria-label={buttonTitle}
         {...props}

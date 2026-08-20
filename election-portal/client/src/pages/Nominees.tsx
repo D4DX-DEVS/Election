@@ -494,7 +494,6 @@ export default function Nominees({
             placeholder="Search nominees..."
             value={searchInput}
             onChange={handleSearchChange}
-            className="min-w-0 flex-1 sm:max-w-md"
           />
           <div className="ml-auto flex shrink-0 items-center gap-1.5">
             {!isReadOnly && (

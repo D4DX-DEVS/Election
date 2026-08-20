@@ -13,13 +13,7 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Trash2, MoreHorizontal } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { AlertCircle, Trash2, KeyRound, Pencil } from "lucide-react";
 import { 
   Dialog, 
   DialogContent, 
@@ -187,6 +181,11 @@ export default function Admins() {
   const [resetTargetAdminId, setResetTargetAdminId] = useState<string | null>(null);
   const [resetTargetAdminName, setResetTargetAdminName] = useState('');
   const [resetPasswordInput, setResetPasswordInput] = useState('');
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editTargetAdmin, setEditTargetAdmin] = useState<FranchiseAdminUser | null>(null);
+  const [editAdminType, setEditAdminType] = useState<'franchise' | 'election'>('franchise');
+  const [editFullName, setEditFullName] = useState('');
+  const [editElectionAccess, setEditElectionAccess] = useState<string[]>([]);
   const franchiseAdminsPageSize = 10;
   const [electionAdminsPage, setElectionAdminsPage] = useState(1);
   const [electionAdminsFranchiseFilter, setElectionAdminsFranchiseFilter] = useState<string>(
@@ -426,9 +425,37 @@ export default function Admins() {
     },
   });
 
+  const updateAdminMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Record<string, unknown> }) => {
+      const res = await apiRequest('PUT', `/api/users/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Administrator updated", description: "Changes saved successfully.", variant: "success" });
+      setEditDialogOpen(false);
+      setEditTargetAdmin(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/users/franchise-admins'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/election-admins'] });
+    },
+    onError: (error) => {
+      toast({ title: "Error", description: error instanceof Error ? error.message : 'Unknown error', variant: "destructive" });
+    },
+  });
+
   const handleDeleteAdminClick = (admin: FranchiseAdminUser) => {
     setPendingDeleteAdminId(admin._id);
     setPendingDeleteAdminName(admin.username);
+  };
+
+  const handleOpenEditDialog = (admin: FranchiseAdminUser, type: 'franchise' | 'election') => {
+    setEditTargetAdmin(admin);
+    setEditAdminType(type);
+    setEditFullName(admin.fullName || '');
+    const accessIds = (admin.electionAccess || []).map((id) =>
+      typeof id === 'object' && id?._id ? id._id.toString() : String(id)
+    );
+    setEditElectionAccess(accessIds);
+    setEditDialogOpen(true);
   };
 
   const handleOpenResetDialog = (admin: FranchiseAdminUser) => {
@@ -451,13 +478,11 @@ export default function Admins() {
         description={canCreateFranchiseAdmin ? "Manage system administrators" : "Manage election admins for your franchise"}
       />
 
-      <div className="mb-4">
-        <div className="flex items-center gap-2">
+      <div className="mb-4 flex items-center gap-2">
           <SearchInput
             placeholder="Search administrators..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="min-w-0 flex-1 sm:max-w-xs"
           />
 
           {/* Single unified create flow: asks for the administrator type, then shows matching fields */}
@@ -756,7 +781,6 @@ export default function Admins() {
             )}
           </DialogContent>
           </Dialog>
-        </div>
       </div>
 
       <div className="space-y-4">
@@ -804,27 +828,38 @@ export default function Admins() {
                       </CompactListSecondary>
                       <CompactListStatus active={isUserActive(admin.status)} />
                       <CompactListActions>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Administrator actions">
-                            <MoreHorizontal className="h-4 w-4" />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          title="Edit"
+                          aria-label={`Edit ${admin.username}`}
+                          onClick={() => handleOpenEditDialog(admin, 'franchise')}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          title="Reset Password"
+                          aria-label={`Reset password for ${admin.username}`}
+                          onClick={() => handleOpenResetDialog(admin)}
+                        >
+                          <KeyRound className="h-4 w-4" />
+                        </Button>
+                        {canDeleteAdmin && String(admin._id) !== currentUserId && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            title="Delete"
+                            aria-label={`Delete ${admin.username}`}
+                            onClick={() => handleDeleteAdminClick(admin)}
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleOpenResetDialog(admin)}>
-                            Reset Password
-                          </DropdownMenuItem>
-                          {canDeleteAdmin && String(admin._id) !== currentUserId && (
-                            <DropdownMenuItem
-                              className="text-red-600 focus:text-red-600"
-                              onClick={() => handleDeleteAdminClick(admin)}
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                        )}
                       </CompactListActions>
                     </CompactListRow>
                   ))}
@@ -891,27 +926,38 @@ export default function Admins() {
                       </CompactListSecondary>
                       <CompactListStatus active={isUserActive(admin.status)} />
                       <CompactListActions>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Administrator actions">
-                            <MoreHorizontal className="h-4 w-4" />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          title="Edit"
+                          aria-label={`Edit ${admin.username}`}
+                          onClick={() => handleOpenEditDialog(admin, 'election')}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          title="Reset Password"
+                          aria-label={`Reset password for ${admin.username}`}
+                          onClick={() => handleOpenResetDialog(admin)}
+                        >
+                          <KeyRound className="h-4 w-4" />
+                        </Button>
+                        {canDeleteElectionAdmin && String(admin._id) !== currentUserId && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            title="Delete"
+                            aria-label={`Delete ${admin.username}`}
+                            onClick={() => handleDeleteAdminClick(admin)}
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleOpenResetDialog(admin)}>
-                            Reset Password
-                          </DropdownMenuItem>
-                          {canDeleteElectionAdmin && String(admin._id) !== currentUserId && (
-                            <DropdownMenuItem
-                              className="text-red-600 focus:text-red-600"
-                              onClick={() => handleDeleteAdminClick(admin)}
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                        )}
                       </CompactListActions>
                     </CompactListRow>
                   ))}
@@ -958,6 +1004,114 @@ export default function Admins() {
         }
         confirmText="Delete"
       />
+
+      {/* Edit Admin Dialog */}
+      <Dialog
+        open={editDialogOpen}
+        onOpenChange={(open) => {
+          setEditDialogOpen(open);
+          if (!open) setEditTargetAdmin(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Administrator</DialogTitle>
+            <DialogDescription>
+              {editTargetAdmin
+                ? `Update details for "${editTargetAdmin.username}".`
+                : "Update administrator details."}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <Label htmlFor="edit-admin-fullname">Full Name</Label>
+              <Input
+                id="edit-admin-fullname"
+                placeholder="Optional display name"
+                value={editFullName}
+                onChange={(e) => setEditFullName(e.target.value)}
+              />
+            </div>
+
+            {editAdminType === 'election' && editTargetAdmin && (
+              <div className="space-y-1">
+                <Label>Elections</Label>
+                <div className="max-h-48 overflow-y-auto rounded-md border p-3 space-y-2">
+                  {electionList
+                    .filter((election) => {
+                      const adminFranchiseId =
+                        typeof editTargetAdmin.franchiseId === 'string'
+                          ? editTargetAdmin.franchiseId
+                          : String(editTargetAdmin.franchiseId || '');
+                      const electionFranchiseId =
+                        typeof election.franchiseId === 'object' && election.franchiseId?._id
+                          ? election.franchiseId._id.toString()
+                          : String(election.franchiseId || '');
+                      return !adminFranchiseId || electionFranchiseId === adminFranchiseId;
+                    })
+                    .map((election) => {
+                      const electionId = String(election._id || election.id);
+                      return (
+                        <div key={electionId} className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id={`edit-election-${electionId}`}
+                            checked={editElectionAccess.includes(electionId)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setEditElectionAccess((prev) => [...prev, electionId]);
+                              } else {
+                                setEditElectionAccess((prev) => prev.filter((id) => id !== electionId));
+                              }
+                            }}
+                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <label htmlFor={`edit-election-${electionId}`} className="text-sm text-gray-700">
+                            {getElectionLabel(election)}
+                          </label>
+                        </div>
+                      );
+                    })}
+                  {electionList.filter((e) => {
+                    const adminFranchiseId = typeof editTargetAdmin.franchiseId === 'string' ? editTargetAdmin.franchiseId : String(editTargetAdmin.franchiseId || '');
+                    const eFranchiseId = typeof e.franchiseId === 'object' && e.franchiseId?._id ? e.franchiseId._id.toString() : String(e.franchiseId || '');
+                    return !adminFranchiseId || eFranchiseId === adminFranchiseId;
+                  }).length === 0 && (
+                    <p className="text-sm text-gray-500">No elections available.</p>
+                  )}
+                </div>
+                <p className="app-helper">Select which elections this administrator can manage.</p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setEditDialogOpen(false)}
+              disabled={updateAdminMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              disabled={updateAdminMutation.isPending || !editTargetAdmin}
+              onClick={() => {
+                if (!editTargetAdmin) return;
+                const data: Record<string, unknown> = { fullName: editFullName };
+                if (editAdminType === 'election') {
+                  data.electionAccess = editElectionAccess;
+                }
+                updateAdminMutation.mutate({ id: editTargetAdmin._id, data });
+              }}
+            >
+              {updateAdminMutation.isPending ? "Saving…" : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={resetDialogOpen}

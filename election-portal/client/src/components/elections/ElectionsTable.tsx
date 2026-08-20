@@ -1,25 +1,26 @@
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { format } from "date-fns";
 import { Link, useLocation } from "wouter";
 import { ElectionStatus, ElectionWithDetails } from "@/lib/types";
-import { DropdownMenuItem, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenuItem,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+} from "@/components/ui/dropdown-menu";
 import { RowSelectCheckbox } from "@/components/ui/row-select-checkbox";
-import { MoreHorizontal, Activity, Trash2, Pencil, Vote, SlidersHorizontal } from "lucide-react";
-import { getElectionLabel, isElectionEditable, allowedStatusChanges } from "@/lib/electionHelpers";
+import { Activity, Trash2, Pencil, SlidersHorizontal } from "lucide-react";
+import {
+  getElectionLabel,
+  isElectionEditable,
+  allowedStatusChanges,
+} from "@/lib/electionHelpers";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
 import { SearchInput } from "@/components/ui/search-input";
 import { AddButton } from "@/components/ui/add-button";
-import {
-  CompactList,
-  CompactListActions,
-  CompactListLeading,
-  CompactListPrimary,
-  CompactListRow,
-  CompactListSecondary,
-} from "@/components/ui/compact-list";
+import { ElectionCard } from "./ElectionCard";
 
 function EmptyElections() {
   return (
@@ -37,7 +38,6 @@ const STATUS_ACTION_LABELS: Record<string, string> = {
   archived: "Set as Archived",
 };
 
-/** Restoring an archived election reads as "Unarchive", not "Set as Completed". */
 function statusActionLabel(current: string | undefined, next: string) {
   if (current === "archived" && next === "completed") return "Unarchive";
   return STATUS_ACTION_LABELS[next];
@@ -45,36 +45,6 @@ function statusActionLabel(current: string | undefined, next: string) {
 
 function getElectionId(election: ElectionWithDetails) {
   return election._id?.toString() || election.id?.toString() || "";
-}
-
-/** Election logo with a neutral fallback tile when none is uploaded. */
-function ElectionLogo({
-  election,
-  className = "h-9 w-9",
-}: {
-  election: ElectionWithDetails;
-  className?: string;
-}) {
-  const url = election.logo?.url;
-  const label = getElectionLabel(election);
-  return (
-    <div
-      className={cn(
-        "shrink-0 overflow-hidden rounded-md border border-gray-200 bg-gray-50 flex items-center justify-center",
-        className
-      )}
-    >
-      {url ? (
-        <img
-          src={url}
-          alt={election.logo?.alt || label}
-          className="h-full w-full object-cover"
-        />
-      ) : (
-        <Vote className="h-1/2 w-1/2 text-gray-400" />
-      )}
-    </div>
-  );
 }
 
 function ElectionRowActions({
@@ -112,51 +82,68 @@ function ElectionRowActions({
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+    <div className="flex items-center gap-0.5">
+      {editable && (
         <Button
           variant="ghost"
           size="icon"
           className="h-8 w-8 shrink-0"
-          aria-label="Election actions"
-          onClick={(e) => e.stopPropagation()}
+          title="Edit"
+          aria-label="Edit election"
+          onClick={(e) => {
+            e.stopPropagation();
+            onNavigate(`/elections/${id}/edit`);
+          }}
         >
-          <MoreHorizontal className="h-4 w-4" />
+          <Pencil className="h-4 w-4" />
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-44" onClick={(e) => e.stopPropagation()}>
-        <DropdownMenuItem onClick={() => onNavigate(`/elections/${id}`)}>
-          Open election
-        </DropdownMenuItem>
-        {editable ? (
-          <DropdownMenuItem onClick={() => onNavigate(`/elections/${id}/edit`)}>
-            <Pencil className="mr-2 h-4 w-4" />
-            Edit
-          </DropdownMenuItem>
-        ) : (
-          <DropdownMenuItem onClick={() => onNavigate(`/elections/${id}/results`)}>
-            View results
-          </DropdownMenuItem>
-        )}
-        {statusOptions.length > 0 && <DropdownMenuSeparator />}
-        {statusOptions.map((next) => (
-          <DropdownMenuItem key={next} onClick={() => onStatusChange?.(id, next)}>
-            <Activity className="mr-2 h-4 w-4" /> {statusActionLabel(status, next)}
-          </DropdownMenuItem>
-        ))}
-        {canDelete && onDelete && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="text-red-600 focus:text-red-600"
-              onClick={() => onDelete(id)}
+      )}
+      {statusOptions.length > 0 && onStatusChange && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0"
+              title="Change status"
+              aria-label="Change election status"
+              onClick={(e) => e.stopPropagation()}
             >
-              <Trash2 className="mr-2 h-4 w-4" /> Delete
-            </DropdownMenuItem>
-          </>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+              <Activity className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            className="w-44"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {statusOptions.map((next) => (
+              <DropdownMenuItem
+                key={next}
+                onClick={() => onStatusChange(id, next)}
+              >
+                {statusActionLabel(status, next)}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+      {canDelete && onDelete && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 shrink-0 text-red-600 hover:bg-red-50 hover:text-red-700"
+          title="Delete"
+          aria-label="Delete election"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(id);
+          }}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      )}
+    </div>
   );
 }
 
@@ -170,13 +157,10 @@ interface ElectionsTableProps {
   allSelected?: boolean;
   someSelected?: boolean;
   onToggleSelectAll?: () => void;
-  /** Toolbar search box — purely client-side filtering of the visible rows. */
   search?: string;
   onSearchChange?: (value: string) => void;
-  /** Toggles the (existing) advanced filters panel rendered by the parent page. */
   onToggleFilters?: () => void;
   filtersOpen?: boolean;
-  /** Compact add button shown beside the search box — navigates to the create-election route. */
   addHref?: string;
   addLabel?: string;
 }
@@ -202,15 +186,14 @@ export function ElectionsTable({
   const showToolbar = onSearchChange || onToggleFilters || addHref;
 
   return (
-    <Card className="border border-gray-200 shadow-none">
+    <Card className="overflow-hidden rounded-xl border border-gray-100 shadow-sm">
       {showToolbar && (
-        <CardHeader className="flex-row items-center gap-2.5 px-3 py-2 border-b border-gray-200 sm:px-4">
+        <CardHeader className="flex-row items-center gap-2.5 border-b border-gray-100 px-3 py-2 sm:px-4">
           {onSearchChange && (
             <SearchInput
               value={search ?? ""}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Search elections"
-              className="h-9 text-sm min-w-0 flex-1 max-w-sm"
             />
           )}
           {onToggleFilters && (
@@ -226,21 +209,23 @@ export function ElectionsTable({
           )}
           {addHref && (
             <Link href={addHref}>
-              <AddButton
-                title={addLabel}
-                label={addLabel}
-              />
+              <AddButton title={addLabel} label={addLabel} />
             </Link>
           )}
         </CardHeader>
       )}
+
       <CardContent className="p-0">
         {elections.length === 0 && <EmptyElections />}
+
+        {/* Selection-mode select-all row */}
         {selectionMode && onToggleSelectAll && elections.length > 0 && (
           <div className="flex items-center justify-between border-b px-3 py-2">
             <div className="inline-flex items-center gap-2">
               <RowSelectCheckbox
-                checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                checked={
+                  allSelected ? true : someSelected ? "indeterminate" : false
+                }
                 onCheckedChange={() => onToggleSelectAll()}
                 aria-label="Select all deletable elections on this page"
               />
@@ -253,35 +238,31 @@ export function ElectionsTable({
             </div>
           </div>
         )}
+
+        {/* Election cards */}
         {elections.length > 0 && (
-          <CompactList className="rounded-none border-0">
+          <div className="flex flex-col gap-2 p-3">
             {elections.map((election) => {
               const id = getElectionId(election);
               const deletable = isElectionEditable(election.status);
-              const dateLabel = election.electionDate
-                ? format(new Date(election.electionDate), "MMM d, yyyy")
-                : "—";
-              const meta = `${dateLabel} · ${election.voterCount ?? 0} voters`;
+
+              const selectionLeading =
+                selectionMode && deletable && onToggleSelect && isSelected ? (
+                  <RowSelectCheckbox
+                    checked={isSelected(id)}
+                    onCheckedChange={() => onToggleSelect(id)}
+                    aria-label={`Select ${getElectionLabel(election)}`}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                ) : undefined;
 
               return (
-                <CompactListRow key={id} onClick={() => navigate(`/elections/${id}`)} label={`Open ${getElectionLabel(election)}`}>
-                  {selectionMode && deletable && onToggleSelect && isSelected && (
-                    <CompactListLeading>
-                      <RowSelectCheckbox
-                        checked={isSelected(id)}
-                        onCheckedChange={() => onToggleSelect(id)}
-                        aria-label={`Select ${getElectionLabel(election)}`}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </CompactListLeading>
-                  )}
-                  <CompactListLeading>
-                    <ElectionLogo election={election} className="h-8 w-8" />
-                  </CompactListLeading>
-                  <CompactListPrimary>{getElectionLabel(election)}</CompactListPrimary>
-                  <CompactListSecondary>{meta}</CompactListSecondary>
-                  <StatusBadge status={election.status} />
-                  <CompactListActions>
+                <ElectionCard
+                  key={id}
+                  election={election}
+                  onClick={() => navigate(`/elections/${id}`)}
+                  selectionLeading={selectionLeading}
+                  actions={
                     <ElectionRowActions
                       id={id}
                       status={election.status}
@@ -292,48 +273,13 @@ export function ElectionsTable({
                       selected={isSelected?.(id)}
                       onToggleSelect={onToggleSelect}
                     />
-                  </CompactListActions>
-                </CompactListRow>
+                  }
+                />
               );
             })}
-          </CompactList>
+          </div>
         )}
       </CardContent>
     </Card>
   );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  switch (status) {
-    case 'active':
-      return (
-        <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
-          Active
-        </Badge>
-      );
-    case 'completed':
-      return (
-        <Badge variant="outline" className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-          Completed
-        </Badge>
-      );
-    case 'draft':
-      return (
-        <Badge variant="outline" className="bg-gray-100 text-gray-800 hover:bg-primary/10">
-          Draft
-        </Badge>
-      );
-    case 'archived':
-      return (
-        <Badge variant="outline" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
-          Archived
-        </Badge>
-      );
-    default:
-      return (
-        <Badge variant="outline" className="bg-gray-100 text-gray-800 hover:bg-primary/10">
-          {status}
-        </Badge>
-      );
-  }
 }

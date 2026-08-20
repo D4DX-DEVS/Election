@@ -32,15 +32,14 @@ import { ManualWinnerPicker } from "@/components/elections/ManualWinnerPicker";
 import { getElectionLabel, isElectionLocked } from "@/lib/electionHelpers";
 
 function StatusBadge({ status }: { status?: string }) {
-  const map: Record<string, string> = {
-    active: "bg-green-100 text-green-800",
-    completed: "bg-blue-100 text-blue-800",
-    draft: "bg-gray-100 text-gray-800",
-    archived: "bg-yellow-100 text-yellow-800",
-  };
+  const s = status ?? "";
+  const variant =
+    s === "active" || s === "completed" || s === "draft" || s === "archived"
+      ? (s as "active" | "completed" | "draft" | "archived")
+      : "outline";
   return (
-    <Badge variant="outline" className={map[status || ""] || "bg-gray-100 text-gray-800"}>
-      {status ? status.charAt(0).toUpperCase() + status.slice(1) : "Unknown"}
+    <Badge variant={variant}>
+      {s ? s.charAt(0).toUpperCase() + s.slice(1) : "Unknown"}
     </Badge>
   );
 }
@@ -146,60 +145,64 @@ export default function ElectionWorkspace() {
           </CardContent>
         </Card>
       ) : (
-        <Card className="mb-6">
-          <CardContent className="p-5">
-            <div className="flex items-start gap-4 min-w-0">
-              {election.logo?.url && (
-                <img
-                  src={election.logo.url}
-                  alt={election.logo?.alt || getElectionLabel(election)}
-                  className="h-14 w-14 rounded-lg object-cover border border-gray-200 shrink-0"
-                />
-              )}
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex min-w-0 items-center gap-2 flex-wrap">
-                    <h1 className="app-page-title truncate">{getElectionLabel(election)}</h1>
-                    <StatusBadge status={election.status} />
-                  </div>
-                  {!electionLocked && (
-                    <Link href={`/elections/${id}/edit`} className="shrink-0">
-                      <Button variant="outline" size="sm">
-                        <Pencil className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
-                    </Link>
-                  )}
-                </div>
-                <p className="app-page-description flex flex-wrap items-center gap-x-4 gap-y-1">
-                  {election.electionDate && (
-                    <span className="inline-flex items-center gap-1">
-                      <CalendarDays className="h-3.5 w-3.5" />
-                      {format(new Date(election.electionDate), "PPP")}
-                    </span>
-                  )}
-                  <span className="inline-flex items-center gap-1">
-                    <Users className="h-3.5 w-3.5" />
-                    {nomineeCount} nominees
-                  </span>
-                  <span className="inline-flex items-center gap-1">
-                    <User className="h-3.5 w-3.5" />
-                    {voterCount} voters
-                  </span>
-                  <span className="inline-flex items-center gap-1">
-                    <BarChart3 className="h-3.5 w-3.5" />
-                    {turnout != null ? `${turnout}% turnout` : "— turnout"}
-                  </span>
+        <div className="mb-6 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+          {/* Header row */}
+          <div className="flex items-start gap-3 px-4 pt-4 pb-3">
+            {election.logo?.url && (
+              <img
+                src={election.logo.url}
+                alt={election.logo?.alt || getElectionLabel(election)}
+                className="mt-0.5 h-10 w-10 shrink-0 rounded-lg border border-gray-100 object-cover"
+              />
+            )}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-2">
+                <h1 className="min-w-0 truncate text-base font-semibold leading-snug text-gray-900">
+                  {getElectionLabel(election)}
+                </h1>
+                <StatusBadge status={election.status} />
+              </div>
+              {election.electionDate && (
+                <p className="mt-0.5 text-[11px] text-gray-400">
+                  {format(new Date(election.electionDate), "PPP")}
                 </p>
+              )}
+            </div>
+            {!electionLocked && (
+              <Link href={`/elections/${id}/edit`} className="shrink-0">
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <Pencil className="h-3.5 w-3.5" />
+                  Edit
+                </Button>
+              </Link>
+            )}
+          </div>
+
+          {/* Stat grid */}
+          <div className="border-t border-gray-100 px-4 py-3">
+            <div className="grid grid-cols-3 gap-3">
+              <div className="flex flex-col gap-1">
+                <span className="app-stat-label">Nominees</span>
+                <span className="app-stat-value">{nomineeCount}</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="app-stat-label">Voters</span>
+                <span className="app-stat-value">{voterCount}</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="app-stat-label">Turnout</span>
+                <span className="app-stat-value">
+                  {turnout != null ? `${turnout}%` : "—"}
+                </span>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Tabs */}
       <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="mb-4 flex h-auto w-full sm:mb-5">
+        <TabsList className="mb-4 flex h-auto w-full gap-1 rounded-none bg-transparent p-0 sm:mb-5">
           <TabsTrigger value="home" className="min-w-0 flex-1 flex-col gap-0.5 whitespace-normal px-1.5 py-1.5 text-center leading-tight sm:flex-row sm:gap-1.5 sm:px-2.5">
             <CalendarDays className="h-3.5 w-3.5 shrink-0" />
             <span>Home</span>

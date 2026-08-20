@@ -547,14 +547,12 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
   const votersListContent = (
     <>
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-1 items-center gap-2 sm:flex-row sm:items-center">
-          <div className="relative flex-1 sm:max-w-xs">
-            <SearchInput
-              placeholder="Search by name or username..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-            />
-          </div>
+        <div className="flex flex-1 items-center gap-2">
+          <SearchInput
+            placeholder="Search by name or username..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
           {isReadOnly && (
             <div className="flex items-center gap-2 shrink-0">
               <Tooltip>

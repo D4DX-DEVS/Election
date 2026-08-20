@@ -30,7 +30,7 @@ export function DeleteModeButton({
       title={active ? "Cancel selection" : "Delete"}
       className={cn(
         "shrink-0",
-        compact ? "h-8 w-8" : "h-10 w-10",
+        compact ? "h-8 w-8" : "h-9 w-9",
         !active &&
           "border-red-200 text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700",
         active && "ring-2 ring-red-300 ring-offset-1",

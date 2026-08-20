@@ -14,37 +14,8 @@ interface StatCardProps {
     direction: "up" | "down" | "neutral";
   };
   className?: string;
-  /** Tighter stacked mobile layout for grids that must keep 3 cards in one row (e.g. the dashboard). */
+  /** kept for API compatibility — no longer changes layout */
   compact?: boolean;
-}
-
-function StatIcon({
-  icon,
-  iconBgColor,
-  iconColor,
-}: {
-  icon: ReactNode;
-  iconBgColor: string;
-  iconColor: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full leading-none",
-        iconBgColor
-      )}
-      aria-hidden
-    >
-      <span
-        className={cn(
-          "flex h-4 w-4 items-center justify-center leading-none [&>svg]:block [&>svg]:h-4 [&>svg]:w-4 [&>svg]:shrink-0",
-          iconColor
-        )}
-      >
-        {icon}
-      </span>
-    </div>
-  );
 }
 
 export function StatCard({
@@ -55,56 +26,61 @@ export function StatCard({
   iconColor = "text-primary",
   trend,
   className,
-  compact = false,
 }: StatCardProps) {
-  const iconNode = (
-    <StatIcon icon={icon} iconBgColor={iconBgColor} iconColor={iconColor} />
-  );
-
   return (
     <Card
       className={cn(
-        "overflow-hidden transition-shadow duration-200 hover:shadow-card-hover hover:border-primary/20",
+        "overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-all duration-150 hover:border-primary/20 hover:shadow-md",
         className
       )}
     >
-      {compact ? (
-        <CardContent className="p-3 sm:p-4">
-          <div className="flex items-center justify-between gap-2">
-            <p className="app-metric-compact">{value}</p>
-            {iconNode}
-          </div>
-          <p className="app-helper mt-1 line-clamp-2 font-medium leading-tight">
-            {title}
-          </p>
-        </CardContent>
-      ) : (
-        <CardContent className="relative p-3.5 sm:p-4">
-          <div className="flex items-center justify-between gap-2">
-            {iconNode}
-            <p className="app-metric">
-              {value}
-            </p>
-          </div>
-          <p className="app-helper mt-2 line-clamp-2 font-medium leading-snug">{title}</p>
-          {trend && (
-            <p
+      <CardContent className="p-3.5 sm:p-4">
+        {/* Icon + value row */}
+        <div className="flex items-start justify-between gap-2">
+          <div
+            className={cn(
+              "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
+              iconBgColor
+            )}
+            aria-hidden
+          >
+            <span
               className={cn(
-                "app-helper mt-1.5 flex items-center gap-1 truncate font-medium",
-                trend.direction === "up"
-                  ? "text-emerald-600"
-                  : trend.direction === "down"
-                    ? "text-red-500"
-                    : "text-slate-400"
+                "flex h-4 w-4 items-center justify-center [&>svg]:block [&>svg]:h-4 [&>svg]:w-4 [&>svg]:shrink-0",
+                iconColor
               )}
             >
-              {trend.direction === "up" && <TrendingUp className="h-3 w-3 shrink-0" />}
-              {trend.direction === "down" && <TrendingDown className="h-3 w-3 shrink-0" />}
-              <span className="truncate">{trend.value}</span>
-            </p>
-          )}
-        </CardContent>
-      )}
+              {icon}
+            </span>
+          </div>
+          <p className="app-metric tabular-nums">{value}</p>
+        </div>
+
+        {/* Label */}
+        <p className="app-stat-label mt-2.5 leading-snug">{title}</p>
+
+        {/* Optional trend */}
+        {trend && (
+          <p
+            className={cn(
+              "mt-1 flex items-center gap-1 text-[11px] font-medium",
+              trend.direction === "up"
+                ? "text-emerald-600"
+                : trend.direction === "down"
+                  ? "text-red-500"
+                  : "text-gray-400"
+            )}
+          >
+            {trend.direction === "up" && (
+              <TrendingUp className="h-3 w-3 shrink-0" />
+            )}
+            {trend.direction === "down" && (
+              <TrendingDown className="h-3 w-3 shrink-0" />
+            )}
+            <span className="truncate">{trend.value}</span>
+          </p>
+        )}
+      </CardContent>
     </Card>
   );
 }

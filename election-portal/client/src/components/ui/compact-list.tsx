@@ -2,28 +2,22 @@ import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * App-wide standard for normal record collections.
+ * App-wide standard for record collections.
  *
- * NEW RECORD LIST → CompactList (not stacked cards, not a separate desktop table).
- * Use for franchises, admins, elections, voters, groups, nominees, results rows,
- * notifications, recent-record sections, and any future management list
- * (departments, users, reports, categories, etc.).
+ * Each row renders as a standalone mini-card (white, subtle border, soft shadow)
+ * so the list feels like a premium SaaS dashboard rather than a plain table.
  *
- * Do not use for dashboard metric cards, charts, forms, detail pages,
- * voting/ballot controls, or multi-step workflows.
- *
- * Row pattern: [Leading] [Primary] [Secondary] [Status] [Actions]
+ * Pattern: [Leading] [Primary] [Secondary] [Status] [Actions]
  */
-export function CompactList({ children, className }: { children: ReactNode; className?: string }) {
+export function CompactList({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <div
-      className={cn(
-        "overflow-hidden rounded-lg border border-gray-200 bg-white divide-y divide-gray-100",
-        className
-      )}
-    >
-      {children}
-    </div>
+    <div className={cn("flex flex-col gap-1.5", className)}>{children}</div>
   );
 }
 
@@ -39,7 +33,9 @@ export function CompactListToolbar({
   return (
     <div className={cn("mb-3 flex items-center gap-2", className)}>
       {children ? <div className="min-w-0 flex-1">{children}</div> : null}
-      {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
+      {actions ? (
+        <div className="flex shrink-0 items-center gap-2">{actions}</div>
+      ) : null}
     </div>
   );
 }
@@ -62,9 +58,9 @@ export function CompactListRow({
       tabIndex={onClick ? 0 : undefined}
       aria-label={onClick ? label : undefined}
       className={cn(
-        "flex min-h-11 items-center gap-2 px-3 py-2",
+        "flex min-h-11 items-center gap-2.5 rounded-xl border border-gray-100 bg-white px-3 py-2.5 shadow-sm transition-all duration-150",
         onClick
-          ? "cursor-pointer hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+          ? "cursor-pointer hover:border-primary/20 hover:shadow-md active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           : undefined,
         className
       )}
@@ -86,23 +82,46 @@ export function CompactListRow({
 }
 
 /** Avatar, checkbox, or other leading slot. */
-export function CompactListLeading({ children, className }: { children: ReactNode; className?: string }) {
+export function CompactListLeading({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return <div className={cn("shrink-0", className)}>{children}</div>;
 }
 
 /** Primary label — stays visible; truncates instead of wrapping. */
-export function CompactListPrimary({ children, className }: { children: ReactNode; className?: string }) {
+export function CompactListPrimary({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <span className={cn("app-detail-value min-w-0 max-w-[48%] shrink truncate sm:max-w-[40%] lg:max-w-xs", className)}>
+    <span
+      className={cn(
+        "min-w-0 max-w-[48%] shrink truncate text-sm font-semibold text-gray-800 sm:max-w-[40%] lg:max-w-xs",
+        className
+      )}
+    >
       {children}
     </span>
   );
 }
 
 /** Secondary/muted info — fills leftover width and ellipsizes. */
-export function CompactListSecondary({ children, className }: { children: ReactNode; className?: string }) {
+export function CompactListSecondary({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <span className={cn("app-muted min-w-0 flex-1 truncate", className)}>
+    <span className={cn("min-w-0 flex-1 truncate text-xs text-gray-500", className)}>
       {children}
     </span>
   );
@@ -121,20 +140,34 @@ export function CompactListStatus({
   return (
     <span
       className={cn(
-        "app-helper inline-flex shrink-0 items-center gap-1 font-medium",
+        "inline-flex shrink-0 items-center gap-1 text-[10px] font-semibold uppercase tracking-wide",
         active ? "text-green-700" : "text-gray-500"
       )}
     >
-      <span className={cn("h-1.5 w-1.5 rounded-full", active ? "bg-green-500" : "bg-gray-400")} />
+      <span
+        className={cn(
+          "h-1.5 w-1.5 rounded-full",
+          active ? "bg-green-500" : "bg-gray-400"
+        )}
+      />
       {active ? activeLabel : inactiveLabel}
     </span>
   );
 }
 
-/** Trailing compact actions (icon buttons or `...` menu). */
-export function CompactListActions({ children, className }: { children: ReactNode; className?: string }) {
+/** Trailing compact actions — stops event propagation so row click isn't triggered. */
+export function CompactListActions({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <div className={cn("flex shrink-0 items-center gap-0.5", className)} onClick={(event) => event.stopPropagation()}>
+    <div
+      className={cn("flex shrink-0 items-center gap-0.5", className)}
+      onClick={(event) => event.stopPropagation()}
+    >
       {children}
     </div>
   );

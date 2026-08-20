@@ -1,19 +1,20 @@
-import { format } from "date-fns";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getElectionLabel, isElectionEditable } from "@/lib/electionHelpers";
 import { Link, useLocation } from "wouter";
 import { ElectionWithDetails } from "@/lib/types";
-import {
-  CompactList,
-  CompactListActions,
-  CompactListPrimary,
-  CompactListRow,
-  CompactListSecondary,
-} from "@/components/ui/compact-list";
+import { getElectionLabel, isElectionEditable } from "@/lib/electionHelpers";
+import { ElectionCard } from "@/components/elections/ElectionCard";
+import { Pencil, BarChart2 } from "lucide-react";
 
 interface RecentElectionsTableProps {
   elections: ElectionWithDetails[];
+}
+
+function getElectionId(election: ElectionWithDetails) {
+  return (
+    (election as any)._id?.toString() ||
+    (election as any).id?.toString() ||
+    ""
+  );
 }
 
 export function RecentElectionsTable({ elections }: RecentElectionsTableProps) {
@@ -21,83 +22,65 @@ export function RecentElectionsTable({ elections }: RecentElectionsTableProps) {
 
   return (
     <div className="mb-4">
-      <div className="flex items-center justify-between mb-2">
+      <div className="mb-2 flex items-center justify-between">
         <h3 className="app-section-title">Recent Elections</h3>
         <Link href="/elections">
-          <Button variant="link" className="h-auto p-0 text-sm font-medium text-primary hover:text-primary-dark">
+          <Button
+            variant="link"
+            className="h-auto p-0 text-sm font-medium text-primary hover:text-primary/80"
+          >
             View all
           </Button>
         </Link>
       </div>
-      <CompactList>
+
+      <div className="flex flex-col gap-2">
         {elections.map((election) => {
-          const electionId = (election as any)._id?.toString() || (election as any).id?.toString();
-          const totalVoters = election.analytics?.totalVoters || 0;
-          const totalVotesCast = election.analytics?.totalVotesCast || 0;
-          const participationPercentage = totalVoters > 0
-            ? Math.round((totalVotesCast / totalVoters) * 100)
-            : 0;
-          const dateLabel = election.electionDate
-            ? format(new Date(election.electionDate), "yyyy-MM-dd")
-            : "—";
+          const id = getElectionId(election);
+          const editable = isElectionEditable(election.status);
 
           return (
-            <CompactListRow key={electionId} onClick={() => navigate(`/elections/${electionId}`)} label={`Open ${getElectionLabel(election)}`}>
-              <CompactListPrimary>{getElectionLabel(election)}</CompactListPrimary>
-              <CompactListSecondary>
-                {`${dateLabel} · ${participationPercentage}% (${totalVotesCast}/${totalVoters})`}
-              </CompactListSecondary>
-              <StatusBadge status={election.status} />
-              <CompactListActions>
-                {isElectionEditable(election.status) ? (
-                  <Link href={`/elections/${electionId}/edit`}>
-                    <Button variant="ghost" size="sm" className="h-8 px-2">Edit</Button>
-                  </Link>
-                ) : (
-                  <Link href={`/elections/${electionId}?tab=results`}>
-                    <Button variant="ghost" size="sm" className="h-8 px-2">Results</Button>
-                  </Link>
-                )}
-              </CompactListActions>
-            </CompactListRow>
+            <ElectionCard
+              key={id}
+              election={election}
+              onClick={() => navigate(`/elections/${id}`)}
+              actions={
+                <div className="flex items-center gap-0.5">
+                  {editable ? (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                      title="Edit"
+                      aria-label="Edit election"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/elections/${id}/edit`);
+                      }}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                      title="View results"
+                      aria-label="View results"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/elections/${id}?tab=results`);
+                      }}
+                    >
+                      <BarChart2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              }
+            />
           );
         })}
-      </CompactList>
+      </div>
     </div>
   );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  switch (status) {
-    case "active":
-      return (
-        <Badge variant="outline" className="shrink-0 bg-green-100 text-green-800 hover:bg-green-100">
-          Active
-        </Badge>
-      );
-    case "completed":
-      return (
-        <Badge variant="outline" className="shrink-0 bg-blue-100 text-blue-800 hover:bg-blue-100">
-          Completed
-        </Badge>
-      );
-    case "draft":
-      return (
-        <Badge variant="outline" className="shrink-0 bg-gray-100 text-gray-800 hover:bg-primary/10">
-          Draft
-        </Badge>
-      );
-    case "archived":
-      return (
-        <Badge variant="outline" className="shrink-0 bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
-          Archived
-        </Badge>
-      );
-    default:
-      return (
-        <Badge variant="outline" className="shrink-0 bg-gray-100 text-gray-800 hover:bg-primary/10">
-          {status}
-        </Badge>
-      );
-  }
 }

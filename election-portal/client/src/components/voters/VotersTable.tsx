@@ -5,18 +5,11 @@ import { RowSelectCheckbox } from "@/components/ui/row-select-checkbox";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Pagination, User, Election } from "@/lib/types";
 import { getElectionLabel } from "@/lib/electionHelpers";
-import { Loader2, MoreHorizontal, Pencil, Printer, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Printer, Trash2 } from "lucide-react";
 import { VoterSlipPrinter } from "./VoterSlipPrinter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/ui/empty-state";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   CompactList,
   CompactListActions,
@@ -99,41 +92,45 @@ function VoterRowActions({
 
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Voter actions">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-40">
-          {onEdit && (
-            <DropdownMenuItem onClick={() => onEdit(voterId)}>
-              <Pencil className="h-4 w-4 mr-2" />
-              Edit
-            </DropdownMenuItem>
-          )}
-          <DropdownMenuItem onClick={openPrintableCredential} disabled={loadingCredential}>
-            {loadingCredential ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Printer className="h-4 w-4 mr-2" />
-            )}
-            {loadingCredential ? "Loading…" : "Print slip"}
-          </DropdownMenuItem>
-          {onDelete && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-red-600 focus:text-red-600"
-                onClick={() => onDelete(voterId)}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
-              </DropdownMenuItem>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {onEdit && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          title="Edit"
+          aria-label={`Edit ${voter.fullName || voter.username}`}
+          onClick={() => onEdit(voterId)}
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+      )}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        title="Print slip"
+        aria-label="Print voter slip"
+        onClick={openPrintableCredential}
+        disabled={loadingCredential}
+      >
+        {loadingCredential ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Printer className="h-4 w-4" />
+        )}
+      </Button>
+      {onDelete && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+          title="Delete"
+          aria-label="Delete voter"
+          onClick={() => onDelete(voterId)}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      )}
       <VoterSlipPrinter
         voter={printVoter}
         electionNames={electionNames}

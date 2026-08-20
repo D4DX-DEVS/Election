@@ -14,13 +14,7 @@ import { DeleteModeButton } from "@/components/ui/delete-mode-button";
 import { RowSelectCheckbox } from "@/components/ui/row-select-checkbox";
 import { useBulkDeleteMode } from "@/hooks/useBulkDeleteMode";
 import { deleteByIds } from "@/lib/bulkDelete";
-import { Edit, Trash2, Image, Search, Building2, UsersRound, MoreHorizontal } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Pencil, Trash2, Image, Search, Building2, UsersRound } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageContent } from "@/components/layout/PageContent";
 import { PaginationControls } from "@/components/ui/pagination-controls";
@@ -980,7 +974,7 @@ export default function Franchises() {
             </div>
 
             <Card className="border-0 shadow-none bg-transparent lg:border lg:bg-white lg:shadow-card">
-              <CardHeader className="lg:flex-row lg:items-center lg:justify-between lg:gap-3 lg:px-4 lg:py-3 lg:border-b lg:border-slate-100 hidden lg:flex">
+              <CardHeader className="flex flex-col gap-3 border-b border-slate-100 px-3 py-3 lg:flex-row lg:items-center lg:justify-between lg:px-4">
                 <div className="flex items-center gap-3">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                     <UsersRound className="h-4 w-4" />
@@ -992,12 +986,11 @@ export default function Franchises() {
                     </CardDescription>
                   </div>
                 </div>
-                <div className="flex w-full max-w-xs items-center gap-2">
+                <div className="flex items-center gap-2">
                   <SearchInput
                     placeholder="Search franchise..."
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
-                    className="bg-white"
                   />
                   {isSuperAdmin && (
                     <AddButton
@@ -1008,22 +1001,6 @@ export default function Franchises() {
                   )}
                 </div>
               </CardHeader>
-              {/* Mobile search bar */}
-              <div className="mb-3 flex items-center gap-2 lg:hidden">
-                <SearchInput
-                  placeholder="Search franchise..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  className="bg-white"
-                />
-                {isSuperAdmin && (
-                  <AddButton
-                    title="Add franchise"
-                    label="Add franchise"
-                    onClick={() => setIsCreateDialogOpen(true)}
-                  />
-                )}
-              </div>
               <CardContent className="p-0">
                 {isLoading ? (
                   <div className="p-4 space-y-3">
@@ -1070,32 +1047,41 @@ export default function Franchises() {
                         </CompactListSecondary>
                         <CompactListStatus active={franchise.status === "active"} />
                         <CompactListActions>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Franchise actions">
-                                <MoreHorizontal className="h-4 w-4" />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            title="Edit"
+                            aria-label={`Edit ${franchise.name}`}
+                            onClick={() => handleEditFranchise(franchise)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          {isSuperAdmin && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                title="Manage Admins"
+                                aria-label={`Manage admins for ${franchise.name}`}
+                                onClick={() => handleManageAdmin(franchise)}
+                              >
+                                <UsersRound className="h-4 w-4" />
                               </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleEditFranchise(franchise)}>
-                                <Edit className="h-4 w-4 mr-2" /> Edit
-                              </DropdownMenuItem>
-                              {isSuperAdmin && (
-                                <>
-                                  <DropdownMenuItem onClick={() => handleManageAdmin(franchise)}>
-                                    <UsersRound className="h-4 w-4 mr-2" /> Admins
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    className="text-red-600 focus:text-red-600"
-                                    onClick={() => handleDeleteFranchise(franchise._id)}
-                                    disabled={deleteFranchisesMutation.isPending}
-                                  >
-                                    <Trash2 className="h-4 w-4 mr-2" /> Delete
-                                  </DropdownMenuItem>
-                                </>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                title="Delete"
+                                aria-label={`Delete ${franchise.name}`}
+                                onClick={() => handleDeleteFranchise(franchise._id)}
+                                disabled={deleteFranchisesMutation.isPending}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
                         </CompactListActions>
                       </CompactListRow>
                       );

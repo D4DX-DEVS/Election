@@ -128,7 +128,9 @@
   }
 
   /* Touch-screen targets: 44 px minimum only on coarse-pointer (touch) devices.
-     Desktop (fine pointer / mouse) gets the component's natural height.       */
+     Desktop (fine pointer / mouse) gets the component's natural height.
+     The search-bar input is explicitly matched so it stays the same height as
+     the icon buttons (AddButton, ExportMenu, DeleteModeButton) beside it.     */
   @media (pointer: coarse) {
     button:not(.no-touch-target),
     [role="button"]:not(.no-touch-target) {
@@ -138,6 +140,11 @@
     button[aria-label]:not(.no-touch-target),
     [role="button"][aria-label]:not(.no-touch-target) {
       min-width: 44px;
+    }
+
+    /* Search bar input expands to the same 44 px touch target height */
+    .search-bar input {
+      min-height: 44px;
     }
   }
 
@@ -222,6 +229,15 @@
 
   .app-metric-compact {
     @apply text-lg font-bold leading-none tabular-nums text-slate-900;
+  }
+
+  /* Stat-grid typography: uppercase muted label + bold value */
+  .app-stat-label {
+    @apply text-[9px] font-semibold uppercase tracking-widest text-gray-400;
+  }
+
+  .app-stat-value {
+    @apply text-sm font-bold leading-none tabular-nums text-gray-800;
   }
 
   .app-form-fields {

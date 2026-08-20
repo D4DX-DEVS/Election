@@ -126,7 +126,7 @@ export default function ElectionWorkspace() {
   return (
     <MainLayout>
       {/* Back link */}
-      <div className="mb-4">
+      <div className="mb-3">
         <Link href="/elections">
           <Button variant="ghost" size="sm" className="text-gray-600 hover:text-primary -ml-2">
             <ArrowLeft className="h-4 w-4 mr-1" />
@@ -137,15 +137,15 @@ export default function ElectionWorkspace() {
 
       {/* Election header */}
       {electionLoading ? (
-        <Skeleton className="h-28 w-full mb-6 rounded-lg" />
+        <Skeleton className="h-28 w-full mb-4 rounded-lg" />
       ) : !election ? (
-        <Card className="mb-6">
+        <Card className="mb-4">
           <CardContent className="py-10 text-center text-gray-500">
             Election not found.
           </CardContent>
         </Card>
       ) : (
-        <div className="mb-6 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+        <div className="mb-4 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
           {/* Header row */}
           <div className="flex items-start gap-3 px-4 pt-4 pb-3">
             {election.logo?.url && (
@@ -200,38 +200,64 @@ export default function ElectionWorkspace() {
         </div>
       )}
 
-      {/* Tabs */}
+      {/* Tabs — ONE shared pill container; active tab gets white bg from base TabsTrigger */}
       <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="mb-4 flex h-auto w-full gap-1 rounded-none bg-transparent p-0 sm:mb-5">
-          <TabsTrigger value="home" className="min-w-0 flex-1 flex-col gap-0.5 whitespace-normal px-1.5 py-1.5 text-center leading-tight sm:flex-row sm:gap-1.5 sm:px-2.5">
-            <CalendarDays className="h-3.5 w-3.5 shrink-0" />
-            <span>Home</span>
-          </TabsTrigger>
-          <TabsTrigger value="nominees" className="min-w-0 flex-1 flex-col gap-0.5 whitespace-normal px-1.5 py-1.5 text-center leading-tight sm:flex-row sm:gap-1.5 sm:px-2.5">
-            <Users className="h-3.5 w-3.5 shrink-0" />
-            <span>Nominees</span>
-          </TabsTrigger>
-          <TabsTrigger value="voters" className="min-w-0 flex-1 flex-col gap-0.5 whitespace-normal px-1.5 py-1.5 text-center leading-tight sm:flex-row sm:gap-1.5 sm:px-2.5">
-            <User className="h-3.5 w-3.5 shrink-0" />
-            <span>Voters</span>
-          </TabsTrigger>
-          {!electionLocked && election?.status === "active" && (
-            <TabsTrigger value="status" className="min-w-0 flex-1 flex-col gap-0.5 whitespace-normal px-1.5 py-1.5 text-center leading-tight sm:flex-row sm:gap-1.5 sm:px-2.5">
-              <BarChart3 className="h-3.5 w-3.5 shrink-0" />
-              <span>Live Status</span>
+        {/* overflow wrapper allows horizontal scroll on mobile with hidden scrollbar */}
+        <div className="mb-3 overflow-x-auto scrollbar-hidden">
+          <TabsList className="flex h-auto min-w-full gap-0.5 rounded-xl bg-slate-100 p-1">
+            <TabsTrigger
+              value="home"
+              className="flex-1 min-w-[52px] flex-col gap-0.5 whitespace-normal px-1.5 py-2 text-[11px] leading-tight font-medium"
+            >
+              <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+              <span className="text-center">Home</span>
             </TabsTrigger>
-          )}
-          {election?.manualWinnerSelection && (
-            <TabsTrigger value="generate" className="min-w-0 flex-1 flex-col gap-0.5 whitespace-normal px-1.5 py-1.5 text-center leading-tight sm:flex-row sm:gap-1.5 sm:px-2.5">
-              <Trophy className="h-3.5 w-3.5 shrink-0" />
-              <span>Generate Result</span>
+
+            <TabsTrigger
+              value="nominees"
+              className="flex-1 min-w-[52px] flex-col gap-0.5 whitespace-normal px-1.5 py-2 text-[11px] leading-tight font-medium"
+            >
+              <Users className="h-3.5 w-3.5 shrink-0" />
+              <span className="text-center">Nominees</span>
             </TabsTrigger>
-          )}
-          <TabsTrigger value="results" className="min-w-0 flex-1 flex-col gap-0.5 whitespace-normal px-1.5 py-1.5 text-center leading-tight sm:flex-row sm:gap-1.5 sm:px-2.5">
-            <Vote className="h-3.5 w-3.5 shrink-0" />
-            <span>Results &amp; Analytics</span>
-          </TabsTrigger>
-        </TabsList>
+
+            <TabsTrigger
+              value="voters"
+              className="flex-1 min-w-[52px] flex-col gap-0.5 whitespace-normal px-1.5 py-2 text-[11px] leading-tight font-medium"
+            >
+              <User className="h-3.5 w-3.5 shrink-0" />
+              <span className="text-center">Voters</span>
+            </TabsTrigger>
+
+            {!electionLocked && election?.status === "active" && (
+              <TabsTrigger
+                value="status"
+                className="flex-1 min-w-[52px] flex-col gap-0.5 whitespace-normal px-1.5 py-2 text-[11px] leading-tight font-medium"
+              >
+                <BarChart3 className="h-3.5 w-3.5 shrink-0" />
+                <span className="text-center">Status</span>
+              </TabsTrigger>
+            )}
+
+            {election?.manualWinnerSelection && (
+              <TabsTrigger
+                value="generate"
+                className="flex-1 min-w-[52px] flex-col gap-0.5 whitespace-normal px-1.5 py-2 text-[11px] leading-tight font-medium"
+              >
+                <Trophy className="h-3.5 w-3.5 shrink-0" />
+                <span className="text-center">Generate</span>
+              </TabsTrigger>
+            )}
+
+            <TabsTrigger
+              value="results"
+              className="flex-1 min-w-[52px] flex-col gap-0.5 whitespace-normal px-1.5 py-2 text-[11px] leading-tight font-medium"
+            >
+              <Vote className="h-3.5 w-3.5 shrink-0" />
+              <span className="text-center">Results</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Home — election identity, franchise, dates, and creation-time settings */}
         <TabsContent value="home" className="mt-0">

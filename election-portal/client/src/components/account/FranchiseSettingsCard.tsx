@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardHeader,
 } from "@/components/ui/card";
 import {
   Dialog,
@@ -161,29 +160,15 @@ export function FranchiseSettingsCard({ franchiseId }: FranchiseSettingsCardProp
 
   return (
     <Card>
-      <CardHeader className="p-3 pb-0 md:p-4 md:pb-0">
-        <div className="flex items-center justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            className="shrink-0"
-            onClick={() => setOpen(true)}
-            disabled={isLoading}
-          >
-            <Pencil className="h-4 w-4 mr-1" />
-            Edit
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="p-3 pt-2 md:p-4 md:pt-2 space-y-3">
+      <CardContent className="p-3 md:p-4 space-y-3">
         {isLoading ? (
           <div className="space-y-3">
-            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-14 w-full" />
             <Skeleton className="h-10 w-full" />
           </div>
         ) : (
           <>
-            {/* Identity header — logo + name read as one unit */}
+            {/* Identity row — logo · name · Edit button all on the same line */}
             <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50/60 p-3">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-white">
                 {franchise.logo?.url ? (
@@ -196,12 +181,22 @@ export function FranchiseSettingsCard({ franchiseId }: FranchiseSettingsCardProp
                   <Building2 className="h-5 w-5 text-gray-400" />
                 )}
               </div>
-              <div className="min-w-0">
-                <p className="truncate app-section-title">
+              <div className="min-w-0 flex-1">
+                <p className="break-words app-section-title leading-snug">
                   {franchise.name || "—"}
                 </p>
                 <p className="app-helper">Organisation</p>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="shrink-0 self-start"
+                onClick={() => setOpen(true)}
+                disabled={isLoading}
+              >
+                <Pencil className="h-3.5 w-3.5 mr-1" />
+                Edit
+              </Button>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">

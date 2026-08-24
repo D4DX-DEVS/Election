@@ -1,5 +1,4 @@
-import { Menu, LogOut, User, HelpCircle, ChevronDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { LogOut, User, HelpCircle, ChevronDown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   DropdownMenu, 
@@ -20,7 +19,6 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 interface HeaderProps {
-  toggleSidebar: () => void;
   sidebarCollapsed: boolean;
   user: {
     name: string;
@@ -30,7 +28,7 @@ interface HeaderProps {
   };
 }
 
-export function Header({ toggleSidebar, sidebarCollapsed, user }: HeaderProps) {
+export function Header({ sidebarCollapsed, user }: HeaderProps) {
   const [helpOpen, setHelpOpen] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [, navigate] = useLocation();
@@ -68,16 +66,6 @@ export function Header({ toggleSidebar, sidebarCollapsed, user }: HeaderProps) {
     >
       <div className="flex items-center justify-between h-14 px-4 sm:px-6">
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={toggleSidebar}
-            aria-label="Open navigation menu"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-
           <div className="flex items-center lg:hidden">
             <img
               src="/logo.png"
@@ -113,7 +101,7 @@ export function Header({ toggleSidebar, sidebarCollapsed, user }: HeaderProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuLabel className="text-xs text-muted-foreground pt-0">
+              <DropdownMenuLabel className="app-muted pt-0 font-normal">
                 {user.displayRole || user.role}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />

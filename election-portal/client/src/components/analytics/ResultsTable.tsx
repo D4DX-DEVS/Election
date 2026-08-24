@@ -1,15 +1,14 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Printer, Download, Award, Percent } from "lucide-react";
+import { Printer, Download, Award } from "lucide-react";
 import { NomineeWithVotes } from "@/lib/types";
+import {
+  CompactList,
+  CompactListPrimary,
+  CompactListRow,
+  CompactListSecondary,
+} from "@/components/ui/compact-list";
+import { cn } from "@/lib/utils";
 
 interface ResultsTableProps {
   nominees: NomineeWithVotes[];
@@ -55,103 +54,52 @@ export function ResultsTable({
 
   return (
     <Card>
-      <CardHeader className="px-6 py-4 border-b border-gray-200">
-        <CardTitle className="text-lg font-medium text-gray-900">Election Results</CardTitle>
+      <CardHeader className="px-4 py-3 border-b border-gray-200">
+        <CardTitle>Election Results</CardTitle>
       </CardHeader>
-      <CardContent className="p-6">
-        <div className="space-y-4 lg:hidden">
+      <CardContent className="p-0">
+        <CompactList className="rounded-none border-0">
           {sortedNominees.map((nominee, index) => {
             const rank = ranks[index];
             const tied = rankCounts[rank] > 1;
             const isElected = isRankElected(rank);
             const nomineeId = (nominee as NomineeWithVotes & { _id?: string })._id || nominee.id;
             return (
-              <div
+              <CompactListRow
                 key={nomineeId}
-                className={`rounded-lg border p-5 space-y-4 ${isElected ? "border-green-200 bg-green-50/60" : "border-gray-200 bg-white"}`}
+                className={cn(isElected && "bg-green-50 hover:bg-green-50/80")}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h3 className="text-sm md:text-base font-medium text-gray-900 truncate">{nominee.name}</h3>
-                    <p className="text-xs text-gray-500">
-                      Rank #{rank}
-                      {tied && <span className="ml-1 text-gray-400">(Tied)</span>}
-                    </p>
-                  </div>
-                  {isElected && <Award className="h-5 w-5 text-yellow-500 shrink-0" />}
-                </div>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-                  <span className="inline-flex items-center font-medium text-gray-700">
-                    {nominee.voteCount || 0} votes
-                  </span>
-                  <span className="inline-flex items-center font-medium text-gray-700">
-                    <Percent className="h-4 w-4 mr-1" />
-                    {(nominee.percentage || 0).toFixed(1)}%
-                  </span>
-                </div>
-              </div>
+                <span className="app-muted w-8 shrink-0 font-medium tabular-nums">
+                  #{rank}
+                </span>
+                <CompactListPrimary>{nominee.name}</CompactListPrimary>
+                <CompactListSecondary>
+                  {`${nominee.voteCount ?? 0} votes · ${(nominee.percentage || 0).toFixed(1)}%`}
+                  {tied ? " · Tied" : ""}
+                </CompactListSecondary>
+                {isElected && <Award className="h-4 w-4 shrink-0 text-yellow-500" />}
+              </CompactListRow>
             );
           })}
-        </div>
-        <div className="hidden overflow-x-auto lg:block">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="bg-white">Rank</TableHead>
-                <TableHead className="bg-white">Nominee</TableHead>
-                <TableHead className="bg-white text-right">Votes</TableHead>
-                <TableHead className="bg-white text-right">Percentage</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedNominees.map((nominee, index) => {
-                const rank = ranks[index];
-                const tied = rankCounts[rank] > 1;
-                const isElected = isRankElected(rank);
-                return (
-                <TableRow
-                  key={nominee.id}
-                  className={`transition-colors hover:bg-primary/5 ${isElected ? 'bg-green-50' : ''}`}
-                >
-                  <TableCell className="text-sm text-gray-500">
-                    {rank}
-                    {tied && (
-                      <span className="ml-1 text-xs text-gray-400">(Tied)</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {nominee.name}
-                  </TableCell>
-                  <TableCell className="text-right font-medium">
-                    {nominee.voteCount !== undefined ? nominee.voteCount : '-'}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {nominee.percentage !== undefined ? `${nominee.percentage.toFixed(1)}%` : '-'}
-                  </TableCell>
-                </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
+        </CompactList>
       </CardContent>
-      <CardFooter className="px-6 py-4 border-t border-gray-200 flex justify-between items-center">
+      <CardFooter className="px-4 py-3 border-t border-gray-200 flex justify-between items-center">
         <div>
           <Badge>
-            <Award className="mr-1 h-4 w-4" />
+            <Award className="mr-1 h-3.5 w-3.5" />
             Elected
           </Badge>
         </div>
-        <div className="flex space-x-2">
+        <div className="flex gap-2">
           {onPrint && (
             <Button variant="outline" size="sm" onClick={onPrint}>
-              <Printer className="mr-2 h-4 w-4" />
+              <Printer className="mr-1.5 h-3.5 w-3.5" />
               Print
             </Button>
           )}
           {onExport && (
             <Button variant="outline" size="sm" onClick={onExport}>
-              <Download className="mr-2 h-4 w-4" />
+              <Download className="mr-1.5 h-3.5 w-3.5" />
               Export
             </Button>
           )}

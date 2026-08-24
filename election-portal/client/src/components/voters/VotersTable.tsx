@@ -1,30 +1,23 @@
 import { useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RowSelectCheckbox } from "@/components/ui/row-select-checkbox";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Pagination, User, Election } from "@/lib/types";
 import { getElectionLabel } from "@/lib/electionHelpers";
-import { Loader2, MoreHorizontal, Pencil, Printer, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Printer, Trash2 } from "lucide-react";
 import { VoterSlipPrinter } from "./VoterSlipPrinter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  CompactList,
+  CompactListActions,
+  CompactListLeading,
+  CompactListPrimary,
+  CompactListRow,
+  CompactListSecondary,
+} from "@/components/ui/compact-list";
 
 type VoterRecord = User & {
   _id?: string;
@@ -99,41 +92,45 @@ function VoterRowActions({
 
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Voter actions">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-40">
-          {onEdit && (
-            <DropdownMenuItem onClick={() => onEdit(voterId)}>
-              <Pencil className="h-4 w-4 mr-2" />
-              Edit
-            </DropdownMenuItem>
-          )}
-          <DropdownMenuItem onClick={openPrintableCredential} disabled={loadingCredential}>
-            {loadingCredential ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Printer className="h-4 w-4 mr-2" />
-            )}
-            {loadingCredential ? "Loading…" : "Print slip"}
-          </DropdownMenuItem>
-          {onDelete && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-red-600 focus:text-red-600"
-                onClick={() => onDelete(voterId)}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
-              </DropdownMenuItem>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {onEdit && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6"
+          title="Edit"
+          aria-label={`Edit ${voter.fullName || voter.username}`}
+          onClick={() => onEdit(voterId)}
+        >
+          <Pencil className="h-3.5 w-3.5" />
+        </Button>
+      )}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-6 w-6"
+        title="Print slip"
+        aria-label="Print voter slip"
+        onClick={openPrintableCredential}
+        disabled={loadingCredential}
+      >
+        {loadingCredential ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <Printer className="h-3.5 w-3.5" />
+        )}
+      </Button>
+      {onDelete && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 text-red-600 hover:text-red-700 hover:bg-red-50"
+          title="Delete"
+          aria-label="Delete voter"
+          onClick={() => onDelete(voterId)}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      )}
       <VoterSlipPrinter
         voter={printVoter}
         electionNames={electionNames}
@@ -147,14 +144,17 @@ function VoterRowActions({
 
 function StatusBadge({ status }: { status?: string | null }) {
   if (status === "active") {
+    // Green dot only — no text label for active
     return (
-      <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
-        Active
-      </Badge>
+      <span
+        className="inline-flex h-2 w-2 shrink-0 rounded-full bg-green-500"
+        aria-label="Active"
+        title="Active"
+      />
     );
   }
   return (
-    <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+    <Badge variant="outline" className="border-yellow-200 bg-yellow-100 text-yellow-800">
       Inactive
     </Badge>
   );
@@ -193,27 +193,26 @@ export function VotersTable({
     <Card className="border-0 shadow-none bg-transparent lg:border lg:bg-white lg:shadow-sm">
       <CardContent className="p-0">
         {selectionMode && onToggleSelectAll && voters.length > 0 && (
-          <div className="flex items-center justify-between border-b px-4 py-2 lg:hidden">
-            <button
-              type="button"
-              onClick={onToggleSelectAll}
-              className="inline-flex items-center gap-2 text-sm font-medium text-primary"
-              aria-label="Select all voters on this page"
-            >
+          <div className="flex items-center justify-between border-b px-3 py-2">
+            <div className="inline-flex items-center gap-2">
               <RowSelectCheckbox
                 checked={allSelected ? true : someSelected ? "indeterminate" : false}
                 onCheckedChange={onToggleSelectAll}
-                onClick={(e) => e.stopPropagation()}
                 aria-label="Select all voters on this page"
               />
-              <span>{allSelected ? "Clear selection" : "Select all on this page"}</span>
-            </button>
-            <span className="text-xs text-gray-500">{voters.length} shown</span>
+              <span
+                onClick={onToggleSelectAll}
+                className="cursor-pointer select-none text-sm font-medium text-primary"
+              >
+                {allSelected ? "Clear selection" : "Select all on this page"}
+              </span>
+            </div>
+            <span className="app-helper">{voters.length} shown</span>
           </div>
         )}
-        <div className="space-y-3 p-4 lg:hidden">
-          {voters.length > 0 ? (
-            voters.map((voter) => {
+        {voters.length > 0 ? (
+          <CompactList className="rounded-none border-0">
+            {voters.map((voter) => {
               const voterId = voter._id?.toString() || voter.id?.toString() || "";
               const electionNames = getElectionNamesForVoter(voter);
               const displayName = voter.fullName || voter.username;
@@ -223,115 +222,46 @@ export function VotersTable({
                 voter.fullName.trim().toLowerCase() !== voter.username.trim().toLowerCase();
 
               return (
-                <div key={voterId} className="rounded-lg border border-gray-200 bg-white p-5 space-y-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex min-w-0 items-start gap-3">
-                      {selectionMode && onToggleSelect && isSelected && (
-                        <RowSelectCheckbox
-                          checked={isSelected(voterId)}
-                          onCheckedChange={() => onToggleSelect(voterId)}
-                          aria-label={`Select ${displayName}`}
-                          onClick={(e) => e.stopPropagation()}
-                          className="mt-0.5"
-                        />
-                      )}
-                      <div className="min-w-0">
-                        <h3 className="text-sm md:text-base font-medium text-gray-900 truncate">{displayName}</h3>
-                        {showUsername && (
-                          <p className="text-xs text-gray-500 truncate">{voter.username}</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-1">
-                      <StatusBadge status={voter.status} />
-                      <VoterRowActions
-                        voter={voter}
-                        voterId={voterId}
-                        electionNames={electionNames}
-                        onEdit={onEdit}
-                        onDelete={onDelete}
+                <CompactListRow
+                  key={voterId}
+                  label={onEdit && !selectionMode ? `Open ${displayName}` : undefined}
+                  onClick={
+                    selectionMode && onToggleSelect
+                      ? () => onToggleSelect(voterId)
+                      : onEdit
+                        ? () => onEdit(voterId)
+                        : undefined
+                  }
+                >
+                  {selectionMode && onToggleSelect && isSelected && (
+                    <CompactListLeading>
+                      <RowSelectCheckbox
+                        checked={isSelected(voterId)}
+                        onCheckedChange={() => onToggleSelect(voterId)}
+                        aria-label={`Select ${displayName}`}
+                        onClick={(e) => e.stopPropagation()}
                       />
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <EmptyState title="No voters found" description="Add a voter or adjust your search to see results here." />
-          )}
-        </div>
-
-        <div className="hidden overflow-x-auto lg:block">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {selectionMode && onToggleSelectAll && (
-                  <TableHead className="bg-white w-6 px-1">
-                    <RowSelectCheckbox
-                      checked={allSelected ? true : someSelected ? "indeterminate" : false}
-                      onCheckedChange={() => onToggleSelectAll()}
-                      aria-label="Select all voters on this page"
+                    </CompactListLeading>
+                  )}
+                  <StatusBadge status={voter.status} />
+                  <CompactListPrimary>{displayName}</CompactListPrimary>
+                  <CompactListSecondary>{showUsername ? voter.username : ""}</CompactListSecondary>
+                  <CompactListActions>
+                    <VoterRowActions
+                      voter={voter}
+                      voterId={voterId}
+                      electionNames={electionNames}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
                     />
-                  </TableHead>
-                )}
-                <TableHead className="bg-white">Voter</TableHead>
-                <TableHead className="bg-white">Status</TableHead>
-                <TableHead className="bg-white w-12" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {voters.length > 0 ? (
-                voters.map((voter) => {
-                  const voterId = voter._id?.toString() || voter.id?.toString() || "";
-                  const electionNames = getElectionNamesForVoter(voter);
-                  const displayName = voter.fullName || voter.username;
-                  const showUsername =
-                    voter.fullName &&
-                    voter.username &&
-                    voter.fullName.trim().toLowerCase() !== voter.username.trim().toLowerCase();
-
-                  return (
-                    <TableRow key={voterId} className="hover:bg-primary/5">
-                      {selectionMode && onToggleSelect && isSelected && (
-                        <TableCell className="w-6 px-1">
-                          <RowSelectCheckbox
-                            checked={isSelected(voterId)}
-                            onCheckedChange={() => onToggleSelect(voterId)}
-                            aria-label={`Select ${displayName}`}
-                          />
-                        </TableCell>
-                      )}
-                      <TableCell>
-                        <p className="font-medium text-gray-900">{displayName}</p>
-                        {showUsername && (
-                          <p className="text-sm text-gray-500">{voter.username}</p>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge status={voter.status} />
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <VoterRowActions
-                          voter={voter}
-                          voterId={voterId}
-                          electionNames={electionNames}
-                          onEdit={onEdit}
-                          onDelete={onDelete}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={selectionMode ? 4 : 3} className="p-0">
-                    <EmptyState title="No voters found" description="Add a voter or adjust your search to see results here." />
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                  </CompactListActions>
+                </CompactListRow>
+              );
+            })}
+          </CompactList>
+        ) : (
+          <EmptyState title="No voters found" description="Add a voter or adjust your search to see results here." />
+        )}
       </CardContent>
       {pagination.total > 0 && totalPages > 1 && (
         <CardFooter className="px-4 py-3 border-t flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

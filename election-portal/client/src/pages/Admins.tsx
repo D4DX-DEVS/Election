@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { PageHeader } from "@/components/layout/PageContent";
 import { getElectionLabel } from "@/lib/electionHelpers";
-import { isValidNameField } from "@/lib/utils";
+import { cn, isValidNameField } from "@/lib/utils";
+import { CompactList, CompactListRow, CompactListPrimary, CompactListSecondary, CompactListStatus, CompactListActions } from "@/components/ui/compact-list";
 import { 
   Card, 
   CardContent, 
@@ -10,16 +12,8 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { PlusIcon, AlertCircle, Trash2 } from "lucide-react";
+import { AlertCircle, Trash2, KeyRound, Pencil } from "lucide-react";
 import { 
   Dialog, 
   DialogContent, 
@@ -41,6 +35,8 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { SearchInput } from "@/components/ui/search-input";
+import { AddButton } from "@/components/ui/add-button";
 import { 
   Select, 
   SelectContent, 
@@ -163,6 +159,7 @@ function resolveElectionNames(
 
 export default function Admins() {
   const [createOpen, setCreateOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
   const [adminType, setAdminType] = useState<'franchise' | 'election'>('election');
   const [selectedFranchiseId, setSelectedFranchiseId] = useState<string>("");
   const { toast } = useToast();
@@ -178,21 +175,17 @@ export default function Admins() {
   const canDeleteElectionAdmin = userRole === 'super_admin' || userRole === 'franchise_admin';
   const currentUserId = String(userData?.id || userData?._id || '');
   const [franchiseAdminsPage, setFranchiseAdminsPage] = useState(1);
-  const [expandedAdminIds, setExpandedAdminIds] = useState<Set<string>>(new Set());
-  const toggleAdminExpanded = (id: string) => {
-    setExpandedAdminIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
   const [pendingDeleteAdminId, setPendingDeleteAdminId] = useState<string | null>(null);
   const [pendingDeleteAdminName, setPendingDeleteAdminName] = useState('');
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [resetTargetAdminId, setResetTargetAdminId] = useState<string | null>(null);
   const [resetTargetAdminName, setResetTargetAdminName] = useState('');
   const [resetPasswordInput, setResetPasswordInput] = useState('');
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editTargetAdmin, setEditTargetAdmin] = useState<FranchiseAdminUser | null>(null);
+  const [editAdminType, setEditAdminType] = useState<'franchise' | 'election'>('franchise');
+  const [editFullName, setEditFullName] = useState('');
+  const [editElectionAccess, setEditElectionAccess] = useState<string[]>([]);
   const franchiseAdminsPageSize = 10;
   const [electionAdminsPage, setElectionAdminsPage] = useState(1);
   const [electionAdminsFranchiseFilter, setElectionAdminsFranchiseFilter] = useState<string>(
@@ -255,6 +248,19 @@ export default function Admins() {
   });
   const electionAdminList = asList(electionAdminsRaw);
   const electionAdminsPagination = electionAdminsRaw?.pagination;
+
+  // Client-side search over the currently loaded page, same convention used
+  // on the Elections/Franchises list pages.
+  const matchesSearch = (admin: FranchiseAdminUser) => {
+    const q = searchInput.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      admin.username?.toLowerCase().includes(q) ||
+      (admin.fullName || "").toLowerCase().includes(q)
+    );
+  };
+  const visibleFranchiseAdmins = franchiseAdminList.filter(matchesSearch);
+  const visibleElectionAdmins = electionAdminList.filter(matchesSearch);
 
   // Fetch elections (for election admin creation)
   const {
@@ -419,9 +425,37 @@ export default function Admins() {
     },
   });
 
+  const updateAdminMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Record<string, unknown> }) => {
+      const res = await apiRequest('PUT', `/api/users/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Administrator updated", description: "Changes saved successfully.", variant: "success" });
+      setEditDialogOpen(false);
+      setEditTargetAdmin(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/users/franchise-admins'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/election-admins'] });
+    },
+    onError: (error) => {
+      toast({ title: "Error", description: error instanceof Error ? error.message : 'Unknown error', variant: "destructive" });
+    },
+  });
+
   const handleDeleteAdminClick = (admin: FranchiseAdminUser) => {
     setPendingDeleteAdminId(admin._id);
     setPendingDeleteAdminName(admin.username);
+  };
+
+  const handleOpenEditDialog = (admin: FranchiseAdminUser, type: 'franchise' | 'election') => {
+    setEditTargetAdmin(admin);
+    setEditAdminType(type);
+    setEditFullName(admin.fullName || '');
+    const accessIds = (admin.electionAccess || []).map((id) =>
+      typeof id === 'object' && id?._id ? id._id.toString() : String(id)
+    );
+    setEditElectionAccess(accessIds);
+    setEditDialogOpen(true);
   };
 
   const handleOpenResetDialog = (admin: FranchiseAdminUser) => {
@@ -439,21 +473,26 @@ export default function Admins() {
 
   return (
     <MainLayout>
-      <div className="mb-5 sm:mb-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <h1 className="app-page-title">{pageTitle}</h1>
+      <PageHeader
+        title={pageTitle}
+        description={canCreateFranchiseAdmin ? "Manage system administrators" : "Manage election admins for your franchise"}
+      />
+
+      <div className="mb-4 flex items-center gap-2">
+          <SearchInput
+            placeholder="Search administrators..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
 
           {/* Single unified create flow: asks for the administrator type, then shows matching fields */}
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>
-              <Button
-                size="sm"
-                className="w-full shrink-0 sm:w-auto"
+              <AddButton
+                title="Add administrator"
+                label="Add administrator"
                 onClick={() => setAdminType(canCreateFranchiseAdmin ? 'franchise' : 'election')}
-              >
-                <PlusIcon className="mr-1 h-3.5 w-3.5" />
-                Add administrator
-              </Button>
+              />
             </DialogTrigger>
           <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto">
             <DialogHeader>
@@ -465,7 +504,7 @@ export default function Admins() {
 
             {/* Administrator type selector */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Administrator Type</label>
+              <label className="app-label">Administrator Type</label>
               <Select value={adminType} disabled>
                 <SelectTrigger>
                   <SelectValue />
@@ -478,7 +517,7 @@ export default function Admins() {
                   )}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-gray-500">
+              <p className="app-helper">
                 {adminType === 'franchise'
                   ? 'Can manage an entire franchise and its elections.'
                   : 'Can manage only the elections assigned to them.'}
@@ -487,7 +526,7 @@ export default function Admins() {
 
             {adminType === 'franchise' ? (
               <Form {...franchiseAdminForm}>
-                <form onSubmit={franchiseAdminForm.handleSubmit(onSubmitFranchiseAdmin)} className="space-y-4">
+                <form onSubmit={franchiseAdminForm.handleSubmit(onSubmitFranchiseAdmin)} className="space-y-2.5">
                   <FormField
                     control={franchiseAdminForm.control}
                     name="username"
@@ -569,6 +608,9 @@ export default function Admins() {
                     )}
                   />
                   <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
+                      Cancel
+                    </Button>
                     <Button type="submit" disabled={createFranchiseAdminMutation.isPending}>
                       {createFranchiseAdminMutation.isPending ? "Creating..." : "Create Admin"}
                     </Button>
@@ -577,7 +619,7 @@ export default function Admins() {
               </Form>
             ) : (
               <Form {...electionAdminForm}>
-                <form onSubmit={electionAdminForm.handleSubmit(onSubmitElectionAdmin)} className="space-y-4">
+                <form onSubmit={electionAdminForm.handleSubmit(onSubmitElectionAdmin)} className="space-y-2.5">
                   <FormField
                     control={electionAdminForm.control}
                     name="username"
@@ -675,7 +717,7 @@ export default function Admins() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Elections</FormLabel>
-                          <div className="border rounded-md p-4 space-y-2">
+                          <div className="border rounded-md p-3 space-y-2">
                             {electionsLoading ? (
                               <Skeleton className="h-20 w-full" />
                             ) : electionList.length > 0 ? (
@@ -727,6 +769,9 @@ export default function Admins() {
                     />
                   )}
                   <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
+                      Cancel
+                    </Button>
                     <Button type="submit" disabled={createElectionAdminMutation.isPending}>
                       {createElectionAdminMutation.isPending ? "Creating..." : "Create Admin"}
                     </Button>
@@ -736,13 +781,9 @@ export default function Admins() {
             )}
           </DialogContent>
           </Dialog>
-        </div>
-        <p className="text-sm text-gray-600 mt-1">
-          {canCreateFranchiseAdmin ? "Manage system administrators" : "Manage election admins for your franchise"}
-        </p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Franchise Administrators (super admins only) */}
         {canCreateFranchiseAdmin && (
           <Card className="border-0 shadow-none bg-transparent lg:border lg:bg-white lg:shadow-sm">
@@ -754,7 +795,7 @@ export default function Admins() {
                 </CardDescription>
               </div>
             </CardHeader>
-            <CardContent className="p-0 lg:p-6">
+            <CardContent className="p-0 lg:p-4">
               {franchiseAdminsError && (
                 <Alert variant="destructive" className="mb-4">
                   <AlertCircle className="h-4 w-4" />
@@ -773,122 +814,57 @@ export default function Admins() {
                 </div>
               ) : franchiseAdminList.length > 0 ? (
                 <>
-                <div className="space-y-3 lg:space-y-4 lg:hidden">
-                  {franchiseAdminList.map((admin) => {
-                    const expanded = expandedAdminIds.has(admin._id);
-                    return (
-                    <div
-                      key={admin._id}
-                      className="rounded-lg border border-gray-200 bg-white p-5 space-y-4 cursor-pointer"
-                      onClick={() => toggleAdminExpanded(admin._id)}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <h3 className="text-sm md:text-base font-medium text-gray-900 truncate">{admin.username}</h3>
-                          <p className="text-xs text-gray-500 truncate">{admin.fullName || '-'}</p>
-                        </div>
-                        <Badge
-                          variant={isUserActive(admin.status) ? 'outline' : 'secondary'}
-                          className={
-                            isUserActive(admin.status)
-                              ? 'bg-green-100 text-green-800 hover:bg-green-100'
-                              : 'bg-gray-100 text-gray-800 hover:bg-primary/10'
-                          }
-                        >
-                          {isUserActive(admin.status) ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-                        <span className="inline-flex items-center font-medium text-gray-700">
-                          {resolveFranchiseName(admin, franchiseList)}
-                        </span>
-                      </div>
-                      {expanded && (
-                      <div
-                        className="flex items-center gap-1 border-t border-gray-100 pt-2"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleOpenResetDialog(admin)}
-                      >
-                        Reset Password
-                      </Button>
-                      {canDeleteAdmin && String(admin._id) !== currentUserId && (
+                {visibleFranchiseAdmins.length === 0 ? (
+                  <div className="py-4 text-center text-sm text-gray-500">
+                    No administrators match "{searchInput}".
+                  </div>
+                ) : (
+                <CompactList>
+                  {visibleFranchiseAdmins.map((admin) => (
+                    <CompactListRow key={admin._id}>
+                      <CompactListStatus active={isUserActive(admin.status)} />
+                      <CompactListPrimary>{admin.username}</CompactListPrimary>
+                      <CompactListSecondary>
+                        {[admin.fullName || "-", resolveFranchiseName(admin, franchiseList)].filter(Boolean).join(" · ")}
+                      </CompactListSecondary>
+                      <CompactListActions>
                         <Button
                           variant="ghost"
-                          size="sm"
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-auto"
-                          onClick={() => handleDeleteAdminClick(admin)}
+                          size="icon"
+                          className="h-6 w-6"
+                          title="Edit"
+                          aria-label={`Edit ${admin.username}`}
+                          onClick={() => handleOpenEditDialog(admin, 'franchise')}
                         >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          Delete
+                          <Pencil className="h-3.5 w-3.5" />
                         </Button>
-                      )}
-                      </div>
-                      )}
-                    </div>
-                    );
-                  })}
-                </div>
-                <div className="hidden lg:block">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Username</TableHead>
-                      <TableHead>Full Name</TableHead>
-                      <TableHead>Franchise</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {franchiseAdminList.map((admin) => (
-                        <TableRow key={admin._id}>
-                          <TableCell className="font-medium">{admin.username}</TableCell>
-                          <TableCell>{admin.fullName || '-'}</TableCell>
-                          <TableCell>
-                            {resolveFranchiseName(admin, franchiseList)}
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={isUserActive(admin.status) ? 'outline' : 'secondary'}
-                              className={
-                                isUserActive(admin.status)
-                                  ? 'bg-green-100 text-green-800 hover:bg-green-100' 
-                                  : 'bg-gray-100 text-gray-800 hover:bg-primary/10'
-                              }
-                            >
-                              {isUserActive(admin.status) ? 'Active' : 'Inactive'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-1">
-                            <Button 
-                              variant="link" 
-                              onClick={() => handleOpenResetDialog(admin)}
-                            >
-                              Reset Password
-                            </Button>
-                            {canDeleteAdmin && String(admin._id) !== currentUserId && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                onClick={() => handleDeleteAdminClick(admin)}
-                              >
-                                <Trash2 className="h-4 w-4 mr-1" />
-                                Delete
-                              </Button>
-                            )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-                </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          title="Reset Password"
+                          aria-label={`Reset password for ${admin.username}`}
+                          onClick={() => handleOpenResetDialog(admin)}
+                        >
+                          <KeyRound className="h-3.5 w-3.5" />
+                        </Button>
+                        {canDeleteAdmin && String(admin._id) !== currentUserId && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            title="Delete"
+                            aria-label={`Delete ${admin.username}`}
+                            onClick={() => handleDeleteAdminClick(admin)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </CompactListActions>
+                    </CompactListRow>
+                  ))}
+                </CompactList>
+                )}
                 {franchiseAdminsPagination && (franchiseAdminsPagination.totalPages ?? 1) > 1 && (
                   <PaginationControls
                     page={franchiseAdminsPagination.page}
@@ -900,7 +876,7 @@ export default function Admins() {
                 )}
                 </>
               ) : (
-                <div className="py-6 text-center text-sm text-gray-500">No franchise administrators found</div>
+                <div className="py-4 text-center text-sm text-gray-500">No franchise administrators found</div>
               )}
             </CardContent>
           </Card>
@@ -917,7 +893,7 @@ export default function Admins() {
                 </CardDescription>
               </div>
             </CardHeader>
-            <CardContent className="p-0 lg:p-6">
+            <CardContent className="p-0 lg:p-4">
               {electionAdminsListError && (
                 <Alert variant="destructive" className="mb-4">
                   <AlertCircle className="h-4 w-4" />
@@ -936,122 +912,57 @@ export default function Admins() {
                 </div>
               ) : electionAdminList.length > 0 ? (
                 <>
-                <div className="space-y-3 lg:space-y-4 lg:hidden">
-                  {electionAdminList.map((admin) => {
-                    const expanded = expandedAdminIds.has(admin._id);
-                    return (
-                    <div
-                      key={admin._id}
-                      className="rounded-lg border border-gray-200 bg-white p-5 space-y-4 cursor-pointer"
-                      onClick={() => toggleAdminExpanded(admin._id)}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <h3 className="text-sm md:text-base font-medium text-gray-900 truncate">{admin.username}</h3>
-                          <p className="text-xs text-gray-500 truncate">{admin.fullName || '-'}</p>
-                        </div>
-                        <Badge
-                          variant={isUserActive(admin.status) ? 'outline' : 'secondary'}
-                          className={
-                            isUserActive(admin.status)
-                              ? 'bg-green-100 text-green-800 hover:bg-green-100'
-                              : 'bg-gray-100 text-gray-800 hover:bg-primary/10'
-                          }
-                        >
-                          {isUserActive(admin.status) ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-                        <span className="inline-flex items-center font-medium text-gray-700 truncate">
-                          {resolveElectionNames(admin, electionList)}
-                        </span>
-                      </div>
-                      {expanded && (
-                      <div
-                        className="flex items-center gap-1 border-t border-gray-100 pt-2"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleOpenResetDialog(admin)}
-                      >
-                        Reset Password
-                      </Button>
-                      {canDeleteElectionAdmin && String(admin._id) !== currentUserId && (
+                {visibleElectionAdmins.length === 0 ? (
+                  <div className="py-4 text-center text-sm text-gray-500">
+                    No administrators match "{searchInput}".
+                  </div>
+                ) : (
+                <CompactList>
+                  {visibleElectionAdmins.map((admin) => (
+                    <CompactListRow key={admin._id}>
+                      <CompactListStatus active={isUserActive(admin.status)} />
+                      <CompactListPrimary>{admin.username}</CompactListPrimary>
+                      <CompactListSecondary>
+                        {[admin.fullName || "-", resolveElectionNames(admin, electionList)].filter(Boolean).join(" · ")}
+                      </CompactListSecondary>
+                      <CompactListActions>
                         <Button
                           variant="ghost"
-                          size="sm"
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-auto"
-                          onClick={() => handleDeleteAdminClick(admin)}
+                          size="icon"
+                          className="h-6 w-6"
+                          title="Edit"
+                          aria-label={`Edit ${admin.username}`}
+                          onClick={() => handleOpenEditDialog(admin, 'election')}
                         >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          Delete
+                          <Pencil className="h-3.5 w-3.5" />
                         </Button>
-                      )}
-                      </div>
-                      )}
-                    </div>
-                    );
-                  })}
-                </div>
-                <div className="hidden lg:block">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Username</TableHead>
-                      <TableHead>Full Name</TableHead>
-                      <TableHead>Elections</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {electionAdminList.map((admin) => (
-                        <TableRow key={admin._id}>
-                          <TableCell className="font-medium">{admin.username}</TableCell>
-                          <TableCell>{admin.fullName || '-'}</TableCell>
-                          <TableCell className="max-w-xs truncate">
-                            {resolveElectionNames(admin, electionList)}
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={isUserActive(admin.status) ? 'outline' : 'secondary'}
-                              className={
-                                isUserActive(admin.status)
-                                  ? 'bg-green-100 text-green-800 hover:bg-green-100'
-                                  : 'bg-gray-100 text-gray-800 hover:bg-primary/10'
-                              }
-                            >
-                              {isUserActive(admin.status) ? 'Active' : 'Inactive'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-1">
-                            <Button
-                              variant="link"
-                              onClick={() => handleOpenResetDialog(admin)}
-                            >
-                              Reset Password
-                            </Button>
-                            {canDeleteElectionAdmin && String(admin._id) !== currentUserId && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                onClick={() => handleDeleteAdminClick(admin)}
-                              >
-                                <Trash2 className="h-4 w-4 mr-1" />
-                                Delete
-                              </Button>
-                            )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-                </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          title="Reset Password"
+                          aria-label={`Reset password for ${admin.username}`}
+                          onClick={() => handleOpenResetDialog(admin)}
+                        >
+                          <KeyRound className="h-3.5 w-3.5" />
+                        </Button>
+                        {canDeleteElectionAdmin && String(admin._id) !== currentUserId && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            title="Delete"
+                            aria-label={`Delete ${admin.username}`}
+                            onClick={() => handleDeleteAdminClick(admin)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </CompactListActions>
+                    </CompactListRow>
+                  ))}
+                </CompactList>
+                )}
                 {electionAdminsPagination && (electionAdminsPagination.totalPages ?? 1) > 1 && (
                   <PaginationControls
                     page={electionAdminsPagination.page}
@@ -1063,7 +974,7 @@ export default function Admins() {
                 )}
                 </>
               ) : (
-                <div className="py-6 text-center text-sm text-gray-500">No election administrators found</div>
+                <div className="py-4 text-center text-sm text-gray-500">No election administrators found</div>
               )}
             </CardContent>
           </Card>
@@ -1093,6 +1004,114 @@ export default function Admins() {
         }
         confirmText="Delete"
       />
+
+      {/* Edit Admin Dialog */}
+      <Dialog
+        open={editDialogOpen}
+        onOpenChange={(open) => {
+          setEditDialogOpen(open);
+          if (!open) setEditTargetAdmin(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Administrator</DialogTitle>
+            <DialogDescription>
+              {editTargetAdmin
+                ? `Update details for "${editTargetAdmin.username}".`
+                : "Update administrator details."}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <Label htmlFor="edit-admin-fullname">Full Name</Label>
+              <Input
+                id="edit-admin-fullname"
+                placeholder="Optional display name"
+                value={editFullName}
+                onChange={(e) => setEditFullName(e.target.value)}
+              />
+            </div>
+
+            {editAdminType === 'election' && editTargetAdmin && (
+              <div className="space-y-1">
+                <Label>Elections</Label>
+                <div className="max-h-48 overflow-y-auto rounded-md border p-3 space-y-2">
+                  {electionList
+                    .filter((election) => {
+                      const adminFranchiseId =
+                        typeof editTargetAdmin.franchiseId === 'string'
+                          ? editTargetAdmin.franchiseId
+                          : String(editTargetAdmin.franchiseId || '');
+                      const electionFranchiseId =
+                        typeof election.franchiseId === 'object' && election.franchiseId?._id
+                          ? election.franchiseId._id.toString()
+                          : String(election.franchiseId || '');
+                      return !adminFranchiseId || electionFranchiseId === adminFranchiseId;
+                    })
+                    .map((election) => {
+                      const electionId = String(election._id || election.id);
+                      return (
+                        <div key={electionId} className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id={`edit-election-${electionId}`}
+                            checked={editElectionAccess.includes(electionId)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setEditElectionAccess((prev) => [...prev, electionId]);
+                              } else {
+                                setEditElectionAccess((prev) => prev.filter((id) => id !== electionId));
+                              }
+                            }}
+                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <label htmlFor={`edit-election-${electionId}`} className="text-sm text-gray-700">
+                            {getElectionLabel(election)}
+                          </label>
+                        </div>
+                      );
+                    })}
+                  {electionList.filter((e) => {
+                    const adminFranchiseId = typeof editTargetAdmin.franchiseId === 'string' ? editTargetAdmin.franchiseId : String(editTargetAdmin.franchiseId || '');
+                    const eFranchiseId = typeof e.franchiseId === 'object' && e.franchiseId?._id ? e.franchiseId._id.toString() : String(e.franchiseId || '');
+                    return !adminFranchiseId || eFranchiseId === adminFranchiseId;
+                  }).length === 0 && (
+                    <p className="text-sm text-gray-500">No elections available.</p>
+                  )}
+                </div>
+                <p className="app-helper">Select which elections this administrator can manage.</p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setEditDialogOpen(false)}
+              disabled={updateAdminMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              disabled={updateAdminMutation.isPending || !editTargetAdmin}
+              onClick={() => {
+                if (!editTargetAdmin) return;
+                const data: Record<string, unknown> = { fullName: editFullName };
+                if (editAdminType === 'election') {
+                  data.electionAccess = editElectionAccess;
+                }
+                updateAdminMutation.mutate({ id: editTargetAdmin._id, data });
+              }}
+            >
+              {updateAdminMutation.isPending ? "Saving…" : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={resetDialogOpen}
@@ -1125,7 +1144,7 @@ export default function Admins() {
               value={resetPasswordInput}
               onChange={(e) => setResetPasswordInput(e.target.value)}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="app-helper">
               Use at least 6 characters.
             </p>
           </div>

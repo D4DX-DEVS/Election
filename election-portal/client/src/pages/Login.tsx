@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'wouter';
+import { useLocation } from 'wouter';
 import { Eye, EyeOff, Lock, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { clearAccountSession, storeAccountSession } from '@/lib/session';
+import { SiteFooter } from '@/components/layout/SiteFooter';
 import { BallotIllustration } from '@/components/illustrations/BallotIllustration';
 
 interface LoginResponse {
@@ -119,31 +120,31 @@ export default function Login() {
             <div className="bg-white/95 rounded-2xl px-5 py-3 shadow-lg">
               <img src="/logo.png" alt="Vote+" className="h-10 w-auto object-contain" />
             </div>
-            <p className="text-white/90 text-sm max-w-[220px] leading-relaxed">
+            <p className="text-white/90 app-body max-w-[220px] leading-relaxed">
               Comprehensive Election Management System
             </p>
           </div>
         </div>
 
         {/* Form panel */}
-        <div className="flex flex-col justify-center px-6 py-10 sm:px-10 sm:py-12">
+        <div className="flex flex-col justify-center px-6 py-8 sm:px-10 sm:py-10">
           {/* Brand strip (shown only when visual panel is hidden, e.g. mobile) */}
           <div className="pb-6 flex flex-col items-center md:hidden">
             <img src="/logo.png" alt="Vote+" className="h-14 w-auto object-contain mb-3" />
-            <p className="text-sm text-slate-500 dark:text-slate-400 text-center max-w-xs">
+            <p className="app-muted text-center max-w-xs">
               Comprehensive Election Management System
             </p>
           </div>
 
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Sign in</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-8">
+          <h1 className="app-page-title mb-1">Sign in</h1>
+          <p className="app-muted mb-6">
             Enter the credentials provided by your administrator.
           </p>
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleLogin} className="space-y-4">
             {/* Username */}
             <div className="space-y-1.5">
-              <Label htmlFor="username" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <Label htmlFor="username">
                 Username
               </Label>
               <div className="relative">
@@ -156,7 +157,7 @@ export default function Login() {
                   onChange={(e) => setUsername(e.target.value)}
                   required
                   disabled={loginMutation.isPending}
-                  className="pl-10 h-12 rounded-xl text-base bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
+                  className="pl-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
                   autoComplete="username"
                   autoCapitalize="none"
                   autoCorrect="off"
@@ -166,7 +167,7 @@ export default function Login() {
 
             {/* Password */}
             <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <Label htmlFor="password">
                 Password
               </Label>
               <div className="relative">
@@ -179,7 +180,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={loginMutation.isPending}
-                  className="pl-10 pr-12 h-12 rounded-xl text-base bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
+                  className="pl-10 pr-12 h-10 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
                   autoComplete="current-password"
                 />
                 <button
@@ -197,31 +198,14 @@ export default function Login() {
             {/* Submit */}
             <Button
               type="submit"
-              className="w-full h-12 rounded-xl text-base font-semibold mt-2 shadow-md shadow-primary/25 transition-transform active:scale-[0.98] hover:shadow-lg hover:shadow-primary/30"
+              className="w-full h-10 rounded-xl font-semibold mt-2 shadow-md shadow-primary/25 transition-transform active:scale-[0.98] hover:shadow-lg hover:shadow-primary/30"
               disabled={loginMutation.isPending}
             >
               {loginMutation.isPending ? 'Signing in…' : 'Sign In'}
             </Button>
-
-            <p className="text-center text-sm pt-1">
-              <Link href="/forgot-password" className="text-primary font-medium hover:underline">
-                Forgot password?
-              </Link>
-            </p>
           </form>
 
-          {/* Footer */}
-          <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-10">
-            Powered by{' '}
-            <a
-              href="https://d4dx.co"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-primary hover:underline"
-            >
-              D4DX.CO
-            </a>
-          </p>
+          <SiteFooter />
         </div>
       </div>
     </div>

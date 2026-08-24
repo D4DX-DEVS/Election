@@ -145,7 +145,7 @@ export default function Analytics({ electionId }: { electionId: string }) {
   return (
     <>
       {selectedElectionId && analytics && !analyticsLoading && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
           <div className="lg:col-span-2">
             {nomineesWithVotes && selectedElection && !nomineesLoading && (
               <ResultsTable
@@ -199,23 +199,23 @@ export default function Analytics({ electionId }: { electionId: string }) {
                 onChange={(event) => setPreparedBy(event.target.value)}
                 className="mt-1"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="app-helper mt-1">
                 This name appears above the signature line on the printed/exported sheet.
               </p>
             </div>
-            <div className="rounded-md bg-white p-3 text-xs text-gray-600">
+            <div className="rounded-md bg-white p-3 app-muted">
               {results?.nominees?.length || 0} nominees · {results?.totalBallots ?? 0} votes · {results?.turnout ?? 0}% turnout
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setResultAction(null)}>
+            <Button variant="outline" size="sm" onClick={() => setResultAction(null)}>
               Cancel
             </Button>
-            <Button onClick={handleGenerateResultDocument}>
+            <Button size="sm" onClick={handleGenerateResultDocument}>
               {resultAction === "print" ? (
-                <Printer className="h-4 w-4 mr-1.5" />
+                <Printer className="h-3.5 w-3.5 mr-1" />
               ) : (
-                <Download className="h-4 w-4 mr-1.5" />
+                <Download className="h-3.5 w-3.5 mr-1" />
               )}
               {resultAction === "print" ? "Print" : "Export PDF"}
             </Button>

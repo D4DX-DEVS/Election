@@ -25,7 +25,7 @@ export function DeleteModeBar({
 
   return (
     <div className="mb-2 flex flex-col gap-2 rounded-md border border-red-200/80 bg-red-50/70 px-2.5 py-2 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-xs font-medium text-red-900 sm:text-sm">
+      <p className="app-body font-medium text-red-900">
         {count > 0
           ? `${count} ${label} selected`
           : `Select ${label} to delete`}

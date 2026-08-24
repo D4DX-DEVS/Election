@@ -1,24 +1,26 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { format } from "date-fns";
 import { Link, useLocation } from "wouter";
 import { ElectionStatus, ElectionWithDetails } from "@/lib/types";
-import { DropdownMenuItem, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenuItem,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+} from "@/components/ui/dropdown-menu";
 import { RowSelectCheckbox } from "@/components/ui/row-select-checkbox";
-import { MoreHorizontal, Activity, Trash2, Pencil, Vote, Search, SlidersHorizontal } from "lucide-react";
-import { getElectionLabel, isElectionEditable, allowedStatusChanges } from "@/lib/electionHelpers";
-import { cn } from "@/lib/utils";
+import { Activity, Trash2, Pencil, SlidersHorizontal } from "lucide-react";
+import {
+  getElectionLabel,
+  isElectionEditable,
+  allowedStatusChanges,
+} from "@/lib/electionHelpers";
 import { EmptyState } from "@/components/ui/empty-state";
+import { cn } from "@/lib/utils";
+import { SearchInput } from "@/components/ui/search-input";
+import { AddButton } from "@/components/ui/add-button";
+import { ElectionCard } from "./ElectionCard";
 
 function EmptyElections() {
   return (
@@ -36,7 +38,6 @@ const STATUS_ACTION_LABELS: Record<string, string> = {
   archived: "Set as Archived",
 };
 
-/** Restoring an archived election reads as "Unarchive", not "Set as Completed". */
 function statusActionLabel(current: string | undefined, next: string) {
   if (current === "archived" && next === "completed") return "Unarchive";
   return STATUS_ACTION_LABELS[next];
@@ -46,37 +47,7 @@ function getElectionId(election: ElectionWithDetails) {
   return election._id?.toString() || election.id?.toString() || "";
 }
 
-/** Election logo with a neutral fallback tile when none is uploaded. */
-function ElectionLogo({
-  election,
-  className = "h-9 w-9",
-}: {
-  election: ElectionWithDetails;
-  className?: string;
-}) {
-  const url = election.logo?.url;
-  const label = getElectionLabel(election);
-  return (
-    <div
-      className={cn(
-        "shrink-0 overflow-hidden rounded-md border border-gray-200 bg-gray-50 flex items-center justify-center",
-        className
-      )}
-    >
-      {url ? (
-        <img
-          src={url}
-          alt={election.logo?.alt || label}
-          className="h-full w-full object-cover"
-        />
-      ) : (
-        <Vote className="h-1/2 w-1/2 text-gray-400" />
-      )}
-    </div>
-  );
-}
-
-function ElectionMobileActions({
+function ElectionRowActions({
   id,
   status,
   onDelete,
@@ -111,51 +82,68 @@ function ElectionMobileActions({
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+    <div className="flex items-center gap-0">
+      {editable && (
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 shrink-0"
-          aria-label="Election actions"
-          onClick={(e) => e.stopPropagation()}
+          className="h-6 w-6 shrink-0"
+          title="Edit"
+          aria-label="Edit election"
+          onClick={(e) => {
+            e.stopPropagation();
+            onNavigate(`/elections/${id}/edit`);
+          }}
         >
-          <MoreHorizontal className="h-4 w-4" />
+          <Pencil className="h-4 w-4" />
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-44" onClick={(e) => e.stopPropagation()}>
-        <DropdownMenuItem onClick={() => onNavigate(`/elections/${id}`)}>
-          Open election
-        </DropdownMenuItem>
-        {editable ? (
-          <DropdownMenuItem onClick={() => onNavigate(`/elections/${id}/edit`)}>
-            <Pencil className="mr-2 h-4 w-4" />
-            Edit
-          </DropdownMenuItem>
-        ) : (
-          <DropdownMenuItem onClick={() => onNavigate(`/elections/${id}/results`)}>
-            View results
-          </DropdownMenuItem>
-        )}
-        {statusOptions.length > 0 && <DropdownMenuSeparator />}
-        {statusOptions.map((next) => (
-          <DropdownMenuItem key={next} onClick={() => onStatusChange?.(id, next)}>
-            <Activity className="mr-2 h-4 w-4" /> {statusActionLabel(status, next)}
-          </DropdownMenuItem>
-        ))}
-        {canDelete && onDelete && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="text-red-600 focus:text-red-600"
-              onClick={() => onDelete(id)}
+      )}
+      {statusOptions.length > 0 && onStatusChange && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 shrink-0"
+              title="Change status"
+              aria-label="Change election status"
+              onClick={(e) => e.stopPropagation()}
             >
-              <Trash2 className="mr-2 h-4 w-4" /> Delete
-            </DropdownMenuItem>
-          </>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+              <Activity className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            className="w-44"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {statusOptions.map((next) => (
+              <DropdownMenuItem
+                key={next}
+                onClick={() => onStatusChange(id, next)}
+              >
+                {statusActionLabel(status, next)}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+      {canDelete && onDelete && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 shrink-0 text-red-600 hover:bg-red-50 hover:text-red-700"
+          title="Delete"
+          aria-label="Delete election"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(id);
+          }}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      )}
+    </div>
   );
 }
 
@@ -169,12 +157,12 @@ interface ElectionsTableProps {
   allSelected?: boolean;
   someSelected?: boolean;
   onToggleSelectAll?: () => void;
-  /** Toolbar search box — purely client-side filtering of the visible rows. */
   search?: string;
   onSearchChange?: (value: string) => void;
-  /** Toggles the (existing) advanced filters panel rendered by the parent page. */
   onToggleFilters?: () => void;
   filtersOpen?: boolean;
+  addHref?: string;
+  addLabel?: string;
 }
 
 export function ElectionsTable({
@@ -191,24 +179,22 @@ export function ElectionsTable({
   onSearchChange,
   onToggleFilters,
   filtersOpen,
+  addHref,
+  addLabel = "Add",
 }: ElectionsTableProps) {
   const [, navigate] = useLocation();
-  const showToolbar = onSearchChange || onToggleFilters;
+  const showToolbar = onSearchChange || onToggleFilters || addHref;
 
   return (
-    <Card className="border border-gray-200 shadow-none">
+    <Card className="overflow-hidden rounded-xl border border-gray-100 shadow-sm">
       {showToolbar && (
-        <CardHeader className="flex-row items-center gap-3 px-4 py-3 border-b border-gray-200 sm:px-5">
+        <CardHeader className="flex-row items-center gap-2.5 border-b border-gray-100 px-3 py-2 sm:px-4">
           {onSearchChange && (
-            <div className="relative min-w-0 flex-1 max-w-sm">
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <Input
-                value={search ?? ""}
-                onChange={(e) => onSearchChange(e.target.value)}
-                placeholder="Search elections"
-                className="h-9 pl-8 text-sm"
-              />
-            </div>
+            <SearchInput
+              value={search ?? ""}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder="Search elections"
+            />
           )}
           {onToggleFilters && (
             <Button
@@ -221,223 +207,79 @@ export function ElectionsTable({
               Filter
             </Button>
           )}
+          {addHref && (
+            <Link href={addHref}>
+              <AddButton title={addLabel} label={addLabel} />
+            </Link>
+          )}
         </CardHeader>
       )}
+
       <CardContent className="p-0">
         {elections.length === 0 && <EmptyElections />}
-        <div className={cn("lg:hidden mx-0 overflow-hidden rounded-xl border border-gray-200 bg-white", elections.length === 0 && "hidden")}>
-          {elections.map((election) => {
-            const id = getElectionId(election);
-            const editable = isElectionEditable(election.status);
-            const deletable = editable;
-            const dateLabel = election.electionDate
-              ? format(new Date(election.electionDate), "MMM d, yyyy")
-              : "—";
-            const meta = `${dateLabel} · ${election.nomineeCount ?? 0} nominees · ${election.voterCount ?? 0} voters`;
 
-            return (
-              <div
-                key={id}
-                className="flex items-center gap-3 p-4 cursor-pointer transition-colors hover:bg-primary/5 active:bg-primary/10 border-b border-gray-200 last:border-b-0"
-                onClick={() => navigate(`/elections/${id}`)}
+        {/* Selection-mode select-all row */}
+        {selectionMode && onToggleSelectAll && elections.length > 0 && (
+          <div className="flex items-center justify-between border-b px-3 py-2">
+            <div className="inline-flex items-center gap-2">
+              <RowSelectCheckbox
+                checked={
+                  allSelected ? true : someSelected ? "indeterminate" : false
+                }
+                onCheckedChange={() => onToggleSelectAll()}
+                aria-label="Select all deletable elections on this page"
+              />
+              <span
+                onClick={() => onToggleSelectAll()}
+                className="cursor-pointer select-none text-sm font-medium text-primary"
               >
-                {selectionMode && deletable && onToggleSelect && isSelected && (
+                {allSelected ? "Clear selection" : "Select all on this page"}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Election cards */}
+        {elections.length > 0 && (
+          <div className="flex flex-col gap-2 p-3">
+            {elections.map((election) => {
+              const id = getElectionId(election);
+              const deletable = isElectionEditable(election.status);
+
+              const selectionLeading =
+                selectionMode && deletable && onToggleSelect && isSelected ? (
                   <RowSelectCheckbox
                     checked={isSelected(id)}
                     onCheckedChange={() => onToggleSelect(id)}
                     aria-label={`Select ${getElectionLabel(election)}`}
                     onClick={(e) => e.stopPropagation()}
                   />
-                )}
-                <ElectionLogo election={election} className="h-10 w-10" />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-sm md:text-base font-medium text-gray-900 leading-tight truncate">
-                      {getElectionLabel(election)}
-                    </h3>
-                    <StatusBadge status={election.status} />
-                  </div>
-                  <p className="text-xs text-gray-400 mt-1 truncate">{meta}</p>
-                </div>
-                <ElectionMobileActions
-                  id={id}
-                  status={election.status}
-                  onDelete={selectionMode ? undefined : onDelete}
-                  onStatusChange={selectionMode ? undefined : onStatusChange}
-                  onNavigate={navigate}
-                  selectionMode={selectionMode && deletable}
-                  selected={isSelected?.(id)}
-                  onToggleSelect={onToggleSelect}
-                />
-              </div>
-            );
-          })}
-        </div>
+                ) : undefined;
 
-        <div className={cn("hidden overflow-x-auto lg:block", elections.length === 0 && "lg:hidden")}>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {selectionMode && onToggleSelectAll && (
-                  <TableHead className="bg-white w-6 px-1">
-                    <RowSelectCheckbox
-                      checked={allSelected ? true : someSelected ? "indeterminate" : false}
-                      onCheckedChange={() => onToggleSelectAll()}
-                      aria-label="Select all deletable elections on this page"
+              return (
+                <ElectionCard
+                  key={id}
+                  election={election}
+                  onClick={() => navigate(`/elections/${id}`)}
+                  selectionLeading={selectionLeading}
+                  actions={
+                    <ElectionRowActions
+                      id={id}
+                      status={election.status}
+                      onDelete={selectionMode ? undefined : onDelete}
+                      onStatusChange={selectionMode ? undefined : onStatusChange}
+                      onNavigate={navigate}
+                      selectionMode={selectionMode && deletable}
+                      selected={isSelected?.(id)}
+                      onToggleSelect={onToggleSelect}
                     />
-                  </TableHead>
-                )}
-                <TableHead className="bg-white">Election</TableHead>
-                <TableHead className="bg-white">Date</TableHead>
-                <TableHead className="bg-white">Positions</TableHead>
-                <TableHead className="bg-white">Nominees</TableHead>
-                <TableHead className="bg-white">Voters</TableHead>
-                <TableHead className="bg-white">Status</TableHead>
-                <TableHead className="bg-white text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {elections.map((election) => {
-                const electionId = getElectionId(election);
-                const editable = isElectionEditable(election.status);
-            const deletable = editable;
-                return (
-                <TableRow
-                  key={election._id || election.id}
-                  className="hover:bg-primary/5 cursor-pointer transition-colors duration-150"
-                  onClick={() => navigate(`/elections/${electionId}`)}
-                >
-                  {selectionMode && onToggleSelect && isSelected && (
-                    <TableCell className="w-6 px-1" onClick={(event) => event.stopPropagation()}>
-                      {deletable ? (
-                        <RowSelectCheckbox
-                          checked={isSelected(electionId)}
-                          onCheckedChange={() => onToggleSelect(electionId)}
-                          aria-label={`Select ${getElectionLabel(election)}`}
-                        />
-                      ) : null}
-                    </TableCell>
-                  )}
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-3">
-                      <ElectionLogo election={election} />
-                      <span className="truncate">{getElectionLabel(election)}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {format(new Date(election.electionDate), 'yyyy-MM-dd')}
-                  </TableCell>
-                  <TableCell>
-                    {election.numberToBeElected}
-                  </TableCell>
-                  <TableCell>
-                    {election.nomineeCount ?? 0}
-                  </TableCell>
-                  <TableCell>
-                    {election.voterCount ?? 0}
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={election.status} />
-                  </TableCell>
-                  <TableCell className="text-right" onClick={(event) => event.stopPropagation()}>
-                    {!selectionMode && (
-                      <div className="flex items-center justify-end gap-1">
-                    {editable ? (
-                      <Link href={`/elections/${electionId}/edit`}>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" title="Edit" aria-label="Edit election">
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                    ) : (
-                      <Link href={`/elections/${electionId}/results`}>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" title="View results" aria-label="View results">
-                          <Vote className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                    )}
-                    {deletable && onDelete && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-red-600 hover:text-red-900 hover:bg-red-50"
-                        onClick={() => onDelete(electionId)}
-                        title="Delete"
-                        aria-label="Delete election"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" title="More actions" aria-label="More actions">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {allowedStatusChanges(election.status).map((next) => (
-                          <DropdownMenuItem
-                            key={next}
-                            onClick={() => onStatusChange?.(electionId, next)}
-                          >
-                            <Activity className="mr-2 h-4 w-4" />{" "}
-                            {statusActionLabel(election.status ?? undefined, next)}
-                          </DropdownMenuItem>
-                        ))}
-                        {deletable && onDelete && (
-                          <DropdownMenuItem
-                            className="text-red-600 focus:text-red-600"
-                            onClick={() => onDelete(electionId)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" /> Delete
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                      </div>
-                    )}
-                  </TableCell>
-                </TableRow>
-              );})}
-            </TableBody>
-          </Table>
-        </div>
+                  }
+                />
+              );
+            })}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  switch (status) {
-    case 'active':
-      return (
-        <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
-          Active
-        </Badge>
-      );
-    case 'completed':
-      return (
-        <Badge variant="outline" className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-          Completed
-        </Badge>
-      );
-    case 'draft':
-      return (
-        <Badge variant="outline" className="bg-gray-100 text-gray-800 hover:bg-primary/10">
-          Draft
-        </Badge>
-      );
-    case 'archived':
-      return (
-        <Badge variant="outline" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
-          Archived
-        </Badge>
-      );
-    default:
-      return (
-        <Badge variant="outline" className="bg-gray-100 text-gray-800 hover:bg-primary/10">
-          {status}
-        </Badge>
-      );
-  }
 }

@@ -16,6 +16,7 @@ const ElectionWorkspace = lazy(() => import("@/pages/ElectionWorkspace"));
 const ElectionResults = lazy(() => import("@/pages/ElectionResults"));
 const Voters = lazy(() => import("@/pages/Voters"));
 const Franchises = lazy(() => import("@/pages/Franchises"));
+const FranchiseDetail = lazy(() => import("@/pages/FranchiseDetail"));
 const Admins = lazy(() => import("@/pages/Admins"));
 const Settings = lazy(() => import("@/pages/Settings"));
 const Profile = lazy(() => import("@/pages/Profile"));
@@ -304,6 +305,7 @@ function Router() {
           <Route path="/voters" component={() => <Voters />} />
           <Route path="/analytics" component={() => <RedirectTo path="/elections" />} />
           <Route path="/election-groups" component={() => <RedirectTo path="/elections" />} />
+          <Route path="/franchises/:id" component={FranchiseDetail} />
           <Route path="/franchises" component={Franchises} />
           <Route path="/admins" component={Admins} />
           <Route path="/system-health" component={SystemHealth} />

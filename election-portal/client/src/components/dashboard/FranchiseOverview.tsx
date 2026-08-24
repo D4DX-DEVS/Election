@@ -1,74 +1,74 @@
-import { Progress } from "@/components/ui/progress";
 import { DashboardStats } from "@/lib/types";
-import { Globe, Phone } from "lucide-react";
+import { useLocation } from "wouter";
+import { ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface FranchiseOverviewProps {
   stats: Pick<DashboardStats, "totalFranchises" | "totalElections" | "franchiseDistribution">;
 }
 
-function formatWebsiteHref(url: string) {
-  const trimmed = url.trim();
-  if (!trimmed) return "";
-  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
-}
-
 export function FranchiseOverview({ stats }: FranchiseOverviewProps) {
+  const [, navigate] = useLocation();
   const franchises = stats.franchiseDistribution;
   const hasDistribution = franchises.some((f) => (f.electionCount ?? 0) > 0 || f.percentage > 0);
 
   return (
-    <div className="space-y-3 md:space-y-4">
-      <h3 className="text-base md:text-lg font-medium text-gray-900">Franchises</h3>
+    <div className="space-y-3">
+      <h3 className="app-section-title">Franchises</h3>
 
       {!hasDistribution && franchises.length > 0 && (
-        <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-2.5 md:px-4 md:py-3 text-xs md:text-sm text-gray-600">
+        <p className="app-helper">
           Election distribution will appear once elections are assigned to franchises.
-        </div>
+        </p>
       )}
 
       {franchises.length > 0 ? (
-        franchises.map((franchise) => (
-          <div
-            key={franchise.id || franchise.name}
-            className="rounded-lg border border-gray-200 bg-white p-5 space-y-4"
-          >
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div>
-                <p className="text-sm md:text-base font-medium text-gray-900">{franchise.name}</p>
-                <p className="text-xs text-gray-500">
-                  {franchise.electionCount ?? 0} election(s)
-                  {hasDistribution ? ` · ${franchise.percentage}% of total` : ""}
-                </p>
+        <div className="flex flex-col gap-1.5">
+          {franchises.map((franchise) => {
+            const clickable = !!franchise.id;
+            const electionLabel =
+              `${franchise.electionCount ?? 0} election${(franchise.electionCount ?? 0) !== 1 ? "s" : ""}` +
+              (hasDistribution && (franchise.percentage ?? 0) > 0 ? ` · ${franchise.percentage}%` : "");
+
+            return (
+              <div
+                key={franchise.id || franchise.name}
+                role={clickable ? "button" : undefined}
+                tabIndex={clickable ? 0 : undefined}
+                aria-label={clickable ? `Open ${franchise.name}` : undefined}
+                onClick={clickable ? () => navigate(`/franchises/${franchise.id}`) : undefined}
+                onKeyDown={
+                  clickable
+                    ? (e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          navigate(`/franchises/${franchise.id}`);
+                        }
+                      }
+                    : undefined
+                }
+                className={cn(
+                  "flex items-start gap-3 rounded-xl border border-gray-100 bg-white px-3 py-2.5 shadow-sm transition-all duration-150",
+                  clickable &&
+                    "cursor-pointer hover:border-primary/20 hover:shadow-md active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                )}
+              >
+                <div className="min-w-0 flex-1">
+                  {/* Name — breaks naturally; never truncated */}
+                  <p className="break-words text-sm font-semibold leading-snug text-gray-900">
+                    {franchise.name}
+                  </p>
+                  <p className="mt-0.5 text-xs text-gray-500">{electionLabel}</p>
+                </div>
+                {clickable && (
+                  <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
+                )}
               </div>
-            </div>
-
-            {hasDistribution && (
-              <Progress value={franchise.percentage} className="h-2" />
-            )}
-
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-              {franchise.websiteUrl && (
-                <a
-                  href={formatWebsiteHref(franchise.websiteUrl)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center font-medium text-blue-600 hover:underline"
-                >
-                  <Globe className="h-4 w-4 mr-1 shrink-0" />
-                  Website
-                </a>
-              )}
-              {franchise.contactNumber && (
-                <span className="inline-flex items-center font-medium text-gray-700">
-                  <Phone className="h-4 w-4 mr-1 shrink-0" />
-                  {franchise.contactNumber}
-                </span>
-              )}
-            </div>
-          </div>
-        ))
+            );
+          })}
+        </div>
       ) : (
-        <p className="text-sm text-gray-500">No franchises yet.</p>
+        <p className="app-muted">No franchises yet.</p>
       )}
     </div>
   );

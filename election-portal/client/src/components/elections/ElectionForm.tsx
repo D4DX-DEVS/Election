@@ -126,7 +126,7 @@ export function ElectionForm({
 
   return (
     <Card>
-      <CardContent className="p-4 sm:p-6">
+      <CardContent className="p-4">
         <form
           onSubmit={handleSubmit(
             (values) => {
@@ -154,7 +154,7 @@ export function ElectionForm({
             }
           )}
         >
-          <div className="mb-5 grid grid-cols-1 gap-4 md:mb-6 md:grid-cols-2 md:gap-6">
+          <div className="mb-3 grid grid-cols-1 gap-2.5 md:mb-4 md:grid-cols-2 md:gap-3">
             <div>
               <Label htmlFor="organization">Election Title</Label>
               <Input
@@ -164,12 +164,12 @@ export function ElectionForm({
                 className="mt-1"
               />
               {formState.errors.organization && (
-                <p className="text-sm text-red-500 mt-1">{formState.errors.organization.message}</p>
+                <p className="app-error mt-1">{formState.errors.organization.message}</p>
               )}
             </div>
           </div>
 
-          <div className="mb-5 grid grid-cols-1 gap-4 md:mb-6 md:grid-cols-3 md:gap-6">
+          <div className="mb-3 grid grid-cols-1 gap-2.5 md:mb-4 md:grid-cols-3 md:gap-3">
             <div>
               <Label htmlFor="electionDate">Election Date</Label>
               <Input
@@ -182,7 +182,7 @@ export function ElectionForm({
                 className="mt-1"
               />
               {formState.errors.electionDate && (
-                <p className="text-sm text-red-500 mt-1">{formState.errors.electionDate.message}</p>
+                <p className="app-error mt-1">{formState.errors.electionDate.message}</p>
               )}
             </div>
             <div>
@@ -196,9 +196,9 @@ export function ElectionForm({
                 }
                 className="mt-1"
               />
-              <p className="text-xs text-gray-500 mt-1">Set this to run voting across multiple days</p>
+              <p className="app-helper mt-1">Set this to run voting across multiple days</p>
               {formState.errors.endDate && (
-                <p className="text-sm text-red-500 mt-1">{formState.errors.endDate.message}</p>
+                <p className="app-error mt-1">{formState.errors.endDate.message}</p>
               )}
             </div>
             <div>
@@ -211,11 +211,11 @@ export function ElectionForm({
                 {...register("numberToBeElected", { valueAsNumber: true })}
                 className="mt-1"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="app-helper mt-1">
                 Number of positions to be elected
               </p>
               {formState.errors.numberToBeElected && (
-                <p className="text-sm text-red-500 mt-1">{formState.errors.numberToBeElected.message}</p>
+                <p className="app-error mt-1">{formState.errors.numberToBeElected.message}</p>
               )}
             </div>
             <div>
@@ -237,7 +237,7 @@ export function ElectionForm({
                   <SelectItem value="up_to">Up to the number of positions</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 app-helper">
                 {ballotSelectionRule === "up_to"
                   ? `A voter may select up to ${numberToBeElected || 1} nominee${(numberToBeElected || 1) !== 1 ? "s" : ""}, but not more.`
                   : `A voter must select exactly ${numberToBeElected || 1} nominee${(numberToBeElected || 1) !== 1 ? "s" : ""} to submit.`}
@@ -259,7 +259,7 @@ export function ElectionForm({
                 </SelectContent>
               </Select>
               {formState.errors.nomineeDisplayOrder && (
-                <p className="text-sm text-red-500 mt-1">{formState.errors.nomineeDisplayOrder.message}</p>
+                <p className="app-error mt-1">{formState.errors.nomineeDisplayOrder.message}</p>
               )}
             </div>
             <div>
@@ -279,7 +279,7 @@ export function ElectionForm({
                   <SelectItem value="full">Result with Score &amp; Percentage</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-gray-500 mt-1">Controls how much detail published results show to voters</p>
+              <p className="app-helper mt-1">Controls how much detail published results show to voters</p>
             </div>
             <div>
               <Label htmlFor="resultGenerationMode">Result Generation</Label>
@@ -295,13 +295,13 @@ export function ElectionForm({
                   <SelectItem value="auto">Automatic (publish as soon as election completes)</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="app-helper mt-1">
                 Manual requires the admin to click Publish after the election ends
               </p>
             </div>
           </div>
 
-          <div className="mb-5 grid grid-cols-1 gap-4 md:mb-6 md:grid-cols-2 md:gap-6">
+          <div className="mb-3 grid grid-cols-1 gap-2.5 md:mb-4 md:grid-cols-2 md:gap-3">
             <div>
               <Label htmlFor="maxVoters">Max Voters to Participate</Label>
               <Input
@@ -312,17 +312,17 @@ export function ElectionForm({
                 {...register("maxVoters", { valueAsNumber: true })}
                 className="mt-1"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="app-helper mt-1">
                 How many voters can vote in this election, not your total voter list (0 = no limit)
               </p>
               {formState.errors.maxVoters && (
-                <p className="text-sm text-red-500 mt-1">{formState.errors.maxVoters.message}</p>
+                <p className="app-error mt-1">{formState.errors.maxVoters.message}</p>
               )}
             </div>
           </div>
 
           {/* Gender-based selection owns its minimums, so they stay grouped with the toggle */}
-          <div className="mb-5 md:mb-6">
+          <div className="mb-3 md:mb-4">
             <div className="flex items-center space-x-2">
               <Controller
                 name="genderBasedSelection"
@@ -336,15 +336,15 @@ export function ElectionForm({
                 )}
               />
               <div>
-                <Label htmlFor="genderBasedSelection" className="font-medium text-gray-700 cursor-pointer">
+                <Label htmlFor="genderBasedSelection" className="cursor-pointer">
                   Gender-based selection
                 </Label>
-                <p className="text-xs text-gray-500">Collect and enforce male/female requirements for this election</p>
+                <p className="app-helper">Collect and enforce male/female requirements for this election</p>
               </div>
             </div>
 
             {watch("genderBasedSelection") === true && (
-              <div className="mt-4 ml-6 grid grid-cols-1 gap-4 border-l-2 border-gray-100 pl-4 md:grid-cols-2 md:gap-6">
+              <div className="mt-3 ml-6 grid grid-cols-1 gap-2.5 border-l-2 border-gray-100 pl-4 md:grid-cols-2 md:gap-3">
                 <div>
                   <Label htmlFor="maleMinimum">Male Minimum</Label>
                   <Input
@@ -355,9 +355,9 @@ export function ElectionForm({
                     {...register("maleMinimum", { valueAsNumber: true })}
                     className="mt-1"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Minimum male nominees that must be elected</p>
+                  <p className="app-helper mt-1">Minimum male nominees that must be elected</p>
                   {formState.errors.maleMinimum && (
-                    <p className="text-sm text-red-500 mt-1">{formState.errors.maleMinimum.message}</p>
+                    <p className="app-error mt-1">{formState.errors.maleMinimum.message}</p>
                   )}
                 </div>
                 <div>
@@ -370,16 +370,16 @@ export function ElectionForm({
                     {...register("femaleMinimum", { valueAsNumber: true })}
                     className="mt-1"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Minimum female nominees that must be elected</p>
+                  <p className="app-helper mt-1">Minimum female nominees that must be elected</p>
                   {formState.errors.femaleMinimum && (
-                    <p className="text-sm text-red-500 mt-1">{formState.errors.femaleMinimum.message}</p>
+                    <p className="app-error mt-1">{formState.errors.femaleMinimum.message}</p>
                   )}
                 </div>
               </div>
             )}
           </div>
 
-          <div className="mb-5 grid grid-cols-1 gap-4 md:mb-6 md:grid-cols-2 md:gap-6">
+          <div className="mb-3 grid grid-cols-1 gap-2.5 md:mb-4 md:grid-cols-2 md:gap-3">
             <div className="flex items-center space-x-2">
               <Controller
                 name="selfRegOpen"
@@ -393,10 +393,10 @@ export function ElectionForm({
                 )}
               />
               <div>
-                <Label htmlFor="selfRegOpen" className="font-medium text-gray-700 cursor-pointer">
+                <Label htmlFor="selfRegOpen" className="cursor-pointer">
                   Allow Self Registration
                 </Label>
-                <p className="text-xs text-gray-500">Enable voters to self-register for this election</p>
+                <p className="app-helper">Enable voters to self-register for this election</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -412,10 +412,10 @@ export function ElectionForm({
                 )}
               />
               <div>
-                <Label htmlFor="votingOpen" className="font-medium text-gray-700 cursor-pointer">
+                <Label htmlFor="votingOpen" className="cursor-pointer">
                   Open Voting
                 </Label>
-                <p className="text-xs text-gray-500">
+                <p className="app-helper">
                   {votingOpenValue
                     ? "Election will be marked Active while voting is open."
                     : "Enable voting as soon as election is created"}
@@ -435,10 +435,10 @@ export function ElectionForm({
                 )}
               />
               <div>
-                <Label htmlFor="adminVotingDetailsEnabled" className="font-medium text-gray-700 cursor-pointer">
+                <Label htmlFor="adminVotingDetailsEnabled" className="cursor-pointer">
                   Admin Voting Details
                 </Label>
-                <p className="text-xs text-gray-500">
+                <p className="app-helper">
                   Let admins see who each voter selected. Never shown to voters or included in printed results.
                 </p>
               </div>
@@ -456,10 +456,10 @@ export function ElectionForm({
                 )}
               />
               <div>
-                <Label htmlFor="allowRevote" className="font-medium text-gray-700 cursor-pointer">
+                <Label htmlFor="allowRevote" className="cursor-pointer">
                   Allow Revote
                 </Label>
-                <p className="text-xs text-gray-500">
+                <p className="app-helper">
                   Let voters change their vote while voting is still open. The new vote replaces the old one.
                 </p>
               </div>
@@ -477,10 +477,10 @@ export function ElectionForm({
                 )}
               />
               <div>
-                <Label htmlFor="manualWinnerSelection" className="font-medium text-gray-700 cursor-pointer">
+                <Label htmlFor="manualWinnerSelection" className="cursor-pointer">
                   Manual Winner Selection
                 </Label>
-                <p className="text-xs text-gray-500">
+                <p className="app-helper">
                   Choose winners manually after voting ends instead of auto-calculating from vote counts.
                 </p>
               </div>
@@ -488,7 +488,7 @@ export function ElectionForm({
           </div>
 
           {showFranchiseSelect && (
-            <div className="mb-6">
+            <div className="mb-4">
               <Label htmlFor="franchiseId">Franchise</Label>
               <Select
                 onValueChange={(value) => {
@@ -515,12 +515,12 @@ export function ElectionForm({
                 </SelectContent>
               </Select>
               {formState.errors.franchiseId && (
-                <p className="text-sm text-red-500 mt-1">{formState.errors.franchiseId.message}</p>
+                <p className="app-error mt-1">{formState.errors.franchiseId.message}</p>
               )}
             </div>
           )}
 
-          <div className="mb-6">
+          <div className="mb-4">
             <Label htmlFor="logo">Election Logo (Optional)</Label>
             <div className="mt-1 flex flex-wrap items-center gap-3">
               {/* Preview: the newly picked file, else the logo already saved. */}
@@ -557,11 +557,11 @@ export function ElectionForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
-            <Button type="button" variant="outline" onClick={onCancel} className="w-full sm:w-auto">
+          <div className="app-form-actions">
+            <Button type="button" variant="outline" onClick={onCancel}>
               Cancel
             </Button>
-            <Button type="submit" disabled={formState.isSubmitting} className="w-full sm:w-auto">
+            <Button type="submit" disabled={formState.isSubmitting}>
               {initialValues ? "Update Election" : "Create Election"}
             </Button>
           </div>

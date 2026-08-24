@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Link } from "wouter";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ElectionFilters } from "@/components/elections/ElectionFilters";
 import { ElectionsTable } from "@/components/elections/ElectionsTable";
-import { Button } from "@/components/ui/button";
-import { PlusIcon, AlertCircle, Vote, Users, User, CheckCircle2 } from "lucide-react";
+import { AlertCircle, Vote, Users, User, CheckCircle2 } from "lucide-react";
 import { ElectionFilter, ElectionWithDetails, Franchise, Pagination } from "@/lib/types";
 import { useCallback } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -30,13 +28,13 @@ function SummaryStat({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+    <div className="flex items-center gap-2.5 rounded-lg border border-gray-200 bg-white px-3 py-2">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-lg font-semibold leading-none text-gray-900">{value}</p>
-        <p className="mt-1 truncate text-xs text-gray-500">{label}</p>
+        <p className="app-metric-compact">{value}</p>
+        <p className="app-helper truncate">{label}</p>
       </div>
     </div>
   );
@@ -259,18 +257,10 @@ export default function Elections() {
       <PageHeader
         title="Elections"
         description="Manage elections, nominees, and voters"
-        actions={userRole !== "election_admin" ? (
-          <Link href="/elections/create">
-          <Button size="sm">
-            <PlusIcon className="mr-1 h-3.5 w-3.5" />
-            Add election
-          </Button>
-          </Link>
-        ) : undefined}
       />
 
       {!electionsLoading && (
-        <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="mb-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
           <SummaryStat label="Total elections" value={totalElections} icon={<Vote className="h-4 w-4" />} />
           <SummaryStat label="Total nominees" value={totalNominees} icon={<Users className="h-4 w-4" />} />
           <SummaryStat label="Total voters" value={totalVoters} icon={<User className="h-4 w-4" />} />
@@ -318,6 +308,8 @@ export default function Elections() {
             onSearchChange={setSearch}
             onToggleFilters={userRole === 'super_admin' ? () => setFiltersOpen((v) => !v) : undefined}
             filtersOpen={filtersOpen}
+            addHref={userRole !== "election_admin" ? "/elections/create" : undefined}
+            addLabel="Add election"
           />
           <PageBottom>
           {electionsPagination && (

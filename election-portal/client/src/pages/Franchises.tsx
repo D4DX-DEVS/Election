@@ -1,12 +1,12 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -15,14 +15,17 @@ import { DeleteModeButton } from "@/components/ui/delete-mode-button";
 import { RowSelectCheckbox } from "@/components/ui/row-select-checkbox";
 import { useBulkDeleteMode } from "@/hooks/useBulkDeleteMode";
 import { deleteByIds } from "@/lib/bulkDelete";
-import { Plus, Edit, Trash2, Globe, Phone, Image, Search, Building2, UsersRound } from "lucide-react";
+import { Pencil, Trash2, Image, Search, Building2, UsersRound } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageContent } from "@/components/layout/PageContent";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { Pagination } from "@/lib/types";
 import { getStoredUser } from "@/lib/authUser";
 import { cn, isLettersOnlyName } from "@/lib/utils";
+import { CompactList, CompactListRow, CompactListPrimary, CompactListSecondary, CompactListStatus, CompactListLeading, CompactListActions } from "@/components/ui/compact-list";
 import { EmptyState } from "@/components/ui/empty-state";
+import { SearchInput } from "@/components/ui/search-input";
+import { AddButton } from "@/components/ui/add-button";
 
 interface Franchise {
   _id: string;
@@ -78,6 +81,7 @@ function resolveFranchiseContact(franchise: Franchise) {
 export default function Franchises() {
   // Franchise admins only manage their own franchise — the API scopes the list
   // and the update; here we hide the create/delete/admin actions they can't use.
+  const [, navigate] = useLocation();
   const currentUser = getStoredUser();
   const isSuperAdmin = currentUser?.role === "super_admin";
 
@@ -105,15 +109,6 @@ export default function Franchises() {
   // Admin management state
   const [isAdminDialogOpen, setIsAdminDialogOpen] = useState(false);
   const [selectedFranchise, setSelectedFranchise] = useState<Franchise | null>(null);
-  const [expandedFranchiseIds, setExpandedFranchiseIds] = useState<Set<string>>(new Set());
-  const toggleFranchiseExpanded = (id: string) => {
-    setExpandedFranchiseIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
   const [adminFormData, setAdminFormData] = useState<AdminFormData>({
     username: "",
     fullName: "",
@@ -577,15 +572,15 @@ export default function Franchises() {
   return (
     <MainLayout>
       <PageContent>
-            <div className="mb-5 sm:mb-6">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                    <Building2 className="h-5 w-5" />
+            <div className="mb-3 sm:mb-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Building2 className="h-4 w-4" />
                   </div>
                   <div>
                     <h1 className="app-page-title">{isSuperAdmin ? "Franchises" : "My Franchise"}</h1>
-                    <p className="text-sm text-slate-500">
+                    <p className="app-page-description">
                       {isSuperAdmin
                         ? "Manage your franchises and their settings"
                         : "View and manage your franchise settings"}
@@ -593,14 +588,6 @@ export default function Franchises() {
                   </div>
                 </div>
                 <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                  {isSuperAdmin && (
-                    <DialogTrigger asChild>
-                      <Button size="sm" className="w-full shrink-0 sm:w-auto">
-                        <Plus className="mr-1 h-3.5 w-3.5" />
-                        Add franchise
-                      </Button>
-                    </DialogTrigger>
-                  )}
                 <DialogContent className="sm:max-w-[525px]">
                   <DialogHeader>
                     <DialogTitle>Create New Franchise</DialogTitle>
@@ -609,8 +596,8 @@ export default function Franchises() {
                     </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleCreateSubmit}>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid gap-2">
+                    <div className="app-form-fields">
+                      <div className="grid gap-1">
                         <Label htmlFor="name">Franchise Name</Label>
                         <Input
                           id="name"
@@ -621,7 +608,7 @@ export default function Franchises() {
                           placeholder="Enter franchise name"
                         />
                       </div>
-                      <div className="grid gap-2">
+                      <div className="grid gap-1">
                         <Label htmlFor="logo">Logo Image</Label>
                         <Input
                           id="logo"
@@ -630,10 +617,10 @@ export default function Franchises() {
                           accept="image/*"
                           onChange={handleCreateFormChange}
                         />
-                        <p className="text-xs text-gray-500">Upload a logo image for the franchise (JPG, PNG, SVG, etc.)</p>
+                        <p className="app-helper">Upload a logo image for the franchise (JPG, PNG, SVG, etc.)</p>
                       </div>
 
-                      <div className="grid gap-2">
+                      <div className="grid gap-1">
                         <Label htmlFor="websiteUrl">Website URL</Label>
                         <Input
                           id="websiteUrl"
@@ -643,7 +630,7 @@ export default function Franchises() {
                           placeholder="https://example.com"
                         />
                       </div>
-                      <div className="grid gap-2">
+                      <div className="grid gap-1">
                         <Label htmlFor="contactNumber">Contact Number</Label>
                         <Input
                           id="contactNumber"
@@ -653,7 +640,7 @@ export default function Franchises() {
                           placeholder="+1 (555) 123-4567"
                         />
                       </div>
-                      <div className="grid gap-2">
+                      <div className="grid gap-1">
                         <Label htmlFor="contactEmail">Contact Email</Label>
                         <Input
                           id="contactEmail"
@@ -695,8 +682,8 @@ export default function Franchises() {
                     </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleEditSubmit}>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid gap-2">
+                    <div className="app-form-fields">
+                      <div className="grid gap-1">
                         <Label htmlFor="edit-name">Franchise Name</Label>
                         <Input
                           id="edit-name"
@@ -707,7 +694,7 @@ export default function Franchises() {
                           placeholder="Enter franchise name"
                         />
                       </div>
-                      <div className="grid gap-2">
+                      <div className="grid gap-1">
                         <Label htmlFor="edit-logo">Logo Image</Label>
                         <Input
                           id="edit-logo"
@@ -716,10 +703,10 @@ export default function Franchises() {
                           accept="image/*"
                           onChange={handleEditFormChange}
                         />
-                        <p className="text-xs text-gray-500">Upload a new logo image or leave empty to keep the current one</p>
+                        <p className="app-helper">Upload a new logo image or leave empty to keep the current one</p>
                       </div>
 
-                      <div className="grid gap-2">
+                      <div className="grid gap-1">
                         <Label htmlFor="edit-websiteUrl">Website URL</Label>
                         <Input
                           id="edit-websiteUrl"
@@ -729,7 +716,7 @@ export default function Franchises() {
                           placeholder="https://example.com"
                         />
                       </div>
-                      <div className="grid gap-2">
+                      <div className="grid gap-1">
                         <Label htmlFor="edit-contactNumber">Contact Number</Label>
                         <Input
                           id="edit-contactNumber"
@@ -739,7 +726,7 @@ export default function Franchises() {
                           placeholder="+1 (555) 123-4567"
                         />
                       </div>
-                      <div className="grid gap-2">
+                      <div className="grid gap-1">
                         <Label htmlFor="edit-contactEmail">Contact Email</Label>
                         <Input
                           id="edit-contactEmail"
@@ -750,14 +737,14 @@ export default function Franchises() {
                           placeholder="contact@example.com"
                         />
                       </div>
-                      <div className="grid gap-2">
+                      <div className="grid gap-1">
                         <Label htmlFor="edit-status">Status</Label>
                         <select
                           id="edit-status"
                           name="status"
                           value={editFormData.status}
                           onChange={handleEditFormChange}
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          className="app-input-text flex h-9 w-full rounded-xl border border-input bg-white px-3 py-1.5 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         >
                           <option value="active">Active</option>
                           <option value="inactive">Inactive</option>
@@ -798,11 +785,11 @@ export default function Franchises() {
                     </DialogDescription>
                   </DialogHeader>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Current Admins List */}
                     <div>
                       <div className="mb-3 flex items-center justify-between gap-2">
-                        <h3 className="font-medium text-lg">Current Administrators</h3>
+                        <h3 className="app-section-title">Current Administrators</h3>
                         <DeleteModeButton
                           active={adminSelection.deleteMode}
                           onClick={() =>
@@ -827,29 +814,27 @@ export default function Franchises() {
                       {franchiseAdmins.length === 0 ? (
                         <p className="text-gray-500 italic">No administrators found for this franchise.</p>
                       ) : (
-                        <div className="space-y-3">
+                        <CompactList>
                           {franchiseAdmins.map((admin) => (
-                            <div 
-                              key={admin._id} 
-                              className="flex items-center justify-between bg-white p-3 rounded-md gap-2"
-                            >
+                            <CompactListRow key={admin._id}>
                               {adminSelection.showSelectors && (
+                              <CompactListLeading>
                               <RowSelectCheckbox
                                 checked={adminSelection.isSelected(admin._id)}
                                 onCheckedChange={() => adminSelection.toggle(admin._id)}
                                 aria-label={`Select ${admin.fullName || admin.username}`}
                               />
+                              </CompactListLeading>
                               )}
-                              <div className="min-w-0 flex-1">
-                                <div className="font-medium">{admin.fullName}</div>
-                                <div className="text-sm text-gray-500">{admin.email}</div>
-                                <div className="text-xs text-gray-400">Username: {admin.username}</div>
-                              </div>
-                              <div className="flex space-x-2">
+                              <CompactListPrimary>{admin.fullName || admin.username}</CompactListPrimary>
+                              <CompactListSecondary>{admin.email}</CompactListSecondary>
+                              <CompactListActions>
                                 <Button
                                   variant="ghost"
-                                  size="sm"
-                                  className="text-blue-500 hover:text-blue-700"
+                                  size="icon"
+                                  className="h-6 w-6 text-blue-500 hover:text-blue-700"
+                                  title="Reset password"
+                                  aria-label="Reset password"
                                   onClick={() => handleResetAdminPassword(admin._id)}
                                 >
                                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
@@ -860,26 +845,27 @@ export default function Franchises() {
                                 {!adminSelection.deleteMode && (
                                 <Button
                                   variant="ghost"
-                                  size="sm"
-                                  className="text-red-600 hover:text-red-900 hover:bg-red-50"
+                                  size="icon"
+                                  className="h-6 w-6 text-red-600 hover:text-red-900 hover:bg-red-50"
+                                  title="Delete"
+                                  aria-label="Delete administrator"
                                   onClick={() => handleDeleteAdmin(admin._id)}
                                 >
-                                  <Trash2 className="h-4 w-4 mr-1" />
-                                  Delete
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
                                 )}
-                              </div>
-                            </div>
+                              </CompactListActions>
+                            </CompactListRow>
                           ))}
-                        </div>
+                        </CompactList>
                       )}
                     </div>
                     
                     {/* Add New Admin Form */}
                     <div>
-                      <h3 className="font-medium text-lg mb-3">Add New Administrator</h3>
-                      <form onSubmit={handleAdminSubmit} className="space-y-4">
-                        <div className="grid gap-2">
+                      <h3 className="app-section-title mb-3">Add New Administrator</h3>
+                      <form onSubmit={handleAdminSubmit} className="app-form-fields">
+                        <div className="grid gap-1">
                           <Label htmlFor="username">Username</Label>
                           <Input
                             id="username"
@@ -890,7 +876,7 @@ export default function Franchises() {
                             placeholder="admin_username"
                           />
                         </div>
-                        <div className="grid gap-2">
+                        <div className="grid gap-1">
                           <Label htmlFor="fullName">Full Name</Label>
                           <Input
                             id="fullName"
@@ -901,7 +887,7 @@ export default function Franchises() {
                             placeholder="John Doe"
                           />
                         </div>
-                        <div className="grid gap-2">
+                        <div className="grid gap-1">
                           <Label htmlFor="password">Password</Label>
                           <Input
                             id="password"
@@ -924,7 +910,7 @@ export default function Franchises() {
                     </div>
                   </div>
                   
-                  <DialogFooter className="mt-6">
+                  <DialogFooter>
                     <Button 
                       variant="outline" 
                       onClick={() => setIsAdminDialogOpen(false)}
@@ -952,8 +938,8 @@ export default function Franchises() {
                       newPassword
                     });
                   }}>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid gap-2">
+                    <div className="app-form-fields">
+                      <div className="grid gap-1">
                         <Label htmlFor="newPassword">New Password</Label>
                         <Input
                           id="newPassword"
@@ -965,7 +951,7 @@ export default function Franchises() {
                           required
                           minLength={6}
                         />
-                        <p className="text-xs text-gray-500">Password must be at least 6 characters long.</p>
+                        <p className="app-helper">Password must be at least 6 characters long.</p>
                       </div>
                     </div>
                     
@@ -990,276 +976,119 @@ export default function Franchises() {
             </div>
 
             <Card className="border-0 shadow-none bg-transparent lg:border lg:bg-white lg:shadow-card">
-              <CardHeader className="lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:px-6 lg:py-4 lg:border-b lg:border-slate-100 hidden lg:flex">
+              <CardHeader className="flex flex-col gap-3 border-b border-slate-100 px-3 py-3 lg:flex-row lg:items-center lg:justify-between lg:px-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <UsersRound className="h-5 w-5" />
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <UsersRound className="h-4 w-4" />
                   </div>
                   <div>
-                    <CardTitle className="text-base font-semibold text-slate-900">All Franchises</CardTitle>
+                    <CardTitle>All Franchises</CardTitle>
                     <CardDescription>
                       View and manage all franchises in your election system
                     </CardDescription>
                   </div>
                 </div>
-                <div className="relative w-full max-w-xs">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <Input
+                <div className="flex items-center gap-2">
+                  <SearchInput
                     placeholder="Search franchise..."
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
-                    className="h-10 pl-9"
                   />
+                  {isSuperAdmin && (
+                    <AddButton
+                      title="Add franchise"
+                      label="Add franchise"
+                      onClick={() => setIsCreateDialogOpen(true)}
+                    />
+                  )}
                 </div>
               </CardHeader>
-              {/* Mobile search bar */}
-              <div className="relative mb-3 lg:hidden">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <Input
-                  placeholder="Search franchise..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  className="h-10 bg-white pl-9"
-                />
-              </div>
               <CardContent className="p-0">
                 {isLoading ? (
-                  <div className="p-6 space-y-4">
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
+                  <div className="p-4 space-y-3">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
                   </div>
                 ) : error ? (
-                  <div className="p-6 text-center text-red-500">
+                  <div className="p-4 text-center text-red-500">
                     Failed to load franchises. Please try again.
                   </div>
                 ) : franchises && Array.isArray(franchises) && franchises.length > 0 && visibleFranchises.length === 0 ? (
-                  <div className="p-10 text-center">
+                  <div className="p-5 text-center">
                     <Search className="mx-auto mb-3 h-8 w-8 text-slate-300" />
                     <p className="text-slate-500">No franchises match "{searchInput}".</p>
                   </div>
                 ) : franchises && Array.isArray(franchises) && franchises.length > 0 ? (
                   <>
-                  <div className="space-y-3 lg:space-y-4 lg:hidden">
+                  <CompactList>
                     {visibleFranchises.map((franchise: Franchise) => {
                       const contact = resolveFranchiseContact(franchise);
-                      const expanded = expandedFranchiseIds.has(franchise._id);
                       return (
-                      <div
+                      <CompactListRow
                         key={franchise._id}
-                        className="cursor-pointer space-y-4 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-card transition-shadow active:shadow-none"
-                        onClick={() => toggleFranchiseExpanded(franchise._id)}
+                        label={`Open ${franchise.name}`}
+                        onClick={() => navigate(`/franchises/${franchise._id}`)}
                       >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex min-w-0 flex-1 items-center gap-3">
-                            {franchise.logo?.url ? (
-                              <img
-                                src={franchise.logo.url}
-                                alt={franchise.logo.alt || franchise.name}
-                                className="h-11 w-11 shrink-0 rounded-xl object-cover ring-1 ring-slate-200"
-                              />
-                            ) : (
-                              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                                <Image className="h-5 w-5" />
-                              </div>
-                            )}
-                            <div className="min-w-0">
-                              <h3 className="truncate text-sm font-semibold text-slate-900 md:text-base">{franchise.name}</h3>
-                              <p className="text-xs text-slate-500">Created {formatDate(franchise.createdAt)}</p>
-                            </div>
-                          </div>
-                          <span
-                            className={cn(
-                              "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold",
-                              franchise.status === 'active'
-                                ? "bg-emerald-50 text-emerald-700"
-                                : "bg-slate-100 text-slate-600"
-                            )}
-                          >
-                            <span
-                              className={cn(
-                                "h-1.5 w-1.5 rounded-full",
-                                franchise.status === 'active' ? "bg-emerald-500" : "bg-slate-400"
-                              )}
+                        <CompactListLeading>
+                          {franchise.logo?.url ? (
+                            <img
+                              src={franchise.logo.url}
+                              alt={franchise.logo.alt || franchise.name}
+                              className="h-8 w-8 rounded-lg object-cover ring-1 ring-slate-200"
                             />
-                            {franchise.status === 'active' ? 'Active' : 'Inactive'}
-                          </span>
-                        </div>
-
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-                          {contact.websiteUrl && (
-                            <a
-                              href={contact.websiteUrl.startsWith("http") ? contact.websiteUrl : `https://${contact.websiteUrl}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 font-medium text-primary hover:underline"
-                            >
-                              <Globe className="h-3.5 w-3.5" /> Website
-                            </a>
+                          ) : (
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                              <Image className="h-4 w-4" />
+                            </div>
                           )}
-                          {contact.contactNumber && (
-                            <span className="inline-flex items-center gap-1.5 font-medium text-slate-600">
-                              <Phone className="h-3.5 w-3.5 text-slate-400" /> {contact.contactNumber}
-                            </span>
-                          )}
-                        </div>
-
-                        {expanded && (
-                        <div
-                          className="flex items-center gap-1 border-t border-slate-100 pt-3"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Button variant="ghost" size="sm" onClick={() => handleEditFranchise(franchise)}>
-                            <Edit className="h-4 w-4 mr-1" /> Edit
+                        </CompactListLeading>
+                        <CompactListStatus active={franchise.status === "active"} />
+                        <CompactListPrimary>{franchise.name}</CompactListPrimary>
+                        <CompactListSecondary>
+                          {contact.contactNumber || contact.websiteUrl || `Created ${formatDate(franchise.createdAt)}`}
+                        </CompactListSecondary>
+                        <CompactListActions>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            title="Edit"
+                            aria-label={`Edit ${franchise.name}`}
+                            onClick={() => handleEditFranchise(franchise)}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
                           </Button>
                           {isSuperAdmin && (
                             <>
                               <Button
                                 variant="ghost"
-                                size="sm"
+                                size="icon"
+                                className="h-6 w-6"
+                                title="Manage Admins"
+                                aria-label={`Manage admins for ${franchise.name}`}
                                 onClick={() => handleManageAdmin(franchise)}
                               >
-                                <UsersRound className="h-4 w-4 mr-1" /> Admins
+                                <UsersRound className="h-3.5 w-3.5" />
                               </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="ml-auto text-red-600 hover:bg-red-50 hover:text-red-700"
-                                onClick={() => handleDeleteFranchise(franchise._id)}
-                                disabled={deleteFranchisesMutation.isPending}
-                              >
-                                <Trash2 className="h-4 w-4 mr-1" /> Delete
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                        )}
-                      </div>
-                    );
-                    })}
-                  </div>
-                  <div className="hidden lg:block">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="hover:bg-transparent">
-                        <TableHead className="h-11 bg-slate-50/80 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Franchise</TableHead>
-                        <TableHead className="h-11 bg-slate-50/80 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Website</TableHead>
-                        <TableHead className="h-11 bg-slate-50/80 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Contact</TableHead>
-                        <TableHead className="h-11 bg-slate-50/80 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Status</TableHead>
-                        <TableHead className="h-11 bg-slate-50/80 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Created on</TableHead>
-                        <TableHead className="h-11 bg-slate-50/80 text-right text-[11px] font-semibold uppercase tracking-wider text-slate-500">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {visibleFranchises.map((franchise: Franchise) => {
-                        const contact = resolveFranchiseContact(franchise);
-                        return (
-                        <TableRow key={franchise._id}>
-                          <TableCell className="font-medium">
-                            <div className="flex items-center gap-3">
-                              {franchise.logo?.url ? (
-                                <img
-                                  src={franchise.logo.url}
-                                  alt={franchise.logo.alt || franchise.name}
-                                  className="h-9 w-9 rounded-xl object-cover ring-1 ring-slate-200"
-                                />
-                              ) : (
-                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                                  <Image className="h-4 w-4" />
-                                </div>
-                              )}
-                              <span className="text-slate-800">{franchise.name}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {contact.websiteUrl ? (
-                              <a
-                                href={contact.websiteUrl.startsWith("http") ? contact.websiteUrl : `https://${contact.websiteUrl}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 font-medium text-primary hover:underline"
-                              >
-                                <Globe className="h-3.5 w-3.5" />
-                                Website
-                              </a>
-                            ) : (
-                              <span className="text-slate-400">Not available</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {contact.contactNumber ? (
-                              <div className="inline-flex items-center gap-1.5 text-slate-600">
-                                <Phone className="h-3.5 w-3.5 text-slate-400" />
-                                {contact.contactNumber}
-                              </div>
-                            ) : (
-                              <span className="text-slate-400">Not available</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <span
-                              className={cn(
-                                "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold",
-                                franchise.status === 'active'
-                                  ? "bg-emerald-50 text-emerald-700"
-                                  : "bg-slate-100 text-slate-600"
-                              )}
-                            >
-                              <span
-                                className={cn(
-                                  "h-1.5 w-1.5 rounded-full",
-                                  franchise.status === 'active' ? "bg-emerald-500" : "bg-slate-400"
-                                )}
-                              />
-                              {franchise.status === 'active' ? 'Active' : 'Inactive'}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-slate-500">{formatDate(franchise.createdAt)}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-1.5">
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-9 w-9 rounded-lg text-slate-500 hover:bg-primary/10 hover:text-primary"
-                                title="Edit franchise"
-                                aria-label="Edit franchise"
-                                onClick={() => handleEditFranchise(franchise)}
+                                className="h-6 w-6 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                title="Delete"
+                                aria-label={`Delete ${franchise.name}`}
+                                onClick={() => handleDeleteFranchise(franchise._id)}
+                                disabled={deleteFranchisesMutation.isPending}
                               >
-                                <Edit className="h-4 w-4" />
+                                <Trash2 className="h-3.5 w-3.5" />
                               </Button>
-                              {isSuperAdmin && (
-                                <>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-9 w-9 rounded-lg text-slate-500 hover:bg-primary/10 hover:text-primary"
-                                    title="Manage administrators"
-                                    aria-label="Manage administrators"
-                                    onClick={() => handleManageAdmin(franchise)}
-                                  >
-                                    <UsersRound className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-9 w-9 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-700"
-                                    title="Delete franchise"
-                                    aria-label="Delete franchise"
-                                    onClick={() => handleDeleteFranchise(franchise._id)}
-                                    disabled={deleteFranchisesMutation.isPending}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
+                            </>
+                          )}
+                        </CompactListActions>
+                      </CompactListRow>
                       );
-                      })}
-                    </TableBody>
-                  </Table>
-                  </div>
+                    })}
+                  </CompactList>
                   </>
                 ) : (
                   <EmptyState

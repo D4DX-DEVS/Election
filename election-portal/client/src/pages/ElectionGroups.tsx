@@ -11,14 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { CompactList, CompactListActions, CompactListPrimary, CompactListRow, CompactListSecondary } from "@/components/ui/compact-list";
+import { AddButton } from "@/components/ui/add-button";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -38,7 +32,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { extractApiList, normalizeEntityId } from "@/lib/apiHelpers";
 import { ElectionMultiPicker } from "@/components/elections/ElectionMultiPicker";
 import { PaginationControls } from "@/components/ui/pagination-controls";
-import { PageContent, PageBottom } from "@/components/layout/PageContent";
+import { PageContent, PageHeader, PageBottom } from "@/components/layout/PageContent";
 import { Pagination } from "@/lib/types";
 import {
   AlertDialog,
@@ -358,12 +352,10 @@ export default function ElectionGroups() {
   return (
     <MainLayout>
       <PageContent>
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="app-page-title">Election Groups</h1>
-          <p className="text-sm text-gray-600">Organize and manage election groups</p>
-        </div>
-        <div className="mt-4 sm:mt-0">
+      <PageHeader
+        title="Election Groups"
+        description="Organize and manage election groups"
+        actions={
           <Dialog open={open} onOpenChange={(o) => {
             setOpen(o);
             if (!o) {
@@ -372,10 +364,7 @@ export default function ElectionGroups() {
             }
           }}>
             <DialogTrigger asChild>
-              <Button>
-                <PlusIcon className="h-4 w-4 mr-2" />
-                Create Group
-              </Button>
+              <AddButton title="Create group" label="Create group" />
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <form onSubmit={handleCreateGroup}>
@@ -385,36 +374,34 @@ export default function ElectionGroups() {
                     Create a group and add elections to it. You can change elections later via Edit.
                   </DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="name" className="text-right">
+                <div className="app-form-fields">
+                  <div className="grid gap-1">
+                    <Label htmlFor="name">
                       Name
                     </Label>
                     <Input
                       id="name"
                       placeholder="Group name"
-                      className="col-span-3"
                       required
                       value={createFormData.name}
                       onChange={(e) => setCreateFormData({ ...createFormData, name: e.target.value })}
                     />
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="description" className="text-right">
+                  <div className="grid gap-1">
+                    <Label htmlFor="description">
                       Description
                     </Label>
                     <Input
                       id="description"
                       placeholder="Group description (optional)"
-                      className="col-span-3"
                       value={createFormData.description}
                       onChange={(e) => setCreateFormData({ ...createFormData, description: e.target.value })}
                     />
                   </div>
 
                   {userRole === 'super_admin' && (
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="franchiseId" className="text-right">
+                    <div className="grid gap-1">
+                      <Label htmlFor="franchiseId">
                         Franchise
                       </Label>
                       <Select
@@ -424,7 +411,7 @@ export default function ElectionGroups() {
                           setCreateElectionIds([]);
                         }}
                       >
-                        <SelectTrigger className="col-span-3">
+                        <SelectTrigger>
                           <SelectValue placeholder="Select a franchise" />
                         </SelectTrigger>
                         <SelectContent>
@@ -443,7 +430,7 @@ export default function ElectionGroups() {
 
                   <div className="space-y-2">
                     <Label>Elections in this group</Label>
-                    <p className="text-xs text-gray-500">
+                    <p className="app-helper">
                       {createElectionIds.length > 0
                         ? `${createElectionIds.length} selected`
                         : "Optional — select elections to include now"}
@@ -463,6 +450,18 @@ export default function ElectionGroups() {
                 </div>
                 <DialogFooter>
                   <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setOpen(false);
+                      setCreateElectionIds([]);
+                      setCreateFormData({ name: '', description: '', franchiseId: '' });
+                    }}
+                    disabled={createMutation.isPending}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
                     type="submit"
                     disabled={!createFormData.name || createMutation.isPending}
                   >
@@ -479,8 +478,8 @@ export default function ElectionGroups() {
               </form>
             </DialogContent>
           </Dialog>
-        </div>
-      </div>
+        }
+      />
 
       {/* Edit Election Group Dialog */}
       <Dialog open={isEditOpen} onOpenChange={(o) => {
@@ -495,35 +494,33 @@ export default function ElectionGroups() {
                 Update the group details and manage which elections belong to it.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-name" className="text-right">
+            <div className="app-form-fields">
+              <div className="grid gap-1">
+                <Label htmlFor="edit-name">
                   Name
                 </Label>
                 <Input
                   id="edit-name"
                   placeholder="Group name"
-                  className="col-span-3"
                   required
                   value={editFormData.name}
                   onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
                 />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-description" className="text-right">
+              <div className="grid gap-1">
+                <Label htmlFor="edit-description">
                   Description
                 </Label>
                 <Input
                   id="edit-description"
                   placeholder="Group description (optional)"
-                  className="col-span-3"
                   value={editFormData.description}
                   onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
                 <Label>Elections in this group</Label>
-                <p className="text-xs text-gray-500">
+                <p className="app-helper">
                   {editFormData.elections.length > 0
                     ? `${editFormData.elections.length} selected`
                     : "No elections selected"}
@@ -601,125 +598,49 @@ export default function ElectionGroups() {
         </CardHeader>
         <CardContent className="p-0">
           {electionGroupsLoading ? (
-            <div className="p-6 text-center">Loading groups...</div>
+            <div className="p-4 text-center">Loading groups...</div>
           ) : electionGroups && electionGroups.length > 0 ? (
-            <div className="space-y-6">
-              <div className="divide-y divide-gray-100 lg:hidden">
+            <div>
+              <CompactList>
                 {electionGroups.map((group) => {
                   const groupId = getEntityId(group._id || group.id);
                   const franchiseId = getEntityId(group.franchiseId);
-                  const franchise = franchises.find(f => 
+                  const franchise = franchises.find(f =>
                     getEntityId(f._id || f.id) === franchiseId
                   );
+                  const electionCount = getElectionCount(group);
 
                   return (
-                    <div key={groupId} className="p-4 space-y-3">
-                      <div className="min-w-0">
-                        <h3 className="font-semibold text-gray-900 truncate">{group.name}</h3>
-                        <p className="text-sm text-gray-500 line-clamp-2">{group.description || 'No description'}</p>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3 rounded-md bg-white p-3 text-sm">
-                        <div>
-                          <p className="text-xs text-gray-500">Franchise</p>
-                          <p className="font-medium text-gray-900 truncate">{franchise?.name || 'Unknown franchise'}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-500">Elections</p>
-                          <p className="font-medium text-gray-900">
-                            {getElectionCount(group)} election{getElectionCount(group) !== 1 ? "s" : ""}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-500">Created</p>
-                          <p className="font-medium text-gray-900">
-                            {group.createdAt ? new Date(group.createdAt).toLocaleDateString("en-GB") : 'Not available'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Button variant="ghost" size="sm" onClick={() => handleEditGroup(groupId)}>
-                          <Pencil className="h-4 w-4 mr-1" /> Edit
+                    <CompactListRow
+                      key={groupId}
+                      label={`Open ${group.name}`}
+                      onClick={() => handleEditGroup(groupId)}
+                    >
+                      <CompactListPrimary>{group.name}</CompactListPrimary>
+                      <CompactListSecondary>
+                        {[
+                          franchise?.name || "Unknown franchise",
+                          `${electionCount} election${electionCount !== 1 ? "s" : ""}`,
+                        ].join(" · ")}
+                      </CompactListSecondary>
+                      <CompactListActions>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditGroup(groupId)} aria-label="Edit group">
+                          <Pencil className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
-                          size="sm"
-                          className="text-red-600 hover:text-red-900 hover:bg-red-50"
+                          size="icon"
+                          className="h-8 w-8 text-red-600 hover:text-red-900 hover:bg-red-50"
                           onClick={() => handleDeleteGroup(groupId)}
+                          aria-label="Delete group"
                         >
-                          <Trash2 className="h-4 w-4 mr-1" /> Delete
+                          <Trash2 className="h-4 w-4" />
                         </Button>
-                      </div>
-                    </div>
+                      </CompactListActions>
+                    </CompactListRow>
                   );
                 })}
-              </div>
-              <div className="hidden lg:block">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Elections</TableHead>
-                    <TableHead>Franchise</TableHead>
-                    <TableHead>Created At</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {electionGroups.map((group) => {
-                    const groupId = getEntityId(group._id || group.id);
-                    
-                    // Find franchise name
-                    const franchiseId = getEntityId(group.franchiseId);
-                      
-                    const franchise = franchises.find(f => 
-                      getEntityId(f._id || f.id) === franchiseId
-                    );
-                    
-                    return (
-                      <TableRow key={groupId}>
-                        <TableCell className="font-medium">{group.name}</TableCell>
-                        <TableCell>{group.description || 'No description'}</TableCell>
-                        <TableCell>
-                          {getElectionCount(group) > 0 ? (
-                            <span className="text-sm text-gray-700">
-                              {getElectionCount(group)} election{getElectionCount(group) !== 1 ? "s" : ""}
-                            </span>
-                          ) : (
-                            <span className="text-sm text-gray-400">None</span>
-                          )}
-                        </TableCell>
-                        <TableCell>{franchise?.name || 'Unknown franchise'}</TableCell>
-                        <TableCell>
-                          {group.createdAt ?
-                            new Date(group.createdAt).toLocaleDateString("en-GB") :
-                            'Not available'}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditGroup(groupId)}
-                          >
-                            <Pencil className="h-4 w-4 mr-1" />
-                            Edit
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-600 hover:text-red-900 hover:bg-red-50"
-                            onClick={() => handleDeleteGroup(groupId)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Delete
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-              </div>
+              </CompactList>
             </div>
           ) : (
             <div className="p-12 text-center">

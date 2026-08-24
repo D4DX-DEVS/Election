@@ -42,7 +42,7 @@ export function PageHeader({
 export function PageBottom({ children }: { children: ReactNode }) {
   return (
     <>
-      <div className="flex-1 min-h-[2rem]" aria-hidden />
+      <div className="flex-1 min-h-[1rem]" aria-hidden />
       {children}
     </>
   );

@@ -9,7 +9,7 @@ import VoterGroups from "@/pages/VoterGroups";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { SelectCheckbox } from "@/components/ui/row-select-checkbox";
-import { PlusIcon, Upload, AlertCircle, UsersRound, Download, MoreHorizontal, Search, FileSpreadsheet, Printer } from "lucide-react";
+import { PlusIcon, Upload, AlertCircle, UsersRound, Download, MoreHorizontal, FileSpreadsheet, Printer } from "lucide-react";
 import {
   downloadVoterImportTemplate,
   exportVotersToExcel,
@@ -46,6 +46,8 @@ import { DeleteModeBar } from "@/components/ui/delete-mode-bar";
 import { DeleteModeButton } from "@/components/ui/delete-mode-button";
 import { useBulkDeleteMode } from "@/hooks/useBulkDeleteMode";
 import { deleteByIds } from "@/lib/bulkDelete";
+import { SearchInput } from "@/components/ui/search-input";
+import { AddButton } from "@/components/ui/add-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -544,17 +546,13 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
 
   const votersListContent = (
     <>
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-1 items-center gap-2 sm:flex-row sm:items-center">
-          <div className="relative flex-1 sm:max-w-xs">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <Input
-              placeholder="Search by name or username..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="h-10 pl-9"
-            />
-          </div>
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-1 items-center gap-2">
+          <SearchInput
+            placeholder="Search by name or username..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
           {isReadOnly && (
             <div className="flex items-center gap-2 shrink-0">
               <Tooltip>
@@ -562,7 +560,7 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-10 w-10 shrink-0"
+                    className="h-9 w-9 shrink-0"
                     aria-label="Bulk Print Slips"
                     onClick={() => setPrintSlipsOpen(true)}
                   >
@@ -576,7 +574,7 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-10 w-10 shrink-0"
+                    className="h-9 w-9 shrink-0"
                     aria-label="Export"
                     onClick={handleExportVoters}
                     disabled={isExporting}
@@ -590,7 +588,7 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
           )}
           {!embedded && (
             <Select value={selectedElectionId} onValueChange={setSelectedElectionId}>
-              <SelectTrigger className="h-10 w-full sm:w-52">
+              <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder="All elections" />
               </SelectTrigger>
               <SelectContent>
@@ -610,24 +608,14 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
 
         {!isReadOnly && (
           <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-end">
-            <Button
-              size="sm"
-              className="h-10 justify-center gap-1.5 px-3"
-              onClick={handleAddVoter}
-            >
-              <PlusIcon className="h-4 w-4 shrink-0" />
-              <span className="truncate">
-                <span className="sm:hidden">Add</span>
-                <span className="hidden sm:inline">Add Voter</span>
-              </span>
-            </Button>
+            <AddButton title="Add voter" label="Add voter" onClick={handleAddVoter} />
             <div className="flex items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-10 justify-center gap-1.5 px-3"
+                    className="justify-center gap-1.5 px-3"
                   >
                     <MoreHorizontal className="h-4 w-4 shrink-0" />
                     <span className="truncate">More</span>
@@ -712,7 +700,7 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
       {votersLoading || (votersFetching && !!searchQuery.trim()) ? (
         <Skeleton className="h-96 w-full" />
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {!isReadOnly && (
             <DeleteModeBar
               active={selection.deleteMode}
@@ -799,25 +787,25 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
             <DialogTitle>Add Voter</DialogTitle>
             <DialogDescription>Create a new voter account.</DialogDescription>
           </DialogHeader>
-          <div className="space-y-3 py-1">
-              <div className="space-y-1.5">
+          <div className="app-form-fields">
+              <div className="grid gap-1">
                 <Label htmlFor="voter-fullname">Full Name</Label>
                 <Input id="voter-fullname" value={newVoter.fullName} onChange={(e) => setNewVoter({ ...newVoter, fullName: e.target.value })} placeholder="e.g. John Doe" autoFocus />
               </div>
-              <div className="space-y-1.5">
+              <div className="grid gap-1">
                 <Label htmlFor="voter-username">Username *</Label>
                 <Input id="voter-username" value={newVoter.username} onChange={(e) => setNewVoter({ ...newVoter, username: e.target.value })} placeholder="e.g. john.doe" />
               </div>
-              <div className="space-y-1.5">
+              <div className="grid gap-1">
                 <Label htmlFor="voter-password">Password</Label>
                 <Input id="voter-password" value={newVoter.password} onChange={(e) => setNewVoter({ ...newVoter, password: e.target.value })} placeholder="Leave blank to auto-generate" />
               </div>
-              <div className="space-y-1.5">
+              <div className="grid gap-1">
                 <Label htmlFor="voter-regno">Registration Number</Label>
                 <Input id="voter-regno" value={newVoter.registrationNumber} onChange={(e) => setNewVoter({ ...newVoter, registrationNumber: e.target.value })} placeholder="Optional (defaults to username)" />
               </div>
               {!embedded && (
-                <div className="space-y-1.5">
+                <div className="grid gap-1">
                   <Label>Assign to Election</Label>
                   <Select value={newVoter.electionId} onValueChange={(value) => setNewVoter({ ...newVoter, electionId: value })}>
                     <SelectTrigger><SelectValue placeholder="Select an election" /></SelectTrigger>
@@ -831,13 +819,11 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
               )}
             </div>
 
-          <DialogFooter className="gap-2">
-            <>
-              <Button variant="outline" onClick={() => setCreateVoterOpen(false)}>Cancel</Button>
-              <Button onClick={handleSubmitNewVoter} disabled={createVoterMutation.isPending}>
-                {createVoterMutation.isPending ? 'Creating…' : 'Create Voter'}
-              </Button>
-            </>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateVoterOpen(false)}>Cancel</Button>
+            <Button onClick={handleSubmitNewVoter} disabled={createVoterMutation.isPending}>
+              {createVoterMutation.isPending ? 'Creating…' : 'Create Voter'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -851,7 +837,7 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
             <DialogTitle>Edit Voter</DialogTitle>
             <DialogDescription>Update voter account details and election access.</DialogDescription>
           </DialogHeader>
-          <div className="space-y-3 py-1">
+          <div className="app-form-fields">
             <div className="space-y-1.5">
               <Label htmlFor="edit-fullname">Full Name</Label>
               <Input
@@ -930,10 +916,10 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
               Upload Excel (.xlsx) or CSV with columns: username, full_name, password (optional), registration_number, elections.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-1">
-            <label className="flex flex-col items-center justify-center w-full min-h-28 border-2 border-dashed rounded-lg cursor-pointer bg-white hover:bg-primary/10">
-              <div className="flex flex-col items-center py-5">
-                <FileSpreadsheet className="h-8 w-8 text-gray-400 mb-2" />
+          <div className="space-y-3 py-0.5">
+            <label className="flex flex-col items-center justify-center w-full min-h-20 border-2 border-dashed rounded-lg cursor-pointer bg-white hover:bg-primary/10">
+              <div className="flex flex-col items-center py-4">
+                <FileSpreadsheet className="h-6 w-6 text-gray-400 mb-1.5" />
                 <p className="text-sm text-gray-600">
                   {importFile ? importFile.name : "Click to upload spreadsheet"}
                 </p>
@@ -952,7 +938,7 @@ export default function Voters({ embedded = false, electionId, readOnly = false 
               <p className="text-sm text-primary font-medium">{importPreview.length} row(s) ready to import</p>
             )}
             {!embedded && (
-              <div className="space-y-1.5">
+              <div className="grid gap-1">
                 <Label>Default election (optional)</Label>
                 <Select value={importElectionId || "none"} onValueChange={(v) => setImportElectionId(v === "none" ? "" : v)}>
                   <SelectTrigger><SelectValue placeholder="Assign all imported voters to…" /></SelectTrigger>

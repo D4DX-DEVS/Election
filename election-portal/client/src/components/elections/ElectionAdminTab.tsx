@@ -21,17 +21,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { CompactList, CompactListPrimary, CompactListRow, CompactListSecondary } from "@/components/ui/compact-list";
 
 const schema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -109,7 +102,7 @@ export function ElectionAdminTab({
       {/* Create form */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
+          <CardTitle className="flex items-center gap-2">
             <UserPlus className="h-5 w-5" /> Create Election Admin
           </CardTitle>
           <CardDescription>
@@ -119,7 +112,7 @@ export function ElectionAdminTab({
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2.5">
               <FormField
                 control={form.control}
                 name="fullName"
@@ -193,7 +186,7 @@ export function ElectionAdminTab({
       {/* Existing admins */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
+          <CardTitle className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5" /> Election Admins
           </CardTitle>
           <CardDescription>Administrators with access to this election.</CardDescription>
@@ -209,34 +202,14 @@ export function ElectionAdminTab({
               No election admins yet for this election.
             </div>
           ) : (
-            <>
-            <div className="divide-y divide-gray-100 md:hidden">
+            <CompactList className="rounded-none border-0">
               {admins.map((a: any) => (
-                <div key={a._id} className="p-4 space-y-1">
-                  <h3 className="font-semibold text-gray-900">{a.fullName || "—"}</h3>
-                  <p className="text-sm text-gray-500">{a.username}</p>
-                </div>
+                <CompactListRow key={a._id}>
+                  <CompactListPrimary>{a.fullName || "—"}</CompactListPrimary>
+                  <CompactListSecondary>{a.username}</CompactListSecondary>
+                </CompactListRow>
               ))}
-            </div>
-            <div className="hidden md:block">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Username</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {admins.map((a: any) => (
-                  <TableRow key={a._id}>
-                    <TableCell className="font-medium">{a.fullName || "—"}</TableCell>
-                    <TableCell>{a.username}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            </div>
-            </>
+            </CompactList>
           )}
         </CardContent>
       </Card>

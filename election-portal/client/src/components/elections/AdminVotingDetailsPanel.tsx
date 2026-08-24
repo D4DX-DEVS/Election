@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SelectCheckbox } from "@/components/ui/row-select-checkbox";
+import { CompactList, CompactListActions, CompactListPrimary, CompactListRow, CompactListSecondary } from "@/components/ui/compact-list";
 import { ShieldAlert, RotateCcw, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -191,7 +192,7 @@ export function AdminVotingDetailsPanel({
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <CardTitle className="text-lg flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2">
               <ShieldAlert className="h-5 w-5 text-amber-600" />
               Admin Voting Details
             </CardTitle>
@@ -213,117 +214,46 @@ export function AdminVotingDetailsPanel({
           <p className="text-sm text-gray-500">No votes recorded yet.</p>
         )}
         {!isLoading && !isError && rows.length > 0 && (
-          <>
-          {/* Mobile: house-style cards */}
-          <div className="space-y-3 lg:hidden">
+          <CompactList>
             {rows.map((row) => {
               const voterName = row.voter?.fullName || row.voter?.username || "Unknown voter";
-              const voterRef = row.voter?.registrationNumber || row.voter?.username || "—";
               const voterKey = String(row.voter?._id || row.voter?.id || "");
               const picks = (row.nominees || []).map(nomineeLabel).join(", ") || "—";
               const votedAt = row.timestamp
                 ? new Date(row.timestamp).toLocaleString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true })
                 : "—";
               return (
-                <div
-                  key={row._id}
-                  className="rounded-lg border border-gray-200 bg-white p-5 space-y-3"
-                >
-                  <div className="min-w-0">
-                    <h3 className="text-sm md:text-base font-medium text-gray-900 truncate">
-                      {voterName}
-                    </h3>
-                    <p className="text-xs text-gray-500 truncate">{voterRef}</p>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-                    <span className="inline-flex items-center font-medium text-gray-700">
-                      {picks}
-                    </span>
-                    <span className="inline-flex items-center text-gray-500">{votedAt}</span>
-                  </div>
+                <CompactListRow key={row._id}>
+                  <CompactListPrimary>{voterName}</CompactListPrimary>
+                  <CompactListSecondary>{`${picks} · ${votedAt}`}</CompactListSecondary>
                   {votingOpen && (
-                    <div className="flex items-center gap-1 border-t border-gray-100 pt-2">
+                    <CompactListActions>
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="icon"
+                        className="h-8 w-8"
                         disabled={!voterKey || editMutation.isPending}
                         onClick={() => openEditDialog(voterKey, voterName, row.nominees || [])}
+                        aria-label="Edit vote"
                       >
-                        <Pencil className="h-4 w-4 mr-1" />
-                        Edit vote
+                        <Pencil className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="icon"
+                        className="h-8 w-8"
                         disabled={!voterKey || resetMutation.isPending}
                         onClick={() => setPendingReset({ id: voterKey, name: voterName })}
+                        aria-label="Reset vote"
                       >
-                        <RotateCcw className="h-4 w-4 mr-1" />
-                        Reset vote
+                        <RotateCcw className="h-4 w-4" />
                       </Button>
-                    </div>
+                    </CompactListActions>
                   )}
-                </div>
+                </CompactListRow>
               );
             })}
-          </div>
-
-          {/* Desktop: table */}
-          <div className="hidden overflow-x-auto rounded-md border border-amber-200 bg-white lg:block">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-gray-50 text-left text-gray-600">
-                  <th className="px-4 py-2 font-medium">Voter</th>
-                  <th className="px-4 py-2 font-medium">Username</th>
-                  <th className="px-4 py-2 font-medium">Selected Nominee(s)</th>
-                  <th className="px-4 py-2 font-medium">Voted At</th>
-                  {votingOpen && <th className="px-4 py-2 font-medium text-right">Action</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => {
-                  const voterName = row.voter?.fullName || row.voter?.username || "Unknown voter";
-                  const voterId = row.voter?.registrationNumber || row.voter?.username || "—";
-                  const voterKey = String(row.voter?._id || row.voter?.id || "");
-                  const picks = (row.nominees || []).map(nomineeLabel).join(", ") || "—";
-                  const votedAt = row.timestamp
-                    ? new Date(row.timestamp).toLocaleString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true })
-                    : "—";
-                  return (
-                    <tr key={row._id} className="border-b last:border-0">
-                      <td className="px-4 py-2">{voterName}</td>
-                      <td className="px-4 py-2 text-gray-600">{voterId}</td>
-                      <td className="px-4 py-2">{picks}</td>
-                      <td className="px-4 py-2 text-gray-600 whitespace-nowrap">{votedAt}</td>
-                      {votingOpen && (
-                        <td className="px-4 py-2 text-right whitespace-nowrap">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={!voterKey || editMutation.isPending}
-                            onClick={() => openEditDialog(voterKey, voterName, row.nominees || [])}
-                          >
-                            <Pencil className="h-4 w-4 mr-1" />
-                            Edit
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={!voterKey || resetMutation.isPending}
-                            onClick={() => setPendingReset({ id: voterKey, name: voterName })}
-                          >
-                            <RotateCcw className="h-4 w-4 mr-1" />
-                            Reset
-                          </Button>
-                        </td>
-                      )}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          </>
+          </CompactList>
         )}
       </CardContent>
 
@@ -370,9 +300,9 @@ export function AdminVotingDetailsPanel({
                       aria-label={`Select ${n.name}`}
                       onClick={(e) => e.stopPropagation()}
                     />
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-900">{n.name}</span>
+                    <span className="min-w-0 flex-1 truncate app-detail-value">{n.name}</span>
                     {genderBasedSelection && n.gender && (
-                      <Badge variant="outline" className="shrink-0 capitalize text-[10px] px-1.5 py-0 h-4">
+                      <Badge variant="outline" className="shrink-0 capitalize text-xs px-1.5 py-0 h-4">
                         {n.gender}
                       </Badge>
                     )}
@@ -382,7 +312,7 @@ export function AdminVotingDetailsPanel({
             )}
           </div>
           {genderBasedSelection && (maleMinimum > 0 || femaleMinimum > 0) && (
-            <p className="text-xs text-gray-500">
+            <p className="app-helper">
               Minimums: {maleMinimum > 0 ? `${maleMinimum} male` : ""}
               {maleMinimum > 0 && femaleMinimum > 0 ? " · " : ""}
               {femaleMinimum > 0 ? `${femaleMinimum} female` : ""}

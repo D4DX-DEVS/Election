@@ -2,9 +2,10 @@ import { useState, useEffect, Fragment } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { PageHeader } from "@/components/layout/PageContent";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PlusIcon, Pencil, Trash2, AlertCircle } from "lucide-react";
+import { Pencil, Trash2, AlertCircle } from "lucide-react";
 import { DeleteModeBar } from "@/components/ui/delete-mode-bar";
 import { DeleteModeButton } from "@/components/ui/delete-mode-button";
 import { ExportMenu } from "@/components/ui/export-menu";
@@ -12,15 +13,6 @@ import { RowSelectCheckbox } from "@/components/ui/row-select-checkbox";
 import { useBulkDeleteMode } from "@/hooks/useBulkDeleteMode";
 import { deleteByIds } from "@/lib/bulkDelete";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { jsPDF } from "jspdf";
 import { autoTable } from "jspdf-autotable";
 import * as XLSX from 'xlsx';
@@ -48,6 +40,9 @@ import {
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { getElectionLabel, isElectionLocked } from "@/lib/electionHelpers";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import { SearchInput } from "@/components/ui/search-input";
+import { CompactList, CompactListActions, CompactListLeading, CompactListPrimary, CompactListRow, CompactListSecondary } from "@/components/ui/compact-list";
+import { AddButton } from "@/components/ui/add-button";
 import { NomineeForm } from "@/components/nominees/NomineeForm";
 import { NomineeAvatar } from "@/components/nominees/NomineeAvatar";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -464,13 +459,13 @@ export default function Nominees({
   return (
     <Wrapper>
       {!embedded && (
-        <div className="mb-4">
-          <h1 className="app-page-title">Nominees</h1>
-          <p className="text-sm text-gray-600">Manage candidates for your elections</p>
-        </div>
+        <PageHeader
+          title="Nominees"
+          description="Manage candidates for your elections"
+        />
       )}
 
-      <div className="mb-4 flex flex-col gap-3 lg:mb-6">
+      <div className="mb-3 flex flex-col gap-2 lg:mb-4">
         {!embedded && (
           <Select value={selectedElectionId} onValueChange={handleElectionChange}>
             <SelectTrigger className="w-full sm:w-64">
@@ -495,23 +490,18 @@ export default function Nominees({
         )}
 
         <div className="flex items-center gap-2">
-          <Input
+          <SearchInput
             placeholder="Search nominees..."
             value={searchInput}
             onChange={handleSearchChange}
-            className="min-w-0 flex-1 sm:max-w-md"
           />
           <div className="ml-auto flex shrink-0 items-center gap-1.5">
             {!isReadOnly && (
-              <Button
-                size="sm"
-                className="w-11 shrink-0 p-0 sm:w-auto sm:px-3"
+              <AddButton
+                title="Add nominee"
+                label="Add nominee"
                 onClick={handleAddNominee}
-                aria-label="Add nominee"
-              >
-                <PlusIcon className="h-4 w-4 shrink-0" />
-                <span className="hidden sm:inline sm:ml-2 whitespace-nowrap">Nominee</span>
-              </Button>
+              />
             )}
             <ExportMenu
               onExportPdf={exportToPDF}
@@ -543,11 +533,11 @@ export default function Nominees({
 
       <Card className={embedded ? "border-0 shadow-none" : undefined}>
         {!embedded && (
-          <CardHeader className="px-4 py-3 md:px-6">
+          <CardHeader className="px-3 py-2.5 md:px-4">
             <CardTitle>Nominees List</CardTitle>
           </CardHeader>
         )}
-        <CardContent className={embedded ? "p-0" : "px-4 md:px-6"}>
+        <CardContent className={embedded ? "p-0" : "px-3 md:px-4"}>
           {nomineesLoading ? (
             <div className="space-y-2">
               {[...Array(5)].map((_, i) => (
@@ -581,7 +571,19 @@ export default function Nominees({
                   deleting={deleteNomineesMutation.isPending}
                 />
               )}
-              <div className="space-y-3 lg:hidden">
+              {selection.showSelectors && (
+                <div className="mb-2 flex items-center gap-2 px-1">
+                  <RowSelectCheckbox
+                    checked={selection.allSelected ? true : selection.someSelected ? "indeterminate" : false}
+                    onCheckedChange={() => selection.toggleAll()}
+                    aria-label="Select all nominees on this page"
+                  />
+                  <span className="text-sm font-medium text-primary">
+                    {selection.allSelected ? "Clear selection" : "Select all on this page"}
+                  </span>
+                </div>
+              )}
+              <CompactList>
                 {paginatedNominees.map((nominee: any) => {
                   const nomineeId = getNomineeId(nominee);
                   const election = elections.find((e: any) => {
@@ -593,139 +595,70 @@ export default function Nominees({
                   });
 
                   return (
-                    <div
+                    <CompactListRow
                       key={nomineeId}
-                      className="rounded-lg border border-gray-200 bg-white p-5 space-y-3"
+                      label={!selection.deleteMode && !isReadOnly ? `Open ${nominee.name}` : undefined}
+                      onClick={
+                        selection.showSelectors
+                          ? () => selection.toggle(nomineeId)
+                          : !isReadOnly
+                            ? () => handleEditNominee(nominee)
+                            : undefined
+                      }
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex min-w-0 items-center gap-3">
-                          {selection.showSelectors && (
-                            <RowSelectCheckbox
-                              checked={selection.isSelected(nomineeId)}
-                              onCheckedChange={() => selection.toggle(nomineeId)}
-                              aria-label={`Select ${nominee.name}`}
-                            />
-                          )}
-                          <NomineeAvatar nominee={nominee} size="md" />
-                          <div className="min-w-0">
-                            <h3 className="text-sm md:text-base font-medium text-gray-900 truncate">{nominee.name}</h3>
-                            {!embedded && (
-                              <p className="text-xs text-gray-500 truncate">
-                                {election ? getElectionLabel(election) : "Unknown Election"}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-1">
-                          {selectedElectionGenderBased && nominee.gender && (
-                            <Badge variant="outline" className="capitalize text-xs">
-                              {nominee.gender}
-                            </Badge>
-                          )}
-                          {!isReadOnly && !selection.deleteMode && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                aria-label={`Edit ${nominee.name}`}
-                                onClick={() => handleEditNominee(nominee)}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-red-600 hover:text-red-900 hover:bg-red-50"
-                                aria-label={`Delete ${nominee.name}`}
-                                onClick={() => handleDeleteClick(nomineeId)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="hidden overflow-auto lg:block">
-                <Table>
-                <TableHeader>
-                  <TableRow>
-                    {selection.showSelectors && (
-                      <TableHead className="w-6 px-1">
-                        <RowSelectCheckbox
-                          checked={selection.allSelected ? true : selection.someSelected ? "indeterminate" : false}
-                          onCheckedChange={() => selection.toggleAll()}
-                          aria-label="Select all nominees on this page"
-                        />
-                      </TableHead>
-                    )}
-                    <TableHead className="w-14">
-                      <span className="sr-only">Photo</span>
-                    </TableHead>
-                    <TableHead>Name</TableHead>
-                    {selectedElectionGenderBased && <TableHead>Gender</TableHead>}
-                    <TableHead>Election</TableHead>
-                    {!isReadOnly && !selection.deleteMode && <TableHead className="text-right">Actions</TableHead>}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedNominees.map((nominee: any) => {
-                    const nomineeId = getNomineeId(nominee);
-                    // Find the associated election
-                    const election = elections.find((e: any) => {
-                      const electionId = e._id?.toString() || e.id?.toString();
-                      const nomineeElectionId = nominee.electionId?._id?.toString() || 
-                                            nominee.electionId?.toString() || 
-                                            nominee.electionId;
-                      return electionId === nomineeElectionId;
-                    });
-                    
-                    return (
-                      <TableRow key={nomineeId}>
-                        {selection.showSelectors && (
-                          <TableCell className="w-6 px-1">
-                            <RowSelectCheckbox
-                              checked={selection.isSelected(nomineeId)}
-                              onCheckedChange={() => selection.toggle(nomineeId)}
-                              aria-label={`Select ${nominee.name}`}
-                            />
-                          </TableCell>
+                      {selection.showSelectors && (
+                        <CompactListLeading>
+                          <RowSelectCheckbox
+                            checked={selection.isSelected(nomineeId)}
+                            onCheckedChange={() => selection.toggle(nomineeId)}
+                            aria-label={`Select ${nominee.name}`}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </CompactListLeading>
+                      )}
+                      <CompactListLeading>
+                        <NomineeAvatar nominee={nominee} size="sm" />
+                      </CompactListLeading>
+                      <CompactListPrimary>{nominee.name}</CompactListPrimary>
+                      <CompactListSecondary>
+                        {[
+                          selectedElectionGenderBased && nominee.gender,
+                          !embedded && (election ? getElectionLabel(election) : "Unknown Election"),
+                        ].filter(Boolean).join(" · ")}
+                      </CompactListSecondary>
+                      <CompactListActions>
+                        {selectedElectionGenderBased && nominee.gender && (
+                          <Badge variant="outline" className="capitalize text-xs">
+                            {nominee.gender}
+                          </Badge>
                         )}
-                        <TableCell>
-                          <NomineeAvatar nominee={nominee} size="md" />
-                        </TableCell>
-                        <TableCell className="font-medium">{nominee.name}</TableCell>
-                        {selectedElectionGenderBased && (
-                          <TableCell className="capitalize">{nominee.gender || '—'}</TableCell>
-                        )}
-                        <TableCell>{election ? getElectionLabel(election) : 'Unknown Election'}</TableCell>
                         {!isReadOnly && !selection.deleteMode && (
-                          <TableCell className="text-right space-x-1">
-                            <Button variant="ghost" size="sm" onClick={() => handleEditNominee(nominee)}>
-                              <Pencil className="h-4 w-4 mr-1" />
-                              Edit
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              aria-label={`Edit ${nominee.name}`}
+                              onClick={() => handleEditNominee(nominee)}
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="text-red-600 hover:text-red-900 hover:bg-red-50"
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 text-red-600 hover:text-red-900 hover:bg-red-50"
+                              aria-label={`Delete ${nominee.name}`}
                               onClick={() => handleDeleteClick(nomineeId)}
                             >
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              Delete
+                              <Trash2 className="h-3.5 w-3.5" />
                             </Button>
-                          </TableCell>
+                          </>
                         )}
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-                </Table>
-              </div>
+                      </CompactListActions>
+                    </CompactListRow>
+                  );
+                })}
+              </CompactList>
               <PaginationControls
                 page={page}
                 totalPages={totalNomineePages}
@@ -741,13 +674,13 @@ export default function Nominees({
       {/* Add Nominee Dialog */}
       <Dialog open={isAddNomineeOpen} onOpenChange={setIsAddNomineeOpen}>
         <DialogContent className="max-w-2xl flex max-h-[90dvh] flex-col gap-0 overflow-hidden p-0">
-          <DialogHeader className="shrink-0 px-6 pt-6 pb-4">
+          <DialogHeader className="shrink-0 px-4 pt-4 pb-2">
             <DialogTitle>Add Nominees</DialogTitle>
             <DialogDescription>
               Add nominees to an election. You can add multiple nominees at once.
             </DialogDescription>
           </DialogHeader>
-          <DialogBody className="px-6 pb-6">
+          <DialogBody className="px-4 pb-4">
             <NomineeForm 
               defaultElectionId={embedded ? selectedElectionId : undefined}
               sourceElections={elections}
@@ -764,13 +697,13 @@ export default function Nominees({
       {/* Edit Nominee Dialog */}
       <Dialog open={isEditNomineeOpen} onOpenChange={setIsEditNomineeOpen}>
         <DialogContent className="max-w-2xl flex max-h-[90dvh] flex-col gap-0 overflow-hidden p-0">
-          <DialogHeader className="shrink-0 px-6 pt-6 pb-4">
+          <DialogHeader className="shrink-0 px-4 pt-4 pb-2">
             <DialogTitle>Edit Nominee</DialogTitle>
             <DialogDescription>
               Update nominee details.
             </DialogDescription>
           </DialogHeader>
-          <DialogBody className="px-6 pb-6">
+          <DialogBody className="px-4 pb-4">
             <NomineeForm 
               initialData={currentNominee}
               isEdit={true}

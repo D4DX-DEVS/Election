@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+      --app-font: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
       --background: 220 33% 98%;
 --foreground: 222 47% 11%;
 --muted: 220 25% 96%;
@@ -84,21 +85,36 @@
     /* Scales every rem-based Tailwind size down uniformly (16px -> 15px root)
        for a smaller, more standard body-text feel site-wide. */
     font-size: 15px;
+    font-family: var(--app-font);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     /* Prevent font size inflation on orientation change (iOS) */
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
+    /* NOTE: deliberately no overflow-x here. `overflow-x: hidden` on <html>
+       combined with our `position: fixed` header/sidebar/bottom-nav is a
+       known WebKit/iOS bug that freezes touch scrolling for the whole page.
+       The horizontal-overflow safety net below lives on <body> instead,
+       which doesn't have that problem. */
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground min-h-[100dvh];
+    @apply font-sans text-sm leading-5 antialiased bg-background text-foreground min-h-[100dvh];
+    font-family: var(--app-font);
     /* Prevent over-scroll bounce — keeps the app feeling native */
     overscroll-behavior: none;
+    /* Safety net: clip any stray horizontal overflow without creating a scroll
+       container. Using `clip` instead of `hidden` is critical: `hidden` forces
+       the browser to promote overflow-y from `visible` to `auto` (CSS spec §9.4),
+       which causes a spurious vertical scrollbar gutter on Windows even when
+       content fits the viewport. `clip` clips overflow WITHOUT creating a scroll
+       container, so overflow-y remains `visible` and the page only shows a
+       vertical scrollbar when content genuinely exceeds the viewport. */
+    overflow-x: clip;
   }
 
   h1, h2, h3, h4, h5 {
-    @apply font-display tracking-tight;
+    @apply font-sans tracking-tight;
   }
 
   ::selection {
@@ -108,25 +124,36 @@
   /* Faster tap response on all interactive elements */
   button, [role="button"], a, input, select, textarea, label {
     touch-action: manipulation;
+    font-family: inherit;
   }
 
-  /* Mobile-first touch targets throughout the product. */
-  button:not(.no-touch-target),
-  [role="button"]:not(.no-touch-target) {
-    min-height: 44px;
-  }
+  /* Touch-screen targets: 44 px minimum only on coarse-pointer (touch) devices.
+     Desktop (fine pointer / mouse) gets the component's natural height.
+     The search-bar input is explicitly matched so it stays the same height as
+     the icon buttons (AddButton, ExportMenu, DeleteModeButton) beside it.     */
+  @media (pointer: coarse) {
+    button:not(.no-touch-target),
+    [role="button"]:not(.no-touch-target) {
+      min-height: 44px;
+    }
 
-  button[aria-label]:not(.no-touch-target),
-  [role="button"][aria-label]:not(.no-touch-target) {
-    min-width: 44px;
+    button[aria-label]:not(.no-touch-target),
+    [role="button"][aria-label]:not(.no-touch-target) {
+      min-width: 44px;
+    }
+
+    /* Search bar input expands to the same 44 px touch target height */
+    .search-bar input {
+      min-height: 44px;
+    }
   }
 
   main h1 {
-    @apply text-lg font-bold leading-tight text-slate-950 sm:text-xl;
+    @apply app-page-title;
   }
 
   main h2 {
-    @apply text-base font-semibold leading-snug text-slate-900 sm:text-lg;
+    @apply app-section-title;
   }
 }
 
@@ -136,19 +163,93 @@
   }
 
   .app-page {
-    @apply mx-auto flex w-full max-w-7xl flex-1 flex-col;
+    @apply mx-auto flex w-full min-w-0 max-w-7xl flex-1 flex-col;
   }
 
   .app-page-header {
-    @apply mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-end sm:justify-between;
+    @apply mb-3 flex flex-col gap-1.5 sm:mb-4 sm:flex-row sm:items-end sm:justify-between;
   }
 
+  /*
+   * Content scale reference: Profile → Account details.
+   * Do not shrink those value rows. Equivalent user/body content must match them.
+   *
+   * Page title → Section heading → Body/value → Secondary (same size, muted) → Helper/label
+   */
   .app-page-title {
-    @apply text-lg font-bold leading-tight text-slate-950 sm:text-xl;
+    @apply text-lg font-bold leading-tight tracking-tight text-slate-950 sm:text-xl;
   }
 
   .app-page-description {
     @apply mt-1 max-w-2xl text-sm leading-5 text-slate-500;
+  }
+
+  .app-section-title {
+    @apply text-base font-semibold leading-snug tracking-tight text-slate-900;
+  }
+
+  .app-body {
+    @apply text-sm leading-5 text-slate-900;
+  }
+
+  .app-muted {
+    @apply text-sm leading-5 text-slate-500;
+  }
+
+  /* Account details values: Role, Franchise, dates, counts */
+  .app-detail-value {
+    @apply text-sm font-medium leading-5 text-slate-900;
+  }
+
+  .app-label {
+    @apply text-xs font-medium leading-none text-slate-800;
+  }
+
+  .app-helper {
+    @apply text-xs leading-4 text-muted-foreground;
+  }
+
+  .app-kicker {
+    @apply text-xs font-semibold uppercase tracking-wide text-slate-400;
+  }
+
+  /* Record listings: use CompactList / CompactListRow — not stacked vertical cards. */
+
+  .app-error {
+    @apply text-sm font-medium text-destructive;
+  }
+
+  .app-input-text {
+    @apply text-sm placeholder:text-sm placeholder:text-muted-foreground;
+  }
+
+  .app-metric {
+    @apply text-xl font-bold leading-none tracking-tight tabular-nums text-slate-900 sm:text-2xl;
+  }
+
+  .app-metric-compact {
+    @apply text-lg font-bold leading-none tabular-nums text-slate-900;
+  }
+
+  /* Stat-grid typography: uppercase muted label + bold value */
+  .app-stat-label {
+    @apply text-[9px] font-semibold uppercase tracking-widest text-gray-400;
+  }
+
+  .app-stat-value {
+    @apply text-sm font-bold leading-none tabular-nums text-gray-800;
+  }
+
+  .app-form-fields {
+    @apply grid gap-1.5 py-0.5;
+  }
+
+  .app-form-actions {
+    @apply flex flex-row-reverse flex-nowrap items-center gap-2 pt-1;
+  }
+
+  .app-form-actions > * {
+    @apply min-h-9 min-w-0 flex-1 basis-0;
   }
 
   .app-page-actions {
@@ -165,7 +266,7 @@
   }
 
   .mobile-card-row {
-    @apply min-h-16 border-b border-slate-100 p-4 last:border-b-0 active:bg-primary/5;
+    @apply min-h-14 border-b border-slate-100 p-3 last:border-b-0 active:bg-primary/5;
   }
 
   /* Refined, modern scrollbar */
@@ -185,6 +286,16 @@
   .scrollable-content {
     @apply overflow-y-auto overscroll-contain scrollbar-thin;
     max-height: min(70dvh, 100%);
+  }
+
+  /* Scrolls via wheel/trackpad/touch exactly like normal overflow — just
+     without a visible scrollbar track (e.g. the sidebar nav list). */
+  .scrollbar-hidden {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
   }
 
   .scrollable-content-x {

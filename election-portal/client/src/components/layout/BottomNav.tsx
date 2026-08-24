@@ -6,6 +6,7 @@ import {
   Users,
   UserPlus,
   Activity,
+  UserCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -25,7 +26,9 @@ function isVoterGroupsSectionPath(path: string) {
 }
 
 /**
- * Mobile bottom navigation — hidden on desktop (lg+).
+ * Mobile bottom navigation — the only primary nav below `lg`.
+ * Hidden on desktop/laptop where the Sidebar is used instead.
+ * Do not add a hamburger/drawer alongside this bar.
  */
 export function BottomNav() {
   const [location] = useLocation();
@@ -44,6 +47,7 @@ export function BottomNav() {
   const isSuperAdmin = role === "super_admin";
   const isFranchiseAdmin = role === "franchise_admin";
   const isElectionAdmin = role === "election_admin";
+  const isVoter = role === "voter";
 
   const items: BottomNavItem[] = [];
 
@@ -81,6 +85,22 @@ export function BottomNav() {
     }
   }
 
+  if (isVoter) {
+    items.push({
+      href: "/voting",
+      label: "Elections",
+      icon: <Vote className="h-5 w-5" />,
+      isActive: (path) =>
+        path === "/voting" || path.startsWith("/voting/"),
+    });
+  }
+
+  // Account-level access (profile, franchise settings, logout via the page's
+  // own menu) lives under one tab rather than cluttering the primary nav.
+  if (!isVoter && items.length > 0) {
+    items.push({ href: "/profile", label: "Profile", icon: <UserCircle2 className="h-5 w-5" /> });
+  }
+
   const navItems = items.slice(0, 5);
   if (navItems.length === 0) return null;
 
@@ -104,7 +124,7 @@ export function BottomNav() {
               <Link
                 href={item.href}
                 className={cn(
-                  "relative flex h-full flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold transition-colors active:bg-primary/5",
+                  "relative flex h-full flex-col items-center justify-center gap-1 rounded-xl text-xs font-semibold leading-4 transition-colors active:bg-primary/5",
                   active ? "text-primary" : "text-slate-500 hover:text-slate-700"
                 )}
                 aria-current={active ? "page" : undefined}

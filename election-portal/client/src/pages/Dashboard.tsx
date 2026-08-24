@@ -107,83 +107,65 @@ export default function Dashboard() {
           </Alert>
         )}
 
-        <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:gap-5">
+        <div className="mb-3 grid grid-cols-3 gap-2 sm:gap-3">
           {statsLoading ? (
             <>
-              <Skeleton className="h-24 w-full md:h-28" />
-              <Skeleton className="h-24 w-full md:h-28" />
-              <Skeleton className="h-24 w-full md:h-28" />
+              <Skeleton className="h-16 w-full md:h-20" />
+              <Skeleton className="h-16 w-full md:h-20" />
+              <Skeleton className="h-16 w-full md:h-20" />
             </>
           ) : user?.role === "super_admin" ? (
             <>
               <StatCard
+                compact
                 title="Active Elections"
                 value={displayStats.activeElections}
-                icon={<Vote className="h-5 w-5" />}
-                trend={{
-                  value: `${displayStats.activeElections} active now`,
-                  direction: displayStats.activeElections > 0 ? "up" : "neutral",
-                }}
+                icon={<Vote />}
               />
 
               <StatCard
+                compact
                 title="Franchises"
                 value={displayStats.totalFranchises.toLocaleString()}
-                icon={<Building2 className="h-5 w-5" />}
+                icon={<Building2 />}
                 iconBgColor="bg-indigo-100"
                 iconColor="text-indigo-600"
-                trend={{
-                  value: `${displayStats.totalFranchises} total`,
-                  direction: "neutral",
-                }}
               />
 
               <StatCard
+                compact
                 title="Total Elections"
                 value={displayStats.totalElections.toLocaleString()}
-                icon={<BarChart3 className="h-5 w-5" />}
+                icon={<BarChart3 />}
                 iconBgColor="bg-green-100"
                 iconColor="text-green-600"
-                trend={{
-                  value: `${displayStats.totalElections} total`,
-                  direction: "neutral",
-                }}
               />
             </>
           ) : (
             <>
               <StatCard
+                compact
                 title="Active Elections"
                 value={displayStats.activeElections}
-                icon={<Vote className="h-5 w-5" />}
-                trend={{
-                  value: `${displayStats.activeElections} active now`,
-                  direction: displayStats.activeElections > 0 ? "up" : "neutral",
-                }}
+                icon={<Vote />}
               />
 
               <StatCard
+                compact
                 title="Total Elections"
                 value={displayStats.totalElections.toLocaleString()}
-                icon={<BarChart3 className="h-5 w-5" />}
+                icon={<BarChart3 />}
                 iconBgColor="bg-green-100"
                 iconColor="text-green-600"
-                trend={{
-                  value: `${displayStats.totalElections} total`,
-                  direction: "neutral",
-                }}
               />
 
               <StatCard
+                compact
                 title="Registered Voters"
                 value={displayStats.totalVoters.toLocaleString()}
-                icon={<Users className="h-5 w-5" />}
+                icon={<Users />}
                 iconBgColor="bg-indigo-100"
                 iconColor="text-indigo-600"
-                trend={{
-                  value: `${displayStats.totalVoters} total`,
-                  direction: "neutral",
-                }}
               />
             </>
           )}
@@ -191,12 +173,12 @@ export default function Dashboard() {
 
         {user?.role !== "super_admin" && (
           electionsLoading ? (
-            <div className="mb-6">
-              <Skeleton className="h-8 w-48 mb-4" />
-              <Skeleton className="h-64 w-full" />
+            <div className="mb-3">
+              <Skeleton className="h-7 w-48 mb-2" />
+              <Skeleton className="h-48 w-full" />
             </div>
           ) : electionsError ? (
-            <Alert variant="destructive" className="mb-6">
+            <Alert variant="destructive" className="mb-3">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Recent elections unavailable</AlertTitle>
               <AlertDescription>{(electionsFetchError as Error)?.message}</AlertDescription>
@@ -204,7 +186,7 @@ export default function Dashboard() {
           ) : recentElections.length > 0 ? (
             <RecentElectionsTable elections={recentElections} />
           ) : (
-            <Card className="mb-6 border border-gray-200 shadow-none">
+            <Card className="mb-3 border border-gray-200 shadow-none">
               <CardContent className="p-0">
                 <EmptyState
                   title="No elections yet"
@@ -216,7 +198,7 @@ export default function Dashboard() {
         )}
 
         {user?.role === "super_admin" && (
-          <div className="mt-6">
+          <div className="mt-3">
             {statsLoading ? (
               <Skeleton className="h-64 w-full" />
             ) : statsError ? null : (

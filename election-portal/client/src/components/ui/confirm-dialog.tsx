@@ -49,17 +49,17 @@ export function ConfirmDialog({
           <div className="flex items-start gap-3">
             <div
               className={cn(
-                "flex h-11 w-11 shrink-0 items-center justify-center rounded-full",
+                "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
                 isDestructive
                   ? "bg-red-100 text-red-600"
                   : "bg-[rgb(10,36,99)]/10 text-[rgb(10,36,99)]"
               )}
             >
-              <AlertTriangle className="h-5 w-5" />
+              <AlertTriangle className="h-4 w-4" />
             </div>
             <div className="space-y-1.5 pt-0.5">
-              <AlertDialogTitle className="text-base">{title}</AlertDialogTitle>
-              <AlertDialogDescription className="text-sm leading-relaxed">
+              <AlertDialogTitle>{title}</AlertDialogTitle>
+              <AlertDialogDescription className="leading-relaxed">
                 {description}
               </AlertDialogDescription>
             </div>

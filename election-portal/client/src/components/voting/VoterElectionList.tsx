@@ -1,6 +1,7 @@
 import { format } from "date-fns";
-import { Calendar, ChevronRight, Users, Vote } from "lucide-react";
+import { ChevronRight, Vote } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getElectionLabel } from "@/lib/electionHelpers";
 import { cn } from "@/lib/utils";
@@ -32,27 +33,18 @@ function formatElectionDate(dateString?: string) {
   }
 }
 
-function statusLabel(status?: string) {
-  switch (status) {
-    case "active":
-      return "Active";
-    case "completed":
-      return "Completed";
-    case "draft":
-    default:
-      return "Not started";
-  }
+type VoterStatusKey = "active" | "completed" | "draft";
+
+function getStatusVariant(status?: string): VoterStatusKey | "outline" {
+  if (status === "active") return "active";
+  if (status === "completed") return "completed";
+  return "draft";
 }
 
-function statusBadgeClass(status?: string) {
-  switch (status) {
-    case "active":
-      return "bg-green-100 text-green-800 hover:bg-green-100 border-green-200";
-    case "completed":
-      return "bg-blue-100 text-blue-800 hover:bg-blue-100 border-blue-200";
-    default:
-      return "bg-gray-100 text-gray-600 hover:bg-gray-100 border-gray-200";
-  }
+function getStatusLabel(status?: string) {
+  if (status === "active") return "Active";
+  if (status === "completed") return "Completed";
+  return "Not started";
 }
 
 interface VoterElectionListProps {
@@ -67,108 +59,144 @@ export function VoterElectionList({
   onElectionClick,
 }: VoterElectionListProps) {
   return (
-    <Card className="border border-gray-200 shadow-sm">
-      <CardHeader className="px-4 py-3 border-b border-gray-200 md:px-6">
-        <CardTitle className="text-base font-medium text-gray-900">Your elections</CardTitle>
+    <Card className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+      <CardHeader className="border-b border-gray-100 px-4 py-3">
+        <CardTitle className="text-sm font-semibold text-gray-900">
+          Your Elections
+        </CardTitle>
       </CardHeader>
-      <CardContent className="p-0">
-        <ul className="divide-y divide-gray-200">
-          {elections.map((election) => {
-            const id = getElectionId(election);
-            const voted = votingStatus[id] === "voted";
-            const isActive = election.status === "active";
-            const notStarted = !isActive && election.status !== "completed";
-            // Voters may still open a completed election if they already voted,
-            // to review their past vote/result — otherwise only active is clickable.
-            const clickable = isActive || (voted && election.status === "completed");
-            const canRevote = voted && isActive && !!election.allowRevote;
-            const label = getElectionLabel(election);
-            const positions = election.numberToBeElected ?? 1;
-            const meta = `${formatElectionDate(election.electionDate)} · Select ${positions} position${positions !== 1 ? "s" : ""}`;
-            const voteStats = election.voteStats;
-            const showTurnout =
-              voted && voteStats && typeof voteStats.voted === "number" && (voteStats.eligible ?? 0) > 0;
+      <CardContent className="flex flex-col gap-2 p-3">
+        {elections.map((election) => {
+          const id = getElectionId(election);
+          const voted = votingStatus[id] === "voted";
+          const isActive = election.status === "active";
+          const notStarted = !isActive && election.status !== "completed";
+          const clickable =
+            isActive || (voted && election.status === "completed");
+          const canRevote = voted && isActive && !!election.allowRevote;
+          const label = getElectionLabel(election);
+          const positions = election.numberToBeElected ?? 1;
+          const dateLabel = formatElectionDate(election.electionDate);
+          const voteStats = election.voteStats;
+          const eligible = voteStats?.eligible ?? 0;
+          const votedCount = voteStats?.voted ?? 0;
+          const turnoutPct =
+            eligible > 0 ? Math.round((votedCount / eligible) * 100) : 0;
+          const showTurnout = voted && eligible > 0;
 
-            const handleClick = () => {
-              if (clickable) {
-                onElectionClick(id);
-                return;
+          const handleClick = () => {
+            if (clickable) {
+              onElectionClick(id);
+              return;
+            }
+            if (notStarted) {
+              toast({
+                title: "Election not started",
+                description:
+                  "This election is not open for voting yet. You'll be able to vote once it starts.",
+              });
+            }
+          };
+
+          // Badge: "Voted" overrides the status badge when voter has cast a vote
+          const badgeVariant = voted
+            ? ("completed" as const)
+            : (getStatusVariant(election.status) as any);
+          const badgeLabel = voted ? "Voted" : getStatusLabel(election.status);
+
+          return (
+            <div
+              key={id}
+              role="button"
+              tabIndex={0}
+              aria-label={
+                clickable
+                  ? canRevote
+                    ? `Revote in ${label}`
+                    : voted
+                      ? `View vote for ${label}`
+                      : `Vote in ${label}`
+                  : label
               }
-              if (notStarted) {
-                toast({
-                  title: "Election not started",
-                  description: "This election is not open for voting yet. You'll be able to vote once it starts.",
-                });
-              }
-            };
-
-            return (
-              <li key={id}>
-                <button
-                  type="button"
-                  onClick={handleClick}
-                  className={cn(
-                    "w-full flex items-center gap-3 p-4 text-left transition-colors",
-                    clickable ? "hover:bg-primary/5 active:bg-primary/10 cursor-pointer" : "cursor-default opacity-70",
-                    voted ? "bg-blue-50/40" : ""
+              onClick={handleClick}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleClick();
+                }
+              }}
+              className={cn(
+                "group overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-all duration-150",
+                clickable
+                  ? "cursor-pointer hover:border-primary/20 hover:shadow-md active:scale-[0.995]"
+                  : "cursor-default opacity-70",
+                voted && "border-blue-100 bg-blue-50/20"
+              )}
+            >
+              {/* Header */}
+              <div className="flex items-start gap-3 px-4 pt-3.5 pb-3">
+                {/* Logo */}
+                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
+                  {election.logo?.url ? (
+                    <img
+                      src={election.logo.url}
+                      alt={election.logo.alt || label}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <Vote className="h-4 w-4 text-gray-300" />
                   )}
-                >
-                  <div className="flex-shrink-0 w-11 h-11 rounded-lg border border-gray-200 bg-gray-50 overflow-hidden flex items-center justify-center">
-                    {election.logo?.url ? (
-                      <img
-                        src={election.logo.url}
-                        alt={election.logo.alt || label}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <Vote className="h-5 w-5 text-primary/70" />
-                    )}
-                  </div>
+                </div>
 
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold text-gray-900 leading-tight truncate">{label}</h3>
-                      {voted ? (
-                        <Badge
-                          variant="outline"
-                          className="bg-blue-100 text-blue-800 hover:bg-blue-100 border-blue-200 text-[10px] px-1.5 py-0"
-                        >
-                          Voted
-                        </Badge>
-                      ) : (
-                        <Badge
-                          variant="outline"
-                          className={cn("text-[10px] px-1.5 py-0", statusBadgeClass(election.status))}
-                        >
-                          {statusLabel(election.status)}
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-500 mt-0.5 truncate flex items-center gap-1">
-                      <Calendar className="h-3 w-3 flex-shrink-0" />
-                      {meta}
-                    </p>
-                    {showTurnout && (
-                      <p className="text-xs text-blue-700 mt-0.5 truncate flex items-center gap-1">
-                        <Users className="h-3 w-3 flex-shrink-0" />
-                        {voteStats!.voted}/{voteStats!.eligible} voted
-                      </p>
-                    )}
+                {/* Title + date */}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="min-w-0 truncate text-sm font-semibold leading-snug text-gray-900">
+                      {label}
+                    </h3>
+                    <Badge variant={badgeVariant}>{badgeLabel}</Badge>
                   </div>
+                  <p className="mt-0.5 text-[11px] text-gray-400">
+                    {dateLabel}
+                    {positions > 0 && (
+                      <span className="ml-2 text-gray-300">·</span>
+                    )}{" "}
+                    <span className="ml-1">
+                      Select {positions} position{positions !== 1 ? "s" : ""}
+                    </span>
+                  </p>
+                </div>
 
-                  {clickable && (
-                    <div className="flex-shrink-0 flex items-center gap-1 text-xs font-medium text-primary">
-                      <span className="hidden sm:inline">
-                        {canRevote ? "Revote" : voted ? "View vote" : "Vote"}
-                      </span>
-                      <ChevronRight className="h-4 w-4" />
-                    </div>
-                  )}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+                {/* CTA arrow */}
+                {clickable && (
+                  <div className="flex shrink-0 items-center text-primary">
+                    <span className="hidden text-xs font-semibold sm:inline">
+                      {canRevote ? "Revote" : voted ? "View vote" : "Vote"}
+                    </span>
+                    <ChevronRight className="h-4 w-4" />
+                  </div>
+                )}
+              </div>
+
+              {/* Turnout stat — only shown when voter has voted */}
+              {showTurnout && (
+                <div className="border-t border-gray-100 px-4 py-3">
+                  <div className="flex items-center justify-between">
+                    <span className="app-stat-label">Turnout</span>
+                    <span className="app-stat-value text-blue-700">
+                      {votedCount}/{eligible} ({turnoutPct}%)
+                    </span>
+                  </div>
+                  <Progress
+                    value={turnoutPct}
+                    className="mt-2 h-1 rounded-full bg-gray-100"
+                    aria-label={`Turnout: ${turnoutPct}%`}
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
       </CardContent>
     </Card>
   );

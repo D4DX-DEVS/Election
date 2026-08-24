@@ -152,12 +152,12 @@ export default function VotingResults() {
                   <Shield className="h-3.5 w-3.5 text-primary/70" />
                 )}
               </div>
-              <p className="truncate text-xs font-medium text-gray-500">{election.franchise.name}</p>
+              <p className="app-muted truncate font-medium">{election.franchise.name}</p>
             </div>
           )}
-          <h1 className="font-bold text-lg text-gray-900 dark:text-white leading-snug">{election ? getElectionLabel(election) : ''}</h1>
+          <h1 className="app-page-title">{election ? getElectionLabel(election) : ''}</h1>
           {election?.electionDate && (
-            <div className="flex items-center gap-1.5 mt-2 text-xs text-gray-400">
+            <div className="app-muted mt-2 flex items-center gap-1.5">
               <Calendar className="h-3.5 w-3.5" />
               {formatDate(election.electionDate)}
             </div>
@@ -175,14 +175,14 @@ export default function VotingResults() {
           </p>
           <div className="flex items-start gap-2 bg-white/60 dark:bg-gray-800/60 rounded-xl p-3">
             <Info className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-gray-600 dark:text-gray-400">
+            <p className="app-helper">
               Your vote is confidential. Only you can see the nominees you selected.
             </p>
           </div>
         </div>
 
         {/* ── Who you voted for ── */}
-        <h3 className="font-bold text-base text-gray-800 dark:text-white mb-3">
+        <h3 className="app-section-title mb-3">
           You voted for:
         </h3>
         <div className="space-y-3 mb-6">
@@ -195,9 +195,9 @@ export default function VotingResults() {
                 {nominee.name?.charAt(0).toUpperCase() || '?'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-gray-900 dark:text-white">{nominee.name}</p>
+                <p className="app-body font-semibold">{nominee.name}</p>
                 {nominee.bio && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{nominee.bio}</p>
+                  <p className="app-helper mt-0.5 line-clamp-2">{nominee.bio}</p>
                 )}
               </div>
               <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
@@ -214,8 +214,8 @@ export default function VotingResults() {
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-3">
                 <Trophy className="h-5 w-5 text-amber-500" />
-                <h3 className="font-bold text-base text-gray-800 dark:text-white">Election Results</h3>
-                <span className="text-[10px] font-bold text-green-700 bg-green-100 dark:bg-green-900/40 dark:text-green-300 px-2 py-0.5 rounded-full">
+                <h3 className="app-section-title">Election Results</h3>
+                <span className="text-xs font-bold text-green-700 bg-green-100 dark:bg-green-900/40 dark:text-green-300 px-2 py-0.5 rounded-full">
                   Published
                 </span>
               </div>
@@ -224,17 +224,17 @@ export default function VotingResults() {
               <div className={`grid ${showScore ? 'grid-cols-3' : 'grid-cols-2'} gap-2 mb-3`}>
                 {showScore && (
                   <div className="rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-3 text-center">
-                    <p className="text-xl font-bold text-gray-900 dark:text-white">{publishedResults.totalBallots ?? 0}</p>
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400">Votes Cast</p>
+                    <p className="app-metric-compact">{publishedResults.totalBallots ?? 0}</p>
+                    <p className="app-helper">Votes Cast</p>
                   </div>
                 )}
                 <div className="rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-3 text-center">
-                  <p className="text-xl font-bold text-gray-900 dark:text-white">{publishedResults.eligibleVoters ?? 0}</p>
-                  <p className="text-[11px] text-gray-500 dark:text-gray-400">Eligible</p>
+                  <p className="app-metric-compact">{publishedResults.eligibleVoters ?? 0}</p>
+                  <p className="app-helper">Eligible</p>
                 </div>
                 <div className="rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-3 text-center">
-                  <p className="text-xl font-bold text-gray-900 dark:text-white">{publishedResults.turnout ?? 0}%</p>
-                  <p className="text-[11px] text-gray-500 dark:text-gray-400">Turnout</p>
+                  <p className="app-metric-compact">{publishedResults.turnout ?? 0}%</p>
+                  <p className="app-helper">Turnout</p>
                 </div>
               </div>
 
@@ -251,22 +251,22 @@ export default function VotingResults() {
                         key={n._id || n.id || idx}
                         className={`flex items-center gap-3 px-4 py-3 ${idx !== 0 ? 'border-t border-gray-100 dark:border-gray-700' : ''} ${elected ? 'bg-green-50 dark:bg-green-900/10' : ''}`}
                       >
-                        <span className="text-sm font-bold text-gray-400 w-5 text-center flex-shrink-0">{idx + 1}</span>
+                        <span className="app-muted w-5 text-center flex-shrink-0 font-bold">{idx + 1}</span>
                         <div className="flex-1 min-w-0">
-                          <p className={`font-semibold text-sm truncate ${elected ? 'text-green-700 dark:text-green-300' : 'text-gray-900 dark:text-white'}`}>
+                          <p className={`app-body font-semibold truncate ${elected ? 'text-green-700 dark:text-green-300' : ''}`}>
                             {n.name}
                           </p>
                           {elected && (
-                            <span className="text-[10px] font-bold text-green-700 dark:text-green-400">✓ Elected</span>
+                            <span className="text-xs font-bold text-green-700 dark:text-green-400">✓ Elected</span>
                           )}
                         </div>
                         {(showScore || showPercentage) && (
                           <div className="text-right flex-shrink-0">
                             {showScore && (
-                              <p className="font-bold text-sm text-gray-900 dark:text-white">{n.voteCount ?? 0}</p>
+                              <p className="app-body font-bold">{n.voteCount ?? 0}</p>
                             )}
                             {showPercentage && (
-                              <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                              <p className="app-helper">
                                 {(n.percentage ?? 0).toFixed(1)}%
                               </p>
                             )}
@@ -282,9 +282,9 @@ export default function VotingResults() {
 
         {/* ── Thank you ── */}
         <div className="rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-6 text-center mb-4">
-          <p className="text-2xl mb-2">🗳️</p>
-          <h2 className="font-bold text-lg text-gray-900 dark:text-white mb-1">Thank You For Voting</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="mb-2 text-xl" aria-hidden>🗳️</p>
+          <h2 className="app-section-title mb-1">Thank You For Voting</h2>
+          <p className="app-muted">
             Your participation in this election is important and valued.
           </p>
         </div>

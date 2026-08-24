@@ -340,12 +340,12 @@ export function ManageVoterGroupDialog({
                             {(voter.username || "?").slice(0, 2)}
                           </div>
                           <div className="min-w-0">
-                            <p className="truncate text-sm font-medium text-gray-900">
+                            <p className="app-detail-value truncate">
                               {voter.username}
                             </p>
                             {voter.registrationNumber &&
                               voter.registrationNumber !== voter.username && (
-                                <p className="truncate text-xs text-gray-500">
+                                <p className="app-muted truncate">
                                   Reg: {voter.registrationNumber}
                                 </p>
                               )}
@@ -382,11 +382,11 @@ export function ManageVoterGroupDialog({
               onValueChange={(v) => setAddTab(v as "new" | "bulk")}
             >
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="new" className="gap-1 text-xs sm:text-sm">
+                <TabsTrigger value="new" className="gap-1">
                   <UserPlus className="h-3.5 w-3.5" />
                   <span>New Voter</span>
                 </TabsTrigger>
-                <TabsTrigger value="bulk" className="gap-1 text-xs sm:text-sm">
+                <TabsTrigger value="bulk" className="gap-1">
                   <UsersRound className="h-3.5 w-3.5" />
                   <span>Bulk</span>
                 </TabsTrigger>
@@ -426,7 +426,7 @@ export function ManageVoterGroupDialog({
                     }
                     placeholder="Leave blank to auto-generate"
                   />
-                  <p className="text-xs text-gray-500">
+                  <p className="app-helper">
                     Auto-generated passwords are 8 random alphanumeric characters.
                   </p>
                 </div>
@@ -507,7 +507,7 @@ export function ManageVoterGroupDialog({
                   </div>
                 </div>
 
-                <div className="rounded-md bg-blue-50 p-3 text-xs text-blue-700">
+                <div className="rounded-md bg-blue-50 p-3 app-muted text-blue-700">
                   Usernames will be like{" "}
                   <code className="bg-blue-100 px-1 rounded">
                     {bulkForm.prefix || "VOTE"}

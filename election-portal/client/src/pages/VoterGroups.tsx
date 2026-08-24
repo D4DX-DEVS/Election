@@ -2,14 +2,13 @@ import { useEffect, useState, Fragment } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { SelectCheckbox } from "@/components/ui/row-select-checkbox";
 import {
   Dialog,
@@ -30,7 +29,9 @@ import { DeleteModeButton } from "@/components/ui/delete-mode-button";
 import { RowSelectCheckbox } from "@/components/ui/row-select-checkbox";
 import { useBulkDeleteMode } from "@/hooks/useBulkDeleteMode";
 import { deleteByIds } from "@/lib/bulkDelete";
-import { AlertCircle, Users, PlusCircle, Trash2, ArrowLeft, Settings2, Loader2, Link2, Shuffle, Eye } from "lucide-react";
+import { AlertCircle, Users, Trash2, ArrowLeft, Settings2, Loader2, Link2, Shuffle, Eye } from "lucide-react";
+import { CompactList, CompactListActions, CompactListLeading, CompactListPrimary, CompactListRow, CompactListSecondary, CompactListStatus } from "@/components/ui/compact-list";
+import { AddButton } from "@/components/ui/add-button";
 import { cn, isValidNameField } from "@/lib/utils";
 import { getElectionLabel, getElectionSubtitle } from "@/lib/electionHelpers";
 import { PaginationControls } from "@/components/ui/pagination-controls";
@@ -584,14 +585,14 @@ export default function VoterGroups({
     const electionAssignCard = (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">
+          <CardTitle>
             {assignOnly ? "Assign Election to Group" : "Assign Elections to this Group"}
           </CardTitle>
-          <p className="text-sm text-gray-500">
+          <CardDescription>
             {assignOnly
               ? "Voters in this group will get access to this election when assigned."
               : "Voters in this group will have access to the selected elections."}
-          </p>
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {assignableElections.length === 0 ? (
@@ -610,10 +611,10 @@ export default function VoterGroups({
                       onCheckedChange={() => toggleElection(el._id)}
                       aria-label={`Assign ${getElectionLabel(el)}`}
                     />
-                    <div className="min-w-0 text-sm">
-                      <span className="font-medium text-gray-900">{getElectionLabel(el)}</span>
+                    <div className="min-w-0">
+                      <span className="app-detail-value">{getElectionLabel(el)}</span>
                       {subtitle ? (
-                        <span className="ml-1 text-xs text-gray-500">({subtitle})</span>
+                        <span className="app-muted ml-1">({subtitle})</span>
                       ) : null}
                     </div>
                   </div>
@@ -648,7 +649,7 @@ export default function VoterGroups({
             <Button variant="ghost" size="sm" onClick={closeGroup} className="gap-1">
               <ArrowLeft className="h-4 w-4" /> All Groups
             </Button>
-            <h2 className="text-lg font-semibold text-gray-900 truncate">
+            <h2 className="app-section-title truncate">
               {selectedGroup.name || "Voter Group"}
             </h2>
           </div>
@@ -668,7 +669,7 @@ export default function VoterGroups({
               <h1 className="app-page-title truncate">
                 {selectedGroup.name || "Voter Group"}
               </h1>
-              <p className="text-sm text-gray-500 mt-0.5">
+              <p className="app-page-description">
                 {groupVotersTotal} voter{groupVotersTotal === 1 ? "" : "s"}
               </p>
             </div>
@@ -725,14 +726,7 @@ export default function VoterGroups({
                     if (!open) setSingleVoterUsername("");
                   }}>
                   <DialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-9 justify-center gap-1.5 px-3 text-xs font-medium"
-                    >
-                      <PlusCircle className="h-4 w-4 shrink-0" />
-                      <span className="truncate">Add Voter</span>
-                    </Button>
+                    <AddButton title="Add voter" label="Add voter" />
                   </DialogTrigger>
                   <DialogContent className="max-w-md">
                     <DialogHeader>
@@ -742,7 +736,7 @@ export default function VoterGroups({
                       </DialogDescription>
                     </DialogHeader>
 
-                    <div className="space-y-3 py-1">
+                    <div className="app-form-fields">
                       <div className="space-y-1">
                         <Label>Username *</Label>
                         <Input
@@ -752,10 +746,17 @@ export default function VoterGroups({
                           autoFocus
                         />
                       </div>
-                      <p className="text-xs text-gray-500">A unique random password will be generated automatically.</p>
+                      <p className="app-helper">A unique random password will be generated automatically.</p>
                     </div>
 
                     <DialogFooter>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setSingleVoterOpen(false)}
+                      >
+                        Cancel
+                      </Button>
                       <Button
                         onClick={() => addSingleVoterMutation.mutate()}
                         disabled={!singleVoterUsername.trim() || addSingleVoterMutation.isPending}
@@ -782,10 +783,10 @@ export default function VoterGroups({
                       <DialogTitle>Bulk Create Voters</DialogTitle>
                       <DialogDescription>
                         Generating for <strong>{selectedGroup?.name}</strong>.
-                        {selectedGroup?.description && <span className="block text-xs text-gray-400 mt-0.5">{selectedGroup.description}</span>}
+                        {selectedGroup?.description && <span className="app-muted mt-0.5 block">{selectedGroup.description}</span>}
                       </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-3 py-2">
+                    <div className="app-form-fields">
                       <div className="space-y-1">
                         <Label>Prefix</Label>
                         <div className="flex gap-2">
@@ -826,6 +827,13 @@ export default function VoterGroups({
                     </div>
                     <DialogFooter>
                       <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setBulkVoterOpen(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
                         onClick={() => bulkGenerateMutation.mutate()}
                         disabled={bulkGenerateMutation.isPending}
                       >
@@ -863,42 +871,50 @@ export default function VoterGroups({
                 }
                 deleting={deleteGroupVotersMutation.isPending}
               />
-              {/* Mobile: house-style cards */}
-              <div className="space-y-3 lg:hidden">
+              {groupVoterSelection.showSelectors && groupVoters.length > 0 && (
+                <div className="mb-3 flex items-center justify-between rounded-md border bg-white px-3 py-2">
+                  <div className="inline-flex items-center gap-2">
+                    <RowSelectCheckbox
+                      checked={
+                        groupVoterSelection.allSelected
+                          ? true
+                          : groupVoterSelection.someSelected
+                            ? "indeterminate"
+                            : false
+                      }
+                      onCheckedChange={() => groupVoterSelection.toggleAll()}
+                      aria-label="Select all voters on this page"
+                    />
+                    <span
+                      onClick={() => groupVoterSelection.toggleAll()}
+                      className="cursor-pointer select-none text-sm font-medium text-primary"
+                    >
+                      {groupVoterSelection.allSelected ? "Clear selection" : "Select all on this page"}
+                    </span>
+                  </div>
+                  <span className="app-helper">{groupVoters.length} shown</span>
+                </div>
+              )}
+              <CompactList>
                 {groupVoters.map((v) => {
                   const pwd = groupVoterPasswordById.get(String(v._id));
                   return (
-                    <div
-                      key={v._id}
-                      className="rounded-lg border border-gray-200 bg-white p-5 space-y-3"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex min-w-0 items-start gap-3">
-                          {groupVoterSelection.showSelectors && (
-                            <RowSelectCheckbox
-                              checked={groupVoterSelection.isSelected(v._id)}
-                              onCheckedChange={() => groupVoterSelection.toggle(v._id)}
-                              aria-label={`Select ${getDisplayUsername(v)}`}
-                              className="mt-0.5"
-                            />
-                          )}
-                          <div className="min-w-0">
-                            <h3 className="text-sm md:text-base font-medium text-gray-900 truncate font-mono">
-                              {getDisplayUsername(v)}
-                            </h3>
-                            <p className="text-xs text-gray-500 truncate font-mono">
-                              {pwd || <span className="italic text-gray-400">unavailable</span>}
-                            </p>
-                          </div>
-                        </div>
-                        <Badge
-                          variant={v.status === "active" ? "default" : "secondary"}
-                          className="shrink-0"
-                        >
-                          {v.status || "active"}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-1 border-t border-gray-100 pt-2">
+                    <CompactListRow key={v._id}>
+                      {groupVoterSelection.showSelectors && (
+                        <CompactListLeading>
+                          <RowSelectCheckbox
+                            checked={groupVoterSelection.isSelected(v._id)}
+                            onCheckedChange={() => groupVoterSelection.toggle(v._id)}
+                            aria-label={`Select ${getDisplayUsername(v)}`}
+                          />
+                        </CompactListLeading>
+                      )}
+                      <CompactListStatus active={(v.status || "active") === "active"} />
+                      <CompactListPrimary className="font-mono">{getDisplayUsername(v)}</CompactListPrimary>
+                      <CompactListSecondary className="font-mono">
+                        {pwd || "unavailable"}
+                      </CompactListSecondary>
+                      <CompactListActions>
                         <VoterSlipPrinter
                           voter={{ ...v, plainPassword: pwd } as any}
                           electionNames={elections
@@ -909,83 +925,18 @@ export default function VoterGroups({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 ml-auto"
+                            className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                             onClick={() => setPendingDeleteGroupVoterIds([v._id])}
                             title="Delete voter"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         )}
-                      </div>
-                    </div>
+                      </CompactListActions>
+                    </CompactListRow>
                   );
                 })}
-              </div>
-
-              {/* Desktop: table */}
-              <div className="hidden border rounded-lg overflow-x-auto lg:block">
-                <table className="w-full text-sm">
-                  <thead className="bg-white border-b">
-                    <tr>
-                      {groupVoterSelection.showSelectors && (
-                        <th className="w-7 px-1 py-2">
-                          <RowSelectCheckbox
-                            checked={
-                              groupVoterSelection.allSelected
-                                ? true
-                                : groupVoterSelection.someSelected
-                                  ? "indeterminate"
-                                  : false
-                            }
-                            onCheckedChange={() => groupVoterSelection.toggleAll()}
-                            aria-label="Select all voters on this page"
-                          />
-                        </th>
-                      )}
-                      <th className="text-left px-4 py-2 font-medium text-gray-600">Username</th>
-                      <th className="text-left px-4 py-2 font-medium text-gray-600">Password</th>
-                      <th className="text-left px-4 py-2 font-medium text-gray-600">Status</th>
-                      <th className="px-4 py-2"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {groupVoters.map((v) => (
-                      <tr key={v._id} className="hover:bg-primary/5">
-                        {groupVoterSelection.showSelectors && (
-                          <td className="w-7 px-1 py-2">
-                            <RowSelectCheckbox
-                              checked={groupVoterSelection.isSelected(v._id)}
-                              onCheckedChange={() => groupVoterSelection.toggle(v._id)}
-                              aria-label={`Select ${getDisplayUsername(v)}`}
-                            />
-                          </td>
-                        )}
-                        <td className="px-4 py-2 font-mono">{getDisplayUsername(v)}</td>
-                        <td className="px-4 py-2 font-mono text-gray-600">{groupVoterPasswordById.get(String(v._id)) || <span className="text-gray-400 italic">unavailable</span>}</td>
-                        <td className="px-4 py-2">
-                          <Badge variant={v.status === "active" ? "default" : "secondary"}>{v.status || "active"}</Badge>
-                        </td>
-                        <td className="px-4 py-2">
-                          <div className="flex items-center gap-1">
-                            <VoterSlipPrinter voter={{ ...v, plainPassword: groupVoterPasswordById.get(String(v._id)) } as any} electionNames={elections.filter(e => (v.electionAccess || []).includes(e._id)).map(e => getElectionLabel(e))} />
-                            {!groupVoterSelection.deleteMode && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                onClick={() => setPendingDeleteGroupVoterIds([v._id])}
-                                title="Delete voter"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              </CompactList>
               {groupVotersPagination && groupVotersPagination.total > 0 && (
                 <PaginationControls
                   page={groupVotersPagination.page}
@@ -1035,14 +986,14 @@ export default function VoterGroups({
   return (
     <Wrapper>
       <PageContent>
-      <div className={cn("mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-end sm:justify-between", suppressTitle && "sm:justify-end")}>
+      <div className={cn("mb-3 flex flex-col gap-2 sm:mb-4 sm:flex-row sm:items-end sm:justify-between", suppressTitle && "sm:justify-end")}>
         {!suppressTitle && (
         <div>
-          <h1 className={embedded ? "text-lg font-semibold text-gray-900 flex items-center gap-2" : "app-page-title flex items-center gap-2"}>
+          <h1 className={embedded ? "app-section-title flex items-center gap-2" : "app-page-title flex items-center gap-2"}>
             <Users className={embedded ? "h-5 w-5 text-primary" : "h-6 w-6 text-primary"} />
             Voter Groups
           </h1>
-          <p className="text-sm text-gray-500 mt-1">Create groups, assign elections, and manage voters inside each group.</p>
+          <p className="app-page-description">Create groups, assign elections, and manage voters inside each group.</p>
         </div>
         )}
         <div className={cn(
@@ -1059,13 +1010,7 @@ export default function VoterGroups({
             }
           }}>
           <DialogTrigger asChild>
-            <Button size="sm" className="flex-1 justify-center gap-1.5 sm:flex-none">
-              <PlusCircle className="h-4 w-4 shrink-0" />
-              <span className="truncate">
-                <span className="sm:hidden">Add group</span>
-                <span className="hidden sm:inline">New Group</span>
-              </span>
-            </Button>
+            <AddButton title="New group" label="New group" />
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
@@ -1079,27 +1024,26 @@ export default function VoterGroups({
             {viewOnly && unassignedGroups.length > 0 && (
               <div className="space-y-2 border-b pb-4">
                 <Label>Existing groups</Label>
-                <div className="max-h-48 space-y-1 overflow-y-auto pr-1">
-                  {unassignedGroups.map((g) => (
-                    <div
-                      key={g._id}
-                      className="flex items-center justify-between gap-2 rounded-md border border-gray-200 px-3 py-2"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-gray-900">{g.name || "Untitled"}</p>
-                        <p className="text-xs text-gray-500">{g.voters?.length ?? 0} voters</p>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="shrink-0"
-                        onClick={() => quickAssignElectionMutation.mutate(g)}
-                        disabled={quickAssignElectionMutation.isPending}
-                      >
-                        Assign
-                      </Button>
-                    </div>
-                  ))}
+                <div className="max-h-48 overflow-y-auto pr-1">
+                  <CompactList>
+                    {unassignedGroups.map((g) => (
+                      <CompactListRow key={g._id}>
+                        <CompactListPrimary>{g.name || "Untitled"}</CompactListPrimary>
+                        <CompactListSecondary>{`${g.voters?.length ?? 0} voters`}</CompactListSecondary>
+                        <CompactListActions>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8"
+                            onClick={() => quickAssignElectionMutation.mutate(g)}
+                            disabled={quickAssignElectionMutation.isPending}
+                          >
+                            Assign
+                          </Button>
+                        </CompactListActions>
+                      </CompactListRow>
+                    ))}
+                  </CompactList>
                 </div>
               </div>
             )}
@@ -1117,17 +1061,28 @@ export default function VoterGroups({
                 }
                 createMutation.mutate();
               }}
-              className="space-y-3 pt-1"
+              className="app-form-fields"
             >
-              <div className="space-y-1.5">
+              <div className="grid gap-1">
                 <Label htmlFor="gname">Group Name *</Label>
                 <Input id="gname" value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="e.g. Block A Voters" autoFocus />
               </div>
-              <div className="space-y-1.5">
+              <div className="grid gap-1">
                 <Label htmlFor="gdesc">Description <span className="text-gray-400 text-xs font-normal">(optional)</span></Label>
                 <Input id="gdesc" value={groupDescription} onChange={(e) => setGroupDescription(e.target.value)} placeholder="e.g. Voters from Ward 3" />
               </div>
-              <DialogFooter className="pt-2">
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsOpen(false);
+                    setGroupName("");
+                    setGroupDescription("");
+                  }}
+                >
+                  Cancel
+                </Button>
                 <Button type="submit" disabled={!groupName.trim() || createMutation.isPending}>
                   {createMutation.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Creating…</> : "Create Group"}
                 </Button>
@@ -1185,12 +1140,7 @@ export default function VoterGroups({
           />
           {selection.showSelectors && groups.length > 0 && (
             <div className="mb-3 flex items-center justify-between rounded-md border bg-white px-3 py-2">
-              <button
-                type="button"
-                className="inline-flex items-center gap-2 text-sm font-medium text-primary"
-                onClick={() => selection.toggleAll()}
-                aria-label="Select all groups on this page"
-              >
+              <div className="inline-flex items-center gap-2">
                 <RowSelectCheckbox
                   checked={
                     selection.allSelected
@@ -1202,40 +1152,50 @@ export default function VoterGroups({
                   onCheckedChange={() => selection.toggleAll()}
                   aria-label="Select all groups on this page"
                 />
-                <span>{selection.allSelected ? "Clear selection" : "Select all on this page"}</span>
-              </button>
-              <span className="text-xs text-gray-500">{groups.length} shown</span>
+                <span
+                  onClick={() => selection.toggleAll()}
+                  className="cursor-pointer select-none text-sm font-medium text-primary"
+                >
+                  {selection.allSelected ? "Clear selection" : "Select all on this page"}
+                </span>
+              </div>
+              <span className="app-helper">{groups.length} shown</span>
             </div>
           )}
-          <div className="space-y-3 md:space-y-4 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
+          <CompactList>
           {groups.map((g) => {
             const voterCount = g.voters?.length ?? 0;
+            const electionCount = getGroupElectionIds(g).length;
             const canExport = !selection.deleteMode && !assignOnly && voterCount > 0;
 
             return (
-            <div key={g._id} className="rounded-lg border border-gray-200 bg-white p-5 space-y-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-3">
+            <CompactListRow
+              key={g._id}
+              label={selection.deleteMode ? `Select ${g.name || "group"}` : `Open ${g.name || "group"}`}
+              onClick={
+                selection.showSelectors
+                  ? () => selection.toggle(g._id)
+                  : () => openGroup(g)
+              }
+            >
                   {selection.showSelectors && (
+                    <CompactListLeading>
                     <RowSelectCheckbox
                       checked={selection.isSelected(g._id)}
                       onCheckedChange={() => selection.toggle(g._id)}
                       aria-label={`Select ${g.name || "group"}`}
+                      onClick={(e) => e.stopPropagation()}
                     />
+                    </CompactListLeading>
                   )}
-                  <div className="min-w-0">
-                    <h3 className="text-sm md:text-base font-medium text-gray-900 truncate">
-                      {g.name || "Untitled"}
-                    </h3>
-                    {g.description && (
-                      <p className="text-xs text-gray-500 truncate">
-                        {g.description}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                  <CompactListPrimary>
+                    {g.name || "Untitled"}
+                  </CompactListPrimary>
+                  <CompactListSecondary>
+                    {g.description || `${voterCount} voter${voterCount === 1 ? "" : "s"} · ${electionCount} election${electionCount === 1 ? "" : "s"}`}
+                  </CompactListSecondary>
                 {!selection.deleteMode && (
-                  <div className="flex shrink-0 items-center gap-1">
+                  <CompactListActions>
                     {canExport && (
                       <ExportMenu
                         iconOnly
@@ -1251,11 +1211,11 @@ export default function VoterGroups({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
+                            className="h-6 w-6"
                             onClick={() => openGroup(g)}
                             aria-label={`Assign ${g.name || "group"}`}
                           >
-                            <Link2 className="h-4 w-4" />
+                            <Link2 className="h-3.5 w-3.5" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>Assign elections</TooltipContent>
@@ -1266,11 +1226,11 @@ export default function VoterGroups({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
+                            className="h-6 w-6"
                             onClick={() => openGroup(g, "voters")}
                             aria-label={`View ${g.name || "group"}`}
                           >
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-3.5 w-3.5" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>View voters</TooltipContent>
@@ -1281,11 +1241,11 @@ export default function VoterGroups({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
+                            className="h-6 w-6"
                             onClick={() => openGroup(g)}
                             aria-label={`Manage ${g.name || "group"}`}
                           >
-                            <Settings2 className="h-4 w-4" />
+                            <Settings2 className="h-3.5 w-3.5" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>Manage group</TooltipContent>
@@ -1296,30 +1256,21 @@ export default function VoterGroups({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700"
+                          className="h-6 w-6 text-red-600 hover:bg-red-50 hover:text-red-700"
                           onClick={() => setPendingDeleteIds([g._id])}
                           aria-label={`Delete ${g.name || "group"}`}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>Delete group</TooltipContent>
                     </Tooltip>
-                  </div>
+                  </CompactListActions>
                 )}
-              </div>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-                <span className="inline-flex items-center font-medium text-gray-700">
-                  {voterCount} voter{voterCount === 1 ? "" : "s"}
-                </span>
-                <span className="inline-flex items-center font-medium text-gray-700">
-                  {getGroupElectionIds(g).length} election{getGroupElectionIds(g).length === 1 ? "" : "s"}
-                </span>
-              </div>
-            </div>
+            </CompactListRow>
             );
           })}
-        </div>
+        </CompactList>
         </>
       )}
 

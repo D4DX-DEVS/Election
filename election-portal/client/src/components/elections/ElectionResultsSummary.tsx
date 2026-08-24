@@ -25,7 +25,7 @@ export function ElectionResultsSummary({ electionId }: ElectionResultsSummaryPro
   }
 
   if (!results) {
-    return <p className="text-sm text-gray-500">Results not available.</p>;
+    return <p className="app-muted">Results not available.</p>;
   }
 
   const nominees = results.nominees || [];
@@ -48,20 +48,20 @@ export function ElectionResultsSummary({ electionId }: ElectionResultsSummaryPro
       <div className="grid grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-gray-900">{results.totalBallots ?? 0}</p>
-            <p className="text-xs text-gray-500">Votes Cast</p>
+            <p className="app-metric">{results.totalBallots ?? 0}</p>
+            <p className="app-helper">Votes Cast</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-gray-900">{results.eligibleVoters ?? 0}</p>
-            <p className="text-xs text-gray-500">Eligible Voters</p>
+            <p className="app-metric">{results.eligibleVoters ?? 0}</p>
+            <p className="app-helper">Eligible Voters</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-gray-900">{results.turnout ?? 0}%</p>
-            <p className="text-xs text-gray-500">Turnout</p>
+            <p className="app-metric">{results.turnout ?? 0}%</p>
+            <p className="app-helper">Turnout</p>
           </CardContent>
         </Card>
       </div>
@@ -69,7 +69,7 @@ export function ElectionResultsSummary({ electionId }: ElectionResultsSummaryPro
       {winners.length > 0 && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2">
               <Trophy className="h-5 w-5 text-amber-500" />
               Winner{winners.length !== 1 ? "s" : ""}
             </CardTitle>

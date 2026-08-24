@@ -12,7 +12,7 @@ export function QuickActions({ recentActivity }: QuickActionsProps) {
   return (
     <Card>
       <CardHeader className="px-6 py-4 border-b border-gray-200">
-        <CardTitle className="text-lg font-medium text-gray-900">Quick Actions</CardTitle>
+        <CardTitle>Quick Actions</CardTitle>
       </CardHeader>
       <CardContent className="p-6">
         <div className="space-y-4">

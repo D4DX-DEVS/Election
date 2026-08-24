@@ -275,7 +275,7 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto scrollbar-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-[rgb(10,36,99)]">
             <HelpCircle className="h-5 w-5" />
@@ -307,14 +307,11 @@ export function HelpDialog({ open, onOpenChange }: HelpDialogProps) {
           ))}
         </div>
 
-        <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
-          <p className="text-xs text-slate-400">
-            User ID: <span className="font-medium text-slate-600">{userId}</span>
-          </p>
+        <DialogFooter>
           <Button
             onClick={downloadGuide}
             disabled={generating}
-            className="bg-[rgb(10,36,99)] hover:bg-[rgb(8,28,78)]"
+            className="w-full sm:w-auto bg-[rgb(10,36,99)] hover:bg-[rgb(8,28,78)]"
           >
             <FileDown className="mr-2 h-4 w-4" />
             {generating ? "Generating…" : "Download guide (PDF)"}

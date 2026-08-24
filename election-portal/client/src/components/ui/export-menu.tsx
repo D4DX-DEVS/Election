@@ -44,12 +44,12 @@ export function ExportMenu({
   const responsive = iconOnlyOnMobile && !iconOnly;
 
   const defaultClass = iconOnly
-    ? "h-10 w-10 shrink-0 p-0"
+    ? "h-9 w-9 shrink-0 p-0"
     : responsive
-      ? "h-10 w-10 shrink-0 p-0 sm:h-10 sm:w-auto sm:px-3"
+      ? "h-9 w-9 shrink-0 p-0 sm:h-9 sm:w-auto sm:px-3"
       : compact
         ? "h-8 w-full min-w-0 justify-center gap-1.5 px-2.5 text-xs font-medium leading-none"
-        : "h-10 w-full justify-center px-2 sm:w-auto sm:px-3";
+        : "h-9 w-full justify-center px-2 sm:w-auto sm:px-3";
 
   return (
     <DropdownMenu>

@@ -19,6 +19,7 @@ import { Trophy, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
+import { CompactList, CompactListLeading, CompactListPrimary, CompactListRow } from "@/components/ui/compact-list";
 
 interface ResultNominee {
   _id?: string;
@@ -131,7 +132,7 @@ export function ManualWinnerPicker({
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <CardTitle className="text-lg flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2">
               <Trophy className="h-5 w-5 text-blue-600" />
               Manual Winner Selection
             </CardTitle>
@@ -148,7 +149,7 @@ export function ManualWinnerPicker({
         {hasCutoffTie && (
           <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3">
             <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
-            <p className="text-xs text-amber-800">
+            <p className="app-muted text-amber-800">
               {tiedCount} nominees are tied on {cutoffVotes} vote{cutoffVotes === 1 ? "" : "s"} for
               the last winning position. Pick which of them takes the seat.
             </p>
@@ -156,59 +157,49 @@ export function ManualWinnerPicker({
         )}
 
         {nominees.length === 0 ? (
-          <p className="text-sm text-gray-500">Add nominees before selecting winners.</p>
+          <p className="app-muted">Add nominees before selecting winners.</p>
         ) : (
-          <div className="divide-y divide-gray-100 rounded-md border border-gray-200 bg-white">
+          <CompactList>
             {ranked.map((nominee, index) => {
               const id = String(nominee._id || nominee.id);
               const checked = selected.includes(id);
               const tied = isTiedAtCutoff(nominee);
               return (
-                <div
+                <CompactListRow
                   key={id}
-                  role="button"
-                  tabIndex={isLocked ? -1 : 0}
-                  onClick={() => !isLocked && toggleNominee(id, !checked)}
-                  onKeyDown={(e) => {
-                    if (isLocked) return;
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      toggleNominee(id, !checked);
-                    }
-                  }}
+                  onClick={isLocked ? undefined : () => toggleNominee(id, !checked)}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 transition-colors",
-                    tied ? "bg-amber-50 hover:bg-amber-100/70" : "hover:bg-primary/5",
-                    isLocked ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+                    tied && "bg-amber-50 hover:bg-amber-100/70",
+                    isLocked && "cursor-not-allowed opacity-60"
                   )}
                 >
+                  <CompactListLeading>
                   <SelectCheckbox
                     checked={checked}
                     onCheckedChange={(value) => !isLocked && toggleNominee(id, value)}
                     aria-label={`Select ${nominee.name} as winner`}
                     onClick={(e) => e.stopPropagation()}
                   />
-                  <span className="w-6 shrink-0 text-xs font-medium text-gray-400 tabular-nums">
+                  </CompactListLeading>
+                  <span className="app-muted w-6 shrink-0 font-medium tabular-nums">
                     {index + 1}
                   </span>
-                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-900">
-                    {nominee.name}
-                  </span>
+                  <CompactListPrimary>{nominee.name}</CompactListPrimary>
                   {tied && (
                     <Badge
                       variant="outline"
-                      className="shrink-0 border-amber-300 bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0"
+                      className="shrink-0 border-amber-300 bg-amber-100 text-amber-800 text-xs px-1.5 py-0"
                     >
                       Tied
                     </Badge>
                   )}
-                  <span className="shrink-0 text-xs text-gray-500 tabular-nums">
+                  <span className="app-muted shrink-0 tabular-nums">
                     {nominee.voteCount ?? 0} vote{(nominee.voteCount ?? 0) === 1 ? "" : "s"}
                   </span>
-                </div>
+                </CompactListRow>
               );
             })}
-          </div>
+          </CompactList>
         )}
         <div className="flex justify-end">
           <Button

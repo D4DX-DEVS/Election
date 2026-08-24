@@ -4,9 +4,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import {
   Dialog,
@@ -152,8 +149,8 @@ export function FranchiseSettingsCard({ franchiseId }: FranchiseSettingsCardProp
       <div className="flex items-start gap-3">
         <span className="mt-0.5 text-muted-foreground">{icon}</span>
         <div className="min-w-0">
-          <p className="text-xs text-muted-foreground">{label}</p>
-          <p className={text ? "font-medium break-words" : "text-gray-400"}>
+          <p className="app-helper">{label}</p>
+          <p className={text ? "app-detail-value break-words" : "app-muted"}>
             {text || "Not set"}
           </p>
         </div>
@@ -163,33 +160,15 @@ export function FranchiseSettingsCard({ franchiseId }: FranchiseSettingsCardProp
 
   return (
     <Card>
-      <CardHeader className="p-4 pb-0 md:p-5 md:pb-0">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <CardTitle className="text-lg">My Franchise</CardTitle>
-            <CardDescription>Your organisation's public details.</CardDescription>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="shrink-0"
-            onClick={() => setOpen(true)}
-            disabled={isLoading}
-          >
-            <Pencil className="h-4 w-4 mr-1" />
-            Edit
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="p-4 pt-3 md:p-5 md:pt-3 space-y-4 text-sm">
+      <CardContent className="p-3 md:p-4 space-y-3">
         {isLoading ? (
           <div className="space-y-3">
-            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-14 w-full" />
             <Skeleton className="h-10 w-full" />
           </div>
         ) : (
           <>
-            {/* Identity header — logo + name read as one unit */}
+            {/* Identity row — logo · name · Edit button all on the same line */}
             <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50/60 p-3">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-white">
                 {franchise.logo?.url ? (
@@ -202,12 +181,22 @@ export function FranchiseSettingsCard({ franchiseId }: FranchiseSettingsCardProp
                   <Building2 className="h-5 w-5 text-gray-400" />
                 )}
               </div>
-              <div className="min-w-0">
-                <p className="truncate text-sm md:text-base font-medium text-gray-900">
+              <div className="min-w-0 flex-1">
+                <p className="break-words app-section-title leading-snug">
                   {franchise.name || "—"}
                 </p>
-                <p className="text-xs text-muted-foreground">Organisation</p>
+                <p className="app-helper">Organisation</p>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="shrink-0 self-start"
+                onClick={() => setOpen(true)}
+                disabled={isLoading}
+              >
+                <Pencil className="h-3.5 w-3.5 mr-1" />
+                Edit
+              </Button>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">
@@ -228,8 +217,8 @@ export function FranchiseSettingsCard({ franchiseId }: FranchiseSettingsCardProp
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
+            <div className="app-form-fields">
+              <div className="grid gap-1">
                 <Label htmlFor="franchise-name">Franchise Name</Label>
                 <Input
                   id="franchise-name"
@@ -239,7 +228,7 @@ export function FranchiseSettingsCard({ franchiseId }: FranchiseSettingsCardProp
                   placeholder="Enter franchise name"
                 />
               </div>
-              <div className="grid gap-2">
+              <div className="grid gap-1">
                 <Label htmlFor="franchise-website">Website URL</Label>
                 <Input
                   id="franchise-website"
@@ -248,7 +237,7 @@ export function FranchiseSettingsCard({ franchiseId }: FranchiseSettingsCardProp
                   placeholder="https://example.com"
                 />
               </div>
-              <div className="grid gap-2">
+              <div className="grid gap-1">
                 <Label htmlFor="franchise-phone">Contact Number</Label>
                 <Input
                   id="franchise-phone"
@@ -257,7 +246,7 @@ export function FranchiseSettingsCard({ franchiseId }: FranchiseSettingsCardProp
                   placeholder="+1 (555) 123-4567"
                 />
               </div>
-              <div className="grid gap-2">
+              <div className="grid gap-1">
                 <Label htmlFor="franchise-email">Contact Email</Label>
                 <Input
                   id="franchise-email"
@@ -267,7 +256,7 @@ export function FranchiseSettingsCard({ franchiseId }: FranchiseSettingsCardProp
                   placeholder="contact@example.com"
                 />
               </div>
-              <div className="grid gap-2">
+              <div className="grid gap-1">
                 <Label htmlFor="franchise-logo">Franchise Logo</Label>
                 <div className="flex flex-wrap items-center gap-3">
                   {(logoPreview || franchise.logo?.url) && (
@@ -293,7 +282,7 @@ export function FranchiseSettingsCard({ franchiseId }: FranchiseSettingsCardProp
                     <Upload className="mr-2 h-4 w-4" />
                     {franchise.logo?.url || logoPreview ? "Change File" : "Choose File"}
                   </Label>
-                  <span className="min-w-0 break-all text-sm text-gray-500">
+                  <span className="min-w-0 break-all app-muted">
                     {logoFile ? logoFile.name : franchise.logo?.url ? "Current logo" : "No file chosen"}
                   </span>
                 </div>

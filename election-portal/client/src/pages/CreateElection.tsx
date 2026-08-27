@@ -6,6 +6,7 @@ import { ElectionForm } from "@/components/elections/ElectionForm";
 import { useToast } from "@/hooks/use-toast";
 import { buildElectionSubmitPayload } from "@/lib/electionHelpers";
 import { queryClient } from "@/lib/queryClient";
+import { apiUrl } from "@/lib/apiUrl";
 import type { Franchise } from "@/lib/types";
 import { PageContent, PageHeader } from "@/components/layout/PageContent";
 
@@ -46,18 +47,20 @@ export default function CreateElection() {
           if (value !== undefined && value !== null) body.append(key, String(value));
         });
         body.append("logo", logoFile);
-        response = await fetch("/api/elections", {
+        response = await fetch(apiUrl("/api/elections"), {
           method: "POST",
           headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
+          credentials: "include",
           body,
         });
       } else {
-        response = await fetch("/api/elections", {
+        response = await fetch(apiUrl("/api/elections"), {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("authToken")}`,
           },
+          credentials: "include",
           body: JSON.stringify(payload),
         });
       }

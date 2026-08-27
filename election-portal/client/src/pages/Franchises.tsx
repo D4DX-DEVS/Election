@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { apiUrl } from "@/lib/apiUrl";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DeleteModeBar } from "@/components/ui/delete-mode-bar";
@@ -150,7 +151,7 @@ export default function Franchises() {
   // Create franchise mutation
   const createFranchiseMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      const response = await fetch("/api/franchises", {
+      const response = await fetch(apiUrl("/api/franchises"), {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem('authToken')}`
@@ -242,7 +243,7 @@ export default function Franchises() {
   const updateFranchiseMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       const id = formData.get('id') as string;
-      const response = await fetch(`/api/franchises/${id}`, {
+      const response = await fetch(apiUrl(`/api/franchises/${id}`), {
         method: "PUT",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem('authToken')}`
@@ -278,7 +279,7 @@ export default function Franchises() {
   // Create franchise admin mutation
   const createFranchiseAdminMutation = useMutation({
     mutationFn: async (data: AdminFormData) => {
-      const response = await fetch(`/api/users/franchise-admin`, {
+      const response = await fetch(apiUrl(`/api/users/franchise-admin`), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -486,7 +487,7 @@ export default function Franchises() {
   // Get franchise admins
   const fetchFranchiseAdmins = async (franchiseId: string) => {
     try {
-      const response = await fetch(`/api/users/franchise-admins?franchiseId=${franchiseId}`, {
+      const response = await fetch(apiUrl(`/api/users/franchise-admins?franchiseId=${franchiseId}`), {
         headers: {
           "Authorization": `Bearer ${localStorage.getItem('authToken')}`
         }
@@ -531,7 +532,7 @@ export default function Franchises() {
   // Reset admin password mutation
   const resetAdminPasswordMutation = useMutation({
     mutationFn: async ({ adminId, newPassword }: { adminId: string; newPassword: string }) => {
-      const response = await fetch(`/api/users/franchise-admin/${adminId}/reset-password`, {
+      const response = await fetch(apiUrl(`/api/users/franchise-admin/${adminId}/reset-password`), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

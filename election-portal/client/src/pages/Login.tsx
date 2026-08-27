@@ -9,6 +9,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { clearAccountSession, storeAccountSession } from '@/lib/session';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { BallotIllustration } from '@/components/illustrations/BallotIllustration';
+import { apiUrl } from '@/lib/apiUrl';
 
 interface LoginResponse {
   success: boolean;
@@ -35,9 +36,10 @@ export default function Login() {
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: { username: string; password: string }) => {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(apiUrl('/api/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(credentials),
       });
       const data = await response.json();

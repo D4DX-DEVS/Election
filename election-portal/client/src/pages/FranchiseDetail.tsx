@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { apiUrl } from "@/lib/apiUrl";
 import { useToast } from "@/hooks/use-toast";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 
@@ -168,7 +169,7 @@ export default function FranchiseDetail() {
   const updateMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       const fid = formData.get("id") as string;
-      const res = await fetch(`/api/franchises/${fid}`, {
+      const res = await fetch(apiUrl(`/api/franchises/${fid}`), {
         method: "PUT",
         headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
         body: formData,
@@ -208,7 +209,7 @@ export default function FranchiseDetail() {
   // ── Reset admin password mutation ────────────────────────────────────────
   const resetPasswordMutation = useMutation({
     mutationFn: async ({ adminId, password }: { adminId: string; password: string }) => {
-      const res = await fetch(`/api/users/franchise-admin/${adminId}/reset-password`, {
+      const res = await fetch(apiUrl(`/api/users/franchise-admin/${adminId}/reset-password`), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { apiUrl } from "@/lib/apiUrl";
 import { isLettersOnlyName } from "@/lib/utils";
 import { Building2, Globe, Mail, Pencil, Phone, Upload } from "lucide-react";
 
@@ -94,7 +95,7 @@ export function FranchiseSettingsCard({ franchiseId }: FranchiseSettingsCardProp
       body.append("contactEmail", form.contactEmail);
       if (logoFile) body.append("logo", logoFile);
 
-      const res = await fetch(`/api/franchises/${franchiseId}`, {
+      const res = await fetch(apiUrl(`/api/franchises/${franchiseId}`), {
         method: "PUT",
         headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
         body,

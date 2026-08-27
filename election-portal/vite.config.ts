@@ -5,6 +5,8 @@ import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
+  // Load VITE_* from election-portal/.env even though Vite root is client/
+  envDir: path.resolve(import.meta.dirname),
   plugins: [
     react(),
     runtimeErrorOverlay(),
@@ -62,7 +64,11 @@ export default defineConfig({
         runtimeCaching: [
           {
             // All API traffic ALWAYS goes to the network — no caching (any method).
-            urlPattern: ({ url }) => url.pathname.startsWith("/api/"),
+            urlPattern: ({ url }) => {
+              if (url.pathname.startsWith("/api/")) return true;
+              const api = (process.env.VITE_API_URL || "").replace(/\/$/, "");
+              return Boolean(api) && url.href.startsWith(`${api}/`);
+            },
             handler: "NetworkOnly",
           },
           {

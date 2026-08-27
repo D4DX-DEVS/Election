@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
+import { apiUrl } from '@/lib/apiUrl';
 import VoterLayout from '@/components/layouts/VoterLayout';
 import { getElectionLabel } from '@/lib/electionHelpers';
 import { Button } from '@/components/ui/button';
@@ -105,7 +106,7 @@ export default function VotingBallot() {
 
   const castVoteMutation = useMutation({
     mutationFn: async (nomineeIds: string[]) => {
-      const response = await fetch(`/api/vote/cast/${electionId}`, {
+      const response = await fetch(apiUrl(`/api/vote/cast/${electionId}`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

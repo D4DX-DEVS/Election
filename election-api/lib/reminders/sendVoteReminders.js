@@ -5,11 +5,14 @@ const votes = require("../supabase/votes");
 const { isEmailConfigured, sendMail } = require("../email");
 
 function getPortalBaseUrl() {
-  const fromEnv = (process.env.FRONTEND_URLS || "")
+  const fromEnv = (process.env.FRONTEND_URL || "")
     .split(",")
-    .map((u) => u.trim())
+    .map((u) => u.trim().replace(/\/$/, ""))
     .filter(Boolean)[0];
-  return fromEnv || "https://election-portal-web.netlify.app";
+  if (!fromEnv) {
+    throw new Error("FRONTEND_URL is required for reminder links.");
+  }
+  return fromEnv;
 }
 
 async function fetchUsersByIds(ids) {

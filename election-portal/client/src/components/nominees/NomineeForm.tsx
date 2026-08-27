@@ -6,6 +6,7 @@ import { Election } from '@/lib/types';
 import { getElectionLabel } from '@/lib/electionHelpers';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, apiFormRequest } from '@/lib/queryClient';
+import { apiUrl } from '@/lib/apiUrl';
 import { prepareImageForUpload, validateImageFile, fileToDataUrl } from '@/lib/imageUpload';
 import { hasNomineePhoto } from '@/lib/nomineeHelpers';
 
@@ -622,7 +623,7 @@ export function NomineeForm({
       formData.append('file', importFile);
 
       // Use fetch directly for file upload
-      const response = await fetch('/api/nominees/import-file', {
+      const response = await fetch(apiUrl('/api/nominees/import-file'), {
         method: 'POST',
         body: formData,
       });

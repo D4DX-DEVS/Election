@@ -5,6 +5,7 @@ import {
   loadReadNotificationIds,
   saveReadNotificationIds,
 } from "@/lib/notifications";
+import { apiUrl } from "@/lib/apiUrl";
 
 const NOTIFICATIONS_DISABLED_UNTIL_KEY = "notificationsEndpointDisabledUntil";
 const NOTIFICATIONS_RECHECK_MS = 1000 * 60 * 60 * 6; // 6 hours
@@ -36,7 +37,7 @@ type NotificationFetchResult = {
 };
 
 async function fetchNotifications(): Promise<NotificationFetchResult> {
-  const res = await fetch("/api/notifications", {
+  const res = await fetch(apiUrl("/api/notifications"), {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("authToken") || ""}`,
     },

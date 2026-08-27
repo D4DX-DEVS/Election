@@ -21,6 +21,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
+import { apiUrl } from "@/lib/apiUrl";
 import { getStoredUser } from "@/lib/authUser";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 
@@ -172,7 +173,7 @@ export default function Onboarding() {
   // API call to update user's onboarding status
   const completeOnboardingMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/onboarding/complete", {
+      const response = await fetch(apiUrl("/api/onboarding/complete"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

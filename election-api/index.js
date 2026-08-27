@@ -1,11 +1,12 @@
+const path = require("path");
 const express = require("express");
 const dotenv = require("dotenv");
-dotenv.config({ path: "./.env" });
+dotenv.config({ path: path.resolve(__dirname, ".env") });
 const cors = require("cors");
 const multer = require("multer");
 const connectDB = require("./config/db.js");
 const { handleError } = require("./utils/errorLog.js");
-const path = require("path");
+const { corsOrigin, getAllowedOrigins } = require("./lib/cors.js");
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./swagger-output.json");
 const app = express();
@@ -24,29 +25,13 @@ if (process.env.NODE_ENV !== "production" || process.env.ENABLE_API_DOCS === "tr
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 }
 
-const allowedOrigins = [
-  "http://localhost:8000",
-  "http://localhost:8001",
-  "http://localhost:4000",
-  "http://localhost:3001",
-  "http://localhost:3002",
-  "https://election-portal-web.netlify.app",
-  "https://election-portal-app.netlify.app",
-  ...(process.env.FRONTEND_URLS
-    ? process.env.FRONTEND_URLS.split(",").map((u) => u.trim()).filter(Boolean)
-    : []),
-];
-
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) === -1) {
-        const msg = "The CORS policy for this site does not allow access from the specified Origin.";
-        return callback(new Error(msg), false);
-      }
-      return callback(null, true);
-    },
+    origin: corsOrigin,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cache-Control", "Pragma"],
+    maxAge: 86400,
   })
 );
 
@@ -132,7 +117,11 @@ app.use(handleError);
 
 app.get("/health", (_req, res) => res.status(200).json({ ok: true }));
 
-const PORT = process.env.PORT || 8000;
+const PORT = Number(process.env.PORT);
+if (!Number.isFinite(PORT) || PORT <= 0) {
+  throw new Error("PORT is required. Set it in election-api/.env (e.g. 5000).");
+}
+getAllowedOrigins();
 
 process.on("unhandledRejection", (reason) => {
   console.error("Unhandled rejection:", reason);
@@ -145,7 +134,11 @@ process.on("uncaughtException", (err) => {
 async function startServer() {
   try {
     await connectDB();
-    app.listen(PORT, () => console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV} mode`));
+    app.listen(PORT, () => {
+      const origins = getAllowedOrigins().join(", ");
+      console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
+      console.log(`CORS allowing FRONTEND_URL: ${origins}`);
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`Startup failed: ${message}`);

@@ -2,8 +2,9 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import cookieParser from "cookie-parser";
+import { requireBackendApiUrl } from "../shared/apiProxy";
 
-const API_URL = process.env.VITE_API_URL || "http://localhost:8000";
+const API_URL = requireBackendApiUrl(process.env.VITE_API_URL);
 
 /**
  * Maps portal /api/* routes to election-api /api/v1/* routes.

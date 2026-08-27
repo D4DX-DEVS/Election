@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { apiUrl } from "@/lib/apiUrl";
 
 // Parse JSON response or throw an error
 async function throwIfResNotOk(res: Response) {
@@ -54,7 +55,7 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const res = await fetch(url, {
+  const res = await fetch(apiUrl(url), {
     ...noStoreFetchInit,
     method,
     headers: getAuthHeaders(!!data),
@@ -73,7 +74,7 @@ export async function apiFormRequest(
 ): Promise<Response> {
   let res: Response;
   try {
-    res = await fetch(url, {
+    res = await fetch(apiUrl(url), {
       ...noStoreFetchInit,
       method,
       headers: getAuthHeaders(false),
@@ -97,7 +98,7 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     const url = queryKey[0] as string;
     
-    const res = await fetch(url, {
+    const res = await fetch(apiUrl(url), {
       ...noStoreFetchInit,
       headers: getAuthHeaders(),
     });

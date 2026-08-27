@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "./loadEnv";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
@@ -60,12 +60,14 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Default port 4000. Override with VITE_PORT environment variable.
-  const port = process.env.VITE_PORT || 4000;
+  const port = Number(process.env.VITE_PORT);
+  if (!Number.isFinite(port) || port <= 0) {
+    throw new Error("VITE_PORT is required. Set it in election-portal/.env (e.g. 5173).");
+  }
   server.listen({
     port,
     host: "0.0.0.0",
   }, () => {
-    log(`serving on port ${port}`);
+    log(`serving on port ${port} (VITE_PORT)`);
   });
 })();
